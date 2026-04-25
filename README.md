@@ -61,6 +61,13 @@ Libraries to be credited as they're added in later batches:
 
 ## Changelog
 
+### 2026-04-25 — Batch 3: Splits tab is now a per-day-type editor
+- Single source of truth for "what's in a Push day" is now `splitsByType` (object: `{push:[exId,...], pull:[...]}`). Editing it propagates to every day in the week with that type, so Push-day-1 and Push-day-2 share the same exercise list.
+- New `SplitsTab` (in `splitlift-tabs.jsx`): horizontal chip row of types currently in the schedule → exercise list (full-bleed muscle color, ≥64 px tall, one-tap delete) → single Add button → lightweight `SplitExSheet` filtered by `exercisesForDayType()`.
+- `makeDayForType()` now consults `splitsByType` first and only falls back to a sport-priority pick when no list exists for that type. PresetsSheet's apply-template / auto-build paths sync new types into `splitsByType` after rebuilding days.
+- Tapping a day-type chip in Schedule's drag palette jumps to Splits with that type pre-selected.
+- The old per-day-card list (`DayCard`/`ExerciseRow`/`onDragStartCard`) is no longer rendered on the Splits tab; left in `splitlift-app.jsx` for now since other batches may reuse the drag-between-days flow elsewhere.
+
 ### 2026-04-25 — Batch 2 follow-up: Schedule = literally the schedule
 On user feedback ("very mobile friendly, easier to use — schedule should literally only be the schedule"), the Schedule tab was pared back to a single surface:
 - Just a tiny title bar with a single **Presets** button, the week grid, and a flat horizontal-scroll palette with two rows: **SPLITS** and **CARDIO**. Drag any chip onto any day. Splits replace the day-type; cardios append to that day.

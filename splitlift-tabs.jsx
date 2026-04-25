@@ -27,12 +27,44 @@ const IconTrash = () => (
     <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/>
   </svg>
 );
+const IconPlus = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+    <path d="M12 5v14M5 12h14"/>
+  </svg>
+);
+
+// ============ SHARED HELPERS for splits-by-type model ============
+// splitsByType is the source of truth: { push: [exId,...], pull: [exId,...], ... }
+// days[i].exIds is derived/cached for backward-compat with everything else.
+function splitsByTypeFromDays(days) {
+  // Take the first occurrence of each type's exIds. If a sport has two Push days
+  // with different exercises, the second loses — that's the new canonical model.
+  const out = {};
+  for (const d of days || []) {
+    if (!d || d.rest || !d.type) continue;
+    if (out[d.type]) continue;
+    out[d.type] = [...(d.exIds || [])];
+  }
+  return out;
+}
+
+function applySplitsByTypeToDays(days, splitsByType) {
+  if (!splitsByType) return days;
+  return days.map(d => {
+    if (!d || d.rest) return d;
+    const list = splitsByType[d.type];
+    if (!list) return d;
+    return { ...d, exIds: [...list] };
+  });
+}
+
+Object.assign(window, { splitsByTypeFromDays, applySplitsByTypeToDays });
 
 // ================================================================
 // SCHEDULE TAB — only the week. Drag splits + cardios onto days.
 // Templates / quick-actions live behind the "Presets" sheet.
 // ================================================================
-function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLocked, profile, showToast, onJumpToSplits }) {
+function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLocked, profile, showToast, onJumpToSplits, splitsByType, setSplitsByType }) {
   const dayTypes = days.map(d => d.type || (d.rest ? 'rest' : 'custom'));
   const splitChips = ['push','pull','legs','upper','lower','full','rest'];
   const cardioChips = (window.CARDIO_LIBRARY || []);
@@ -71,7 +103,7 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
         if (locked[hoverIdx]) {
           showToast('Locked — unlock first');
         } else if (drag.kind === 'split') {
-          setDays(prev => prev.map((d, i) => i === hoverIdx ? makeDayForType(drag.id, profile) : d));
+          setDays(prev => prev.map((d, i) => i === hoverIdx ? makeDayForType(drag.id, profile, splitsByType) : d));
           showToast(`${window.DAY_NAMES[hoverIdx]}: ${window.DAY_TYPES[drag.id]?.label}`);
         } else if (drag.kind === 'cardio') {
           setCardioDays(prev => {
@@ -104,7 +136,7 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
 
   const clearDay = (idx) => {
     if (locked[idx]) { showToast('Locked — unlock first'); return; }
-    setDays(prev => prev.map((d,i)=> i===idx ? makeDayForType('rest', profile) : d));
+    setDays(prev => prev.map((d,i)=> i===idx ? makeDayForType('rest', profile, splitsByType) : d));
     setCardioDays(prev => prev.map((d,i)=> i===idx ? { items: [] } : d));
     setPickFor(null);
     showToast(`${window.DAY_NAMES[idx]} cleared`);
@@ -236,7 +268,10 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
         <PresetsSheet
           profile={profile}
           locked={locked}
+          days={days}
           setDays={setDays}
+          splitsByType={splitsByType}
+          setSplitsByType={setSplitsByType}
           showToast={showToast}
           onClose={()=>setPresetsOpen(false)}
         />
@@ -261,7 +296,7 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
 
 // Presets bottom sheet — auto-build + suggested + all templates.
 // Lives behind the Presets button on Schedule. Not on the main surface.
-function PresetsSheet({ profile, locked, setDays, showToast, onClose }) {
+function PresetsSheet({ profile, locked, days, setDays, splitsByType, setSplitsByType, showToast, onClose }) {
   const ranked = useMemo(
     () => (window.rankTemplatesForSport
       ? window.rankTemplatesForSport({ sport: profile.sport, days: profile.days, limit: 3 })
@@ -270,17 +305,29 @@ function PresetsSheet({ profile, locked, setDays, showToast, onClose }) {
   );
   const sportLabel = window.SPORTS.find(s => s.id === profile.sport)?.label || 'your sport';
 
+  // Whenever a preset rebuilds days, also sync splitsByType so the new types
+  // get a saved exercise list (existing types are preserved).
+  const syncSplits = (newDays) => {
+    if (!setSplitsByType) return;
+    const fresh = window.splitsByTypeFromDays(newDays);
+    setSplitsByType(prev => ({ ...(prev || {}), ...fresh }));
+  };
+
   const applyTemplate = (id) => {
     const tpl = (window.SPLIT_TEMPLATES || []).find(t => t.id === id);
     if (!tpl) return;
-    setDays(prev => prev.map((d, i) => locked[i] ? d : makeDayForType(tpl.days[i], profile)));
+    const newDays = days.map((d, i) => locked[i] ? d : makeDayForType(tpl.days[i], profile, splitsByType));
+    setDays(newDays);
+    syncSplits(newDays);
     showToast(`Applied: ${tpl.name}`);
     onClose();
   };
 
   const autoBuild = () => {
     const plan = window.planForSport({ ...profile });
-    setDays(prev => plan.map((p,i)=> locked[i] ? prev[i] : p));
+    const newDays = plan.map((p, i) => locked[i] ? days[i] : p);
+    setDays(newDays);
+    syncSplits(newDays);
     showToast('Auto-built for your sport');
     onClose();
   };
@@ -339,11 +386,180 @@ function PresetsSheet({ profile, locked, setDays, showToast, onClose }) {
   );
 }
 
-// Build an initial day object for a given type
-function makeDayForType(typeId, profile) {
+// ================================================================
+// SPLITS TAB — edit one day-type at a time. Source of truth = splitsByType.
+// Editing here propagates to every day in the week with that type.
+// ================================================================
+function SplitsTab({ days, splitsByType, setSplitsByType, activeType, setActiveType, profile, showToast }) {
+  const [addOpen, setAddOpen] = useState(false);
+
+  // Day-types currently in the user's week (lift days only — skip rest/sport/cardio).
+  const availableTypes = useMemo(() => {
+    const seen = [];
+    for (const d of days) {
+      if (!d || d.rest) continue;
+      if (d.type === 'sport' || d.type === 'cardio' || d.type === 'rest') continue;
+      if (!seen.includes(d.type)) seen.push(d.type);
+    }
+    return seen;
+  }, [days]);
+
+  // If the active type is no longer in the week, jump to the first one.
+  useEffect(() => {
+    if (availableTypes.length === 0) return;
+    if (!availableTypes.includes(activeType)) setActiveType(availableTypes[0]);
+  }, [availableTypes, activeType, setActiveType]);
+
+  const exIds = (splitsByType && splitsByType[activeType]) || [];
+  const exObjs = exIds.map(id => window.EXERCISES.find(e => e.id === id)).filter(Boolean);
+  const totalSets = exObjs.reduce((s, ex) => s + window.setsForExercise(ex), 0);
+  const dt = window.DAY_TYPES[activeType] || window.DAY_TYPES.custom;
+  const daysCount = days.filter(d => d && !d.rest && d.type === activeType).length;
+
+  const removeAt = (i) => {
+    setSplitsByType(prev => {
+      const cur = [...((prev && prev[activeType]) || [])];
+      cur.splice(i, 1);
+      return { ...(prev || {}), [activeType]: cur };
+    });
+  };
+
+  const addEx = (exId) => {
+    setSplitsByType(prev => {
+      const cur = [...((prev && prev[activeType]) || [])];
+      if (cur.includes(exId)) return prev;
+      cur.push(exId);
+      return { ...(prev || {}), [activeType]: cur };
+    });
+    showToast(`Added to ${dt.label}`);
+  };
+
+  if (availableTypes.length === 0) {
+    return (
+      <div className="tab-pane splits-page">
+        <div className="empty-pane">
+          <div className="emp-t">No lift days yet</div>
+          <div className="emp-s">Open Schedule and drop a Push / Pull / Legs chip onto a day.</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tab-pane splits-page">
+      {/* Day-type selector — only types currently in the schedule */}
+      <div className="st-types">
+        {availableTypes.map(t => {
+          const isActive = t === activeType;
+          const dt2 = window.DAY_TYPES[t] || window.DAY_TYPES.custom;
+          return (
+            <button key={t} className={`st-chip ${isActive ? 'on' : ''}`}
+              style={{ '--bp': `var(--bp-${t})` }}
+              onClick={() => setActiveType(t)}>
+              {dt2.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Active type meta strip */}
+      <div className="st-head" style={{ '--bp': `var(--bp-${activeType})` }}>
+        <div className="st-h-l">
+          <div className="st-h-t">{dt.label} day</div>
+          <div className="st-h-s mono">{exObjs.length} EX · {totalSets} SETS · {daysCount}× / WK</div>
+        </div>
+      </div>
+
+      {/* Exercise list — full-bleed muscle color, ≥44px row, one-tap delete */}
+      <div className="st-list">
+        {exObjs.length === 0 ? (
+          <div className="empty-pane">
+            <div className="emp-t">No exercises on {dt.label} yet</div>
+            <div className="emp-s">Tap the button below to add one.</div>
+          </div>
+        ) : (
+          exObjs.map((ex, i) => (
+            <div key={`${ex.id}-${i}`} className="st-ex" style={{ '--bp': `var(--bp-${ex.body || ex.type})` }}>
+              <div className="st-ex-body">
+                <div className="st-ex-n">{ex.name}</div>
+                <div className="st-ex-m mono">{ex.sets} · {ex.gear}</div>
+              </div>
+              <button className="st-ex-x" onClick={() => removeAt(i)} aria-label={`Remove ${ex.name}`}><IconX/></button>
+            </div>
+          ))
+        )}
+      </div>
+
+      <button className="st-add" onClick={() => setAddOpen(true)}>
+        <IconPlus/> Add to {dt.label}
+      </button>
+
+      {addOpen && (
+        <SplitExSheet
+          dayType={activeType}
+          existing={exIds}
+          onAdd={addEx}
+          onClose={() => setAddOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// Lightweight bottom sheet — pick exercises filtered by a day-type's allowed muscles.
+function SplitExSheet({ dayType, existing, onAdd, onClose }) {
+  const [q, setQ] = useState('');
+  const list = useMemo(() => {
+    const cands = (window.exercisesForDayType ? window.exercisesForDayType(dayType) : []) || [];
+    const ql = q.trim().toLowerCase();
+    return ql ? cands.filter(ex => ex.name.toLowerCase().includes(ql)) : cands;
+  }, [dayType, q]);
+  const dt = window.DAY_TYPES[dayType] || window.DAY_TYPES.custom;
+  return (
+    <div className="ps-overlay" onClick={onClose}>
+      <div className="ps-sheet" onClick={e=>e.stopPropagation()}>
+        <div className="ps-head">
+          <div>
+            <div className="ps-t">Add to {dt.label}</div>
+            <div className="ps-s mono">{list.length} MATCHING</div>
+          </div>
+          <button className="ip-x" onClick={onClose} aria-label="Close"><IconX/></button>
+        </div>
+        <input className="sx-search" placeholder="Search exercises…" value={q} onChange={e=>setQ(e.target.value)}/>
+        <div className="sx-list">
+          {list.length === 0 && <div className="empty-pane"><div className="emp-t">No matches.</div></div>}
+          {list.map(ex => {
+            const inUse = existing.includes(ex.id);
+            return (
+              <button key={ex.id} className={`sx-row ${inUse ? 'in' : ''}`}
+                style={{ '--bp': `var(--bp-${ex.body || ex.type})` }}
+                onClick={() => !inUse && onAdd(ex.id)}
+                disabled={inUse}>
+                <div className="sx-body">
+                  <div className="sx-n">{ex.name}</div>
+                  <div className="sx-m mono">{ex.sets} · {ex.gear}</div>
+                </div>
+                <span className="sx-add">{inUse ? <IconX/> : <IconPlus/>}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Build a day object for a given type. If a saved split-list exists for this type,
+// reuse it (so Push-day-1 and Push-day-2 share the same exercises). Otherwise
+// fall back to a sport-priority pick.
+function makeDayForType(typeId, profile, splitsByType) {
   if (typeId === 'rest') return { type:'rest', focus:'Rest', exIds:[], rest:true, restNote:'Recovery is where adaptation happens.' };
   if (typeId === 'sport') return { type:'sport', focus:'Sport', exIds:[], rest:true, restNote:`${window.SPORTS.find(s=>s.id===profile.sport)?.label || 'Sport'} practice — coverage handled on the field.` };
-  // pick top-N exercises matching this type for that sport
+  // Prefer the user's saved per-type list
+  if (splitsByType && splitsByType[typeId] && splitsByType[typeId].length > 0) {
+    return { type: typeId, focus: window.DAY_TYPES[typeId]?.label || typeId, exIds: [...splitsByType[typeId]] };
+  }
+  // Fallback: pick top-N matching this type weighted by sport priority
   const sp = window.SPORTS.find(s => s.id === profile.sport) || window.SPORTS[0];
   const priority = sp.priority || {};
   const score = (ex) => {
@@ -992,4 +1208,5 @@ function BodyTabV2({ days, onAddExercise, setTab }) {
 
 Object.assign(window, {
   ScheduleTab, DashboardPage, ProfileV2, CardioPageV2, BodyTabV2, makeDayForType,
+  SplitsTab, SplitExSheet, PresetsSheet,
 });

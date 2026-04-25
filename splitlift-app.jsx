@@ -1045,6 +1045,19 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout }) {
   const [cardioDays, setCardioDays] = useState(window.INITIAL_CARDIO_DAYS);
   const [locked, setLocked] = useState([false,true,false,false,false,true,false]);
   const [tab, setTab] = useState('splits');
+  // splitsByType is the source of truth for "what's in a Push day", "Pull day", etc.
+  // Initialised from INITIAL_DAYS so existing template lists carry over.
+  const [splitsByType, setSplitsByType] = useState(() =>
+    window.splitsByTypeFromDays ? window.splitsByTypeFromDays(window.INITIAL_DAYS) : {}
+  );
+  const [splitsActiveType, setSplitsActiveType] = useState('push');
+
+  // Propagate splitsByType edits down to every day with that type.
+  // Day-cells stop drifting from their canonical split.
+  useEffect(() => {
+    if (!window.applySplitsByTypeToDays) return;
+    setDays(prev => window.applySplitsByTypeToDays(prev, splitsByType));
+  }, [splitsByType]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetDay, setSheetDay] = useState(0);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
@@ -1171,7 +1184,9 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout }) {
   };
   const toggleLock = (dayIdx) => setLocked(prev => prev.map((v,i)=>i===dayIdx?!v:v));
   const regenerate = () => {
-    setDays(prev => prev.map((d,i) => locked[i] ? d : { ...window.INITIAL_DAYS[i] }));
+    const next = days.map((d,i) => locked[i] ? d : { ...window.INITIAL_DAYS[i] });
+    setDays(next);
+    if (window.splitsByTypeFromDays) setSplitsByType(window.splitsByTypeFromDays(next));
     showToast('Split regenerated');
   };
   const openSheet = (dayIdx) => { setSheetDay(dayIdx); setSheetOpen(true); };
@@ -1228,28 +1243,17 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout }) {
 
       <div className="screen-body" style={{position:'relative'}} ref={screenBodyRef}>
         {tab === 'splits' && (
-          <div className="tab-pane">
-            <div className="splits-toolbar">
-              <button className="cmdk-trigger" onClick={()=>setCmdkOpen(true)}>
-                <span className="ico"><I.search/></span>
-                <span className="lbl">Search exercises…</span>
-                <span className="kbd">⌘K</span>
-              </button>
-              <button className="icon-btn" onClick={regenerate} title="Regenerate split"><I.refresh/></button>
-            </div>
-            <div className="week-stack">
-              {days.map((day, idx) => (
-                <DayCard key={idx} day={day} dayIdx={idx} locked={locked[idx]} onToggleLock={toggleLock} onRemove={removeExercise} onAddTap={openSheet} onDragStartCard={onDragStartCard} dropActiveIdx={dropDayIdx} draggingFrom={drag ? { dayIdx: drag.fromDay, exIdx: drag.fromExIdx } : null}/>
-              ))}
-            </div>
-            <button className="lib-sheet-trigger" onClick={()=>openSheet(0)}>
-              <span className="l">Open exercise library</span>
-              <span className="c mono">{window.EXERCISES.length}</span>
-              <I.arrowR className="arrow"/>
-            </button>
-          </div>
+          <window.SplitsTab
+            days={days}
+            splitsByType={splitsByType}
+            setSplitsByType={setSplitsByType}
+            activeType={splitsActiveType}
+            setActiveType={setSplitsActiveType}
+            profile={profile}
+            showToast={showToast}
+          />
         )}
-        {tab === 'schedule' && <window.ScheduleTab days={days} setDays={setDays} cardioDays={cardioDays} setCardioDays={setCardioDays} locked={locked} setLocked={setLocked} profile={profile} showToast={showToast} onJumpToSplits={()=>setTab('splits')}/>}
+        {tab === 'schedule' && <window.ScheduleTab days={days} setDays={setDays} cardioDays={cardioDays} setCardioDays={setCardioDays} locked={locked} setLocked={setLocked} profile={profile} showToast={showToast} splitsByType={splitsByType} setSplitsByType={setSplitsByType} onJumpToSplits={(typeId)=>{ if(typeId) setSplitsActiveType(typeId); setTab('splits'); }}/>}
         {tab === 'body' && (window.BodyTabV2 ? <window.BodyTabV2 days={days} onAddExercise={addToToday} setTab={setTab}/> : <BodyTab days={days} onAddExercise={addToToday}/>)}
         {tab === 'cardio' && (window.CardioPageV2 ? <window.CardioPageV2 cardioDays={cardioDays} setCardioDays={setCardioDays} onOpenCardioSheet={openCardioSheet}/> : <CardioPage cardioDays={cardioDays} setCardioDays={setCardioDays} onOpenCardioSheet={openCardioSheet}/>)}
         {tab === 'dashboard' && <window.DashboardPage days={days} cardioDays={cardioDays} profile={profile} setTab={setTab}/>}

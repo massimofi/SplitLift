@@ -1397,6 +1397,108 @@
     box-shadow: 0 12px 32px rgba(0,0,0,0.35);
   }
 
+  /* ============== SPLITS TAB (per-day-type editor) ============== */
+  .splits-page { padding: 8px 16px 96px; }
+  .empty-pane {
+    padding: 28px 18px; text-align: center;
+    background: var(--bg-2); border-radius: 16px;
+    border: 1px dashed var(--hair); margin-top: 16px;
+  }
+  .emp-t { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+  .emp-s { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+
+  .st-types {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding: 2px 2px 8px; scrollbar-width: none;
+  }
+  .st-types::-webkit-scrollbar { display: none; }
+  .st-chip {
+    flex-shrink: 0; min-height: 44px; padding: 10px 16px;
+    border-radius: 999px; font-family: inherit;
+    border: 1.5px solid color-mix(in oklab, var(--bp) 40%, transparent);
+    background: color-mix(in oklab, var(--bp) 12%, var(--bg-2));
+    color: var(--ink); font-weight: 700; font-size: 13px;
+    cursor: pointer;
+  }
+  .st-chip.on {
+    background: var(--bp); color: white; border-color: var(--bp);
+    box-shadow: 0 6px 18px color-mix(in oklab, var(--bp) 35%, transparent);
+  }
+  .st-chip:active { transform: scale(0.96); }
+
+  .st-head {
+    margin: 12px 0 10px; padding: 12px 14px;
+    border-radius: 14px;
+    background: color-mix(in oklab, var(--bp) 14%, var(--bg-2));
+    border-left: 6px solid var(--bp);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .st-h-t { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; }
+  .st-h-s { font-size: 10px; color: var(--ink-3); letter-spacing: 0.1em; margin-top: 2px; }
+
+  .st-list { display: flex; flex-direction: column; gap: 8px; }
+  .st-ex {
+    display: flex; align-items: center; gap: 12px;
+    min-height: 64px; padding: 12px 12px 12px 16px;
+    border-radius: 14px;
+    background: color-mix(in oklab, var(--bp) 90%, var(--bg));
+    color: white;
+    box-shadow: 0 4px 14px color-mix(in oklab, var(--bp) 22%, transparent);
+  }
+  .st-ex-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .st-ex-n { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+  .st-ex-m {
+    font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(255,255,255,0.78);
+  }
+  .st-ex-x {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: rgba(255,255,255,0.18); border: none; cursor: pointer;
+    color: white; display: grid; place-items: center;
+  }
+  .st-ex-x:active { transform: scale(0.94); background: rgba(255,255,255,0.28); }
+  .st-ex-x svg { width: 14px; height: 14px; }
+
+  .st-add {
+    margin-top: 14px; min-height: 56px; width: 100%;
+    padding: 14px 18px; border-radius: 14px;
+    background: var(--ink); color: var(--bg);
+    border: none; cursor: pointer;
+    font-family: inherit; font-weight: 700; font-size: 15px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .st-add svg { width: 18px; height: 18px; }
+  .st-add:active { transform: scale(0.98); }
+
+  /* SplitExSheet — re-uses .ps-overlay / .ps-sheet from Schedule */
+  .sx-search {
+    width: 100%; padding: 14px 16px; border-radius: 12px;
+    background: var(--bg-2); border: 1.5px solid var(--hair);
+    font-family: inherit; font-size: 15px; color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .sx-search:focus { outline: none; border-color: var(--accent); background: var(--bg); }
+  .sx-list { display: flex; flex-direction: column; gap: 6px; }
+  .sx-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 56px; padding: 10px 12px 10px 14px; border-radius: 12px;
+    background: color-mix(in oklab, var(--bp) 14%, var(--bg-2));
+    border-left: 4px solid var(--bp);
+    text-align: left; font-family: inherit; cursor: pointer; color: var(--ink);
+  }
+  .sx-row:active { transform: scale(0.99); }
+  .sx-row.in { opacity: 0.55; cursor: not-allowed; }
+  .sx-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .sx-n { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+  .sx-m { font-size: 10px; color: var(--ink-3); letter-spacing: 0.06em; text-transform: uppercase; }
+  .sx-add {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--bp); color: white;
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .sx-row.in .sx-add { background: var(--ink-3); color: var(--bg); }
+  .sx-add svg { width: 16px; height: 16px; }
+
   /* ============== DASHBOARD ============== */
   .dash-page { padding: 8px 16px 24px; }
   .dash-hero {
