@@ -264,12 +264,24 @@ function SportSheet({ current, onPick, onClose }) {
 }
 
 // ================================================================
-// SCHEDULE TAB — vertical day rows. Tap a row to edit (no drag).
-// One sheet does it all: lift type + cardio + lock + clear.
+// SCHEDULE TAB — left palette of split + cardio chips, big day boxes.
+// Drag a chip onto a day, or tap a day to open the picker sheet.
 // ================================================================
 function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLocked, profile, showToast, onJumpToSplits, splitsByType, setSplitsByType }) {
   const [presetsOpen, setPresetsOpen] = useState(false);
   const [pickFor, setPickFor] = useState(null);
+
+  // Drag state — single handler for split + cardio chips
+  const [drag, setDrag] = useState(null);
+  const [hoverIdx, setHoverIdx] = useState(null);
+
+  const startDrag = (e, payload) => {
+    const isTouch = e.touches !== undefined;
+    const px = isTouch ? e.touches[0].clientX : e.clientX;
+    const py = isTouch ? e.touches[0].clientY : e.clientY;
+    if (!isTouch) e.preventDefault();
+    setDrag({ ...payload, x: px, y: py });
+  };
 
   const setDayType = (idx, typeId) => {
     if (locked[idx]) { showToast('Locked — unlock first'); return; }
@@ -287,6 +299,38 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
     const c = window.cardioFor(cid);
     showToast(`${window.DAY_NAMES[idx]}: + ${c?.name || 'cardio'}`);
   };
+
+  useEffect(() => {
+    if (!drag) return;
+    const move = (e) => {
+      const isTouch = e.touches !== undefined;
+      const px = isTouch ? e.touches[0].clientX : e.clientX;
+      const py = isTouch ? e.touches[0].clientY : e.clientY;
+      const el = document.elementFromPoint(px, py);
+      const slot = el && el.closest && el.closest('[data-sched-day]');
+      const idx = slot ? parseInt(slot.getAttribute('data-sched-day'), 10) : null;
+      setDrag(d => d ? { ...d, x: px, y: py } : null);
+      setHoverIdx(idx);
+      if (isTouch) e.preventDefault();
+    };
+    const up = () => {
+      if (drag && hoverIdx !== null) {
+        if (drag.kind === 'split') setDayType(hoverIdx, drag.id);
+        else if (drag.kind === 'cardio') addCardioToDay(hoverIdx, drag.id);
+      }
+      setDrag(null); setHoverIdx(null);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+    window.addEventListener('touchmove', move, { passive: false });
+    window.addEventListener('touchend', up);
+    return () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+      window.removeEventListener('touchmove', move);
+      window.removeEventListener('touchend', up);
+    };
+  }, [drag, hoverIdx, locked, profile, splitsByType]);
 
   const removeCardio = (dayIdx, itemIdx) => {
     if (locked[dayIdx]) { showToast('Locked — unlock first'); return; }
@@ -311,6 +355,8 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
   };
 
   const todayIdx = (() => { const j = new Date().getDay(); return j === 0 ? 6 : j - 1; })();
+  const splitChips  = ['push','pull','legs','upper','lower','full','rest'];
+  const cardioChips = (window.CARDIO_LIBRARY || []).slice(0, 6); // first 6 to keep palette short
 
   return (
     <div className="tab-pane sched-page">
@@ -319,51 +365,99 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
         <button className="presets-btn" onClick={()=>setPresetsOpen(true)}>Presets</button>
       </div>
 
-      <div className="sched-rows">
-        {window.DAY_NAMES.map((dn, i) => {
-          const day = days[i] || { type: 'rest', rest: true };
-          const t = day.type || 'rest';
-          const dt = window.DAY_TYPES[t] || window.DAY_TYPES.custom;
-          const cItems = (cardioDays && cardioDays[i] && cardioDays[i].items) || [];
-          const isToday = todayIdx === i;
-          const isLocked = locked[i];
-          const isRest = t === 'rest';
+      <div className="sched-layout">
+        {/* Left palette — sticky, drag-source for splits + cardios */}
+        <div className="sched-palette">
+          <div className="sp-h mono">SPLIT</div>
+          {splitChips.map(p => {
+            const dt = window.DAY_TYPES[p];
+            if (!dt) return null;
+            return (
+              <button key={p} className="sp-chip"
+                style={{ '--bp': `var(--bp-${p})` }}
+                onMouseDown={(e)=>startDrag(e, { kind:'split', id:p })}
+                onTouchStart={(e)=>startDrag(e, { kind:'split', id:p })}
+                onClick={()=>onJumpToSplits && onJumpToSplits(p)}>
+                {dt.label}
+              </button>
+            );
+          })}
+          <div className="sp-h mono">CARDIO</div>
+          {cardioChips.map(c => {
+            const tcol = window.CARDIO_TYPES[c.type]?.color;
+            return (
+              <button key={c.id} className="sp-chip cardio"
+                style={{ '--bp': tcol || 'var(--ink-3)' }}
+                onMouseDown={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
+                onTouchStart={(e)=>startDrag(e, { kind:'cardio', id:c.id })}>
+                <span className="sp-c-name">{window.CARDIO_TYPES[c.type]?.label || c.name}</span>
+                <span className="sp-c-meta mono">{c.dur}m</span>
+              </button>
+            );
+          })}
+        </div>
 
-          return (
-            <button key={i} className={`sched-row ${isToday?'today':''} ${isLocked?'locked':''} ${isRest?'is-rest':''}`}
-              style={{ '--bp': `var(--bp-${t})` }}
-              onClick={() => setPickFor(i)}>
-              <div className="sr-day">
-                <div className="sr-d mono">{dn.toUpperCase()}</div>
-                {isToday && <span className="sr-today-tag mono">TODAY</span>}
-              </div>
-              <div className="sr-mid">
-                <div className="sr-type">{dt.label}</div>
-                {cItems.length > 0 ? (
-                  <div className="sr-cardios">
-                    {cItems.slice(0, 3).map((cid, k) => {
-                      const c = window.cardioFor(cid);
-                      const col = c && window.CARDIO_TYPES[c.type]?.color;
-                      return (
-                        <span key={k} className="sr-c-pill" style={{ background: col || 'var(--ink-3)' }}>
-                          {c?.dur || 0}m
-                        </span>
-                      );
-                    })}
-                    {cItems.length > 3 && <span className="sr-c-pill more mono">+{cItems.length - 3}</span>}
-                  </div>
-                ) : (
-                  <div className="sr-sub">{dt.sub}</div>
-                )}
-              </div>
-              <div className="sr-right">
-                {isLocked && <span className="sr-lock"><IconLock/></span>}
-                <span className="sr-chev" aria-hidden="true">›</span>
-              </div>
-            </button>
-          );
-        })}
+        {/* Right column — big day boxes, drop targets + tap to open picker */}
+        <div className="sched-rows">
+          {window.DAY_NAMES.map((dn, i) => {
+            const day = days[i] || { type: 'rest', rest: true };
+            const t = day.type || 'rest';
+            const dt = window.DAY_TYPES[t] || window.DAY_TYPES.custom;
+            const cItems = (cardioDays && cardioDays[i] && cardioDays[i].items) || [];
+            const isToday = todayIdx === i;
+            const isLocked = locked[i];
+            const isRest = t === 'rest';
+            const isHover = hoverIdx === i;
+
+            return (
+              <button key={i} data-sched-day={i}
+                className={`sched-row ${isToday?'today':''} ${isLocked?'locked':''} ${isRest?'is-rest':''} ${isHover?'is-hover':''}`}
+                style={{ '--bp': `var(--bp-${t})` }}
+                onClick={() => setPickFor(i)}>
+                <div className="sr-day">
+                  <div className="sr-d mono">{dn.toUpperCase()}</div>
+                  {isToday && <span className="sr-today-tag mono">TODAY</span>}
+                </div>
+                <div className="sr-mid">
+                  <div className="sr-type">{dt.label}</div>
+                  {cItems.length > 0 ? (
+                    <div className="sr-cardios">
+                      {cItems.slice(0, 3).map((cid, k) => {
+                        const c = window.cardioFor(cid);
+                        const col = c && window.CARDIO_TYPES[c.type]?.color;
+                        return (
+                          <span key={k} className="sr-c-pill" style={{ background: col || 'var(--ink-3)' }}>
+                            {c?.dur || 0}m
+                          </span>
+                        );
+                      })}
+                      {cItems.length > 3 && <span className="sr-c-pill more mono">+{cItems.length - 3}</span>}
+                    </div>
+                  ) : (
+                    <div className="sr-sub">{dt.sub}</div>
+                  )}
+                </div>
+                <div className="sr-right">
+                  {isLocked && <span className="sr-lock"><IconLock/></span>}
+                  <span className="sr-chev" aria-hidden="true">›</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {/* Floating drag ghost */}
+      {drag && (
+        <div className="drag-ghost" style={{ left: drag.x - 50, top: drag.y - 22,
+              '--bp': drag.kind === 'split'
+                ? `var(--bp-${drag.id})`
+                : (window.CARDIO_TYPES[window.cardioFor(drag.id)?.type]?.color || 'var(--ink-3)') }}>
+          {drag.kind === 'split'
+            ? window.DAY_TYPES[drag.id]?.label
+            : window.cardioFor(drag.id)?.name}
+        </div>
+      )}
 
       {pickFor !== null && (
         <DayPickerSheet
@@ -863,7 +957,9 @@ function DashboardPage({ days, cardioDays, profile, setTab }) {
   const trainingKcal = window.totalLiftKcal(days) + window.totalCardioKcal(cardioDays);
 
   // ---- Moveable widgets: drag-reorder + persisted in localStorage ----
-  const allWidgets = ['figure','lift','cardio','sport','underworked','time','streak'];
+  // Body figure intentionally lives near the bottom — it's a teaser for the Body tab,
+  // not the centre of the dashboard. Will become a 3D model in Batch 6.
+  const allWidgets = ['lift','cardio','sport','underworked','time','streak','figure'];
   const ORDER_KEY = 'sl-dash-order';
   const [order, setOrder] = useState(() => {
     try {

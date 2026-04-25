@@ -1216,22 +1216,61 @@
   .tpl-mini { display: flex; gap: 3px; }
   .tpl-cell { width: 14px; height: 14px; border-radius: 4px; }
 
-  /* Schedule — vertical day rows. Tap a row to edit the whole day. */
+  /* Schedule — left chip palette + big day boxes. Drag chips, or tap a box. */
+  .sched-layout {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 10px;
+  }
+  .sched-palette {
+    display: flex; flex-direction: column; gap: 6px;
+    align-self: start;
+    position: sticky; top: 6px;
+  }
+  .sp-h {
+    font-size: 9px; color: var(--ink-3);
+    letter-spacing: 0.14em; text-align: center;
+    margin: 6px 0 2px;
+  }
+  .sp-h:first-child { margin-top: 0; }
+  .sp-chip {
+    min-height: 56px; padding: 8px 6px;
+    border-radius: 12px;
+    background: color-mix(in oklab, var(--bp) 22%, var(--bg-2));
+    border: 1.5px solid color-mix(in oklab, var(--bp) 45%, transparent);
+    color: var(--ink); font-weight: 700; font-size: 12px;
+    font-family: inherit;
+    cursor: grab; touch-action: none; user-select: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    text-align: center;
+  }
+  .sp-chip:active { cursor: grabbing; transform: scale(0.95); }
+  .sp-chip.cardio { font-size: 11px; min-height: 50px; }
+  .sp-chip .sp-c-name { line-height: 1.1; }
+  .sp-chip .sp-c-meta {
+    font-size: 9px; color: var(--ink-3);
+    background: var(--bg); padding: 1px 5px; border-radius: 999px;
+  }
+
   .sched-rows { display: flex; flex-direction: column; gap: 8px; }
   .sched-row {
     display: flex; align-items: center; gap: 12px;
-    width: 100%; min-height: 64px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: color-mix(in oklab, var(--bp) 12%, var(--bg-2));
-    border: 1px solid color-mix(in oklab, var(--bp) 24%, transparent);
-    border-left: 6px solid var(--bp);
+    width: 100%; min-height: 86px;
+    padding: 14px 14px;
+    border-radius: 16px;
+    background: color-mix(in oklab, var(--bp) 14%, var(--bg-2));
+    border: 1.5px solid color-mix(in oklab, var(--bp) 28%, transparent);
+    border-left: 8px solid var(--bp);
     text-align: left; cursor: pointer; font-family: inherit; color: var(--ink);
-    transition: transform 140ms ease, border-color 140ms ease;
+    transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
   }
-  .sched-row:active { transform: scale(0.98); }
+  .sched-row:active { transform: scale(0.99); }
   .sched-row.today {
     box-shadow: 0 0 0 2px var(--accent), 0 6px 18px color-mix(in oklab, var(--accent) 25%, transparent);
+  }
+  .sched-row.is-hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 2px var(--accent), 0 12px 28px color-mix(in oklab, var(--accent) 35%, transparent);
   }
   .sched-row.locked { opacity: 0.78; }
   .sched-row.is-rest { background: var(--bg-2); border-left-color: var(--ink-4); }
@@ -1710,10 +1749,11 @@
   .split-pill .sp-k { font-size: 9px; color: var(--ink-3); letter-spacing: 0.12em; }
   .split-pill .sp-v { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; }
 
-  /* Dashboard rotating anatomy figure */
+  /* Dashboard rotating anatomy figure — small preview, not the centerpiece */
   .dash-anatomy {
     position: relative;
-    width: 100%; aspect-ratio: 320/420;
+    width: 60%; max-width: 220px; margin: 0 auto;
+    aspect-ratio: 320/440;
     perspective: 800px;
     cursor: pointer; user-select: none;
   }
