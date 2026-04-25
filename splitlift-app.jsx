@@ -90,11 +90,11 @@ function CmdK({ open, onClose, onAddExercise, onSwitchTab, days }) {
       ent: 'Add to today',
     }));
     const tabs = [
-      { kind: 'tab', id: 'splits', name: 'Go to Splits', sub: 'Weekly lift planner', ent: '↵' },
-      { kind: 'tab', id: 'cardio', name: 'Go to Cardio', sub: 'Run, bike, intervals', ent: '↵' },
-      { kind: 'tab', id: 'body', name: 'Go to Body', sub: 'Coverage map', ent: '↵' },
+      { kind: 'tab', id: 'general', name: 'Go to General', sub: 'Profile, stats, calories', ent: '↵' },
+      { kind: 'tab', id: 'splits', name: 'Go to Splits', sub: 'Per-day-type exercise editor', ent: '↵' },
       { kind: 'tab', id: 'schedule', name: 'Go to Schedule', sub: 'Plan the week', ent: '↵' },
-      { kind: 'tab', id: 'dashboard', name: 'Go to Dashboard', sub: 'Lifting + cardio + body', ent: '↵' },
+      { kind: 'tab', id: 'body', name: 'Go to Body', sub: 'Coverage map', ent: '↵' },
+      { kind: 'tab', id: 'dashboard', name: 'Go to Dashboard', sub: 'Lifting + cardio scores', ent: '↵' },
       { kind: 'tab', id: 'profile', name: 'Go to Profile', sub: 'Settings', ent: '↵' },
     ];
     return { tabs, exs };
@@ -290,10 +290,9 @@ function Onboarding({ onDone }) {
   const [wUnit, setWUnit] = useState('kg');
   const [height, setHeight] = useState(178);
   const [weight, setWeight] = useState(74);
-  const [pulse, setPulse] = useState('');
   const [sport, setSport] = useState('soccer');
   const total = 4;
-  const next = () => step < total - 1 ? setStep(step+1) : onDone({ days, height, hUnit, weight, wUnit, pulse, sport });
+  const next = () => step < total - 1 ? setStep(step+1) : onDone({ days, height, hUnit, weight, wUnit, sport });
   const back = () => step > 0 && setStep(step-1);
   return (
     <div className="screen">
@@ -333,16 +332,12 @@ function Onboarding({ onDone }) {
             </div>
             <div className="big-number-input"><input className="num" type="number" value={weight} onChange={(e)=>setWeight(e.target.value)}/><span className="unit">{wUnit}</span></div>
           </div>
-          <div>
-            <div className="stat-input-row"><span className="label">Resting pulse <span className="opt-tag">optional</span></span></div>
-            <div className="big-number-input"><input className="num" type="number" value={pulse} onChange={(e)=>setPulse(e.target.value)} placeholder="—"/><span className="unit">bpm</span></div>
-          </div>
         </>)}
         {step === 3 && (<>
           <h2 className="step-q">You're set.</h2>
           <p className="step-help">Here's what we'll use to seed your week.</p>
           <div style={{ background: 'var(--bg-2)', borderRadius: 16, padding: 18, marginBottom: 14 }}>
-            {[['Sport', window.SPORTS.find(s=>s.id===sport)?.label],['Lift days', `${days} / week`],['Height', `${height} ${hUnit}`],['Weight', `${weight} ${wUnit}`], ...(pulse?[['Pulse',`${pulse} bpm`]]:[])].map(([k,v]) => (
+            {[['Sport', window.SPORTS.find(s=>s.id===sport)?.label],['Lift days', `${days} / week`],['Height', `${height} ${hUnit}`],['Weight', `${weight} ${wUnit}`]].map(([k,v]) => (
               <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0' }}>
                 <span className="mono" style={{color:'var(--ink-3)', fontSize:11, letterSpacing:'0.08em', textTransform:'uppercase'}}>{k}</span>
                 <span style={{fontWeight:600}}>{v}</span>
@@ -1044,7 +1039,7 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout }) {
   const [days, setDays] = useState(window.INITIAL_DAYS);
   const [cardioDays, setCardioDays] = useState(window.INITIAL_CARDIO_DAYS);
   const [locked, setLocked] = useState([false,true,false,false,false,true,false]);
-  const [tab, setTab] = useState('splits');
+  const [tab, setTab] = useState('general');
   // splitsByType is the source of truth for "what's in a Push day", "Pull day", etc.
   // Initialised from INITIAL_DAYS so existing template lists carry over.
   const [splitsByType, setSplitsByType] = useState(() =>
@@ -1228,7 +1223,14 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout }) {
         <div className="left">
           <window.BrandMark size={36}/>
           <div className="title-block">
-            <div className="h-title">{tab === 'splits' ? 'Your week' : tab==='schedule'?'Schedule':tab==='cardio'?'Cardio':tab==='dashboard'?'Dashboard':tab==='profile'?'Profile':'Body'}</div>
+            <div className="h-title">{
+              tab === 'general'   ? 'General' :
+              tab === 'splits'    ? 'Splits'  :
+              tab === 'schedule'  ? 'Schedule':
+              tab === 'cardio'    ? 'Cardio'  :
+              tab === 'dashboard' ? 'Dashboard':
+              tab === 'profile'   ? 'Profile' : 'Body'
+            }</div>
             <div className="h-sub mono">{sportLabel.toUpperCase()} · {totalLiftDays} LIFT · {7-totalLiftDays} OFF</div>
           </div>
         </div>
@@ -1242,6 +1244,15 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout }) {
       </div>
 
       <div className="screen-body" style={{position:'relative'}} ref={screenBodyRef}>
+        {tab === 'general' && (
+          <window.GeneralTab
+            profile={profile}
+            setProfile={setProfile}
+            days={days}
+            cardioDays={cardioDays}
+            showToast={showToast}
+          />
+        )}
         {tab === 'splits' && (
           <window.SplitsTab
             days={days}
@@ -1278,12 +1289,12 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout }) {
       <div className="bottom-nav">
         <div className="bn-track">
           <div className="bn-pill" style={{
-            transform: `translateX(${Math.max(0, ['schedule','splits','cardio','body','dashboard'].indexOf(tab)) * 100}%)`,
-            opacity: ['schedule','splits','cardio','body','dashboard'].indexOf(tab) === -1 ? 0 : 1,
+            transform: `translateX(${Math.max(0, ['general','splits','schedule','body','dashboard'].indexOf(tab)) * 100}%)`,
+            opacity: ['general','splits','schedule','body','dashboard'].indexOf(tab) === -1 ? 0 : 1,
           }}/>
-          <button className={`bn-item ${tab==='schedule'?'active':''}`} onClick={()=>setTab('schedule')}><I.cal/><span className="lbl">Schedule</span></button>
+          <button className={`bn-item ${tab==='general'?'active':''}`} onClick={()=>setTab('general')}><I.prof/><span className="lbl">General</span></button>
           <button className={`bn-item ${tab==='splits'?'active':''}`} onClick={()=>setTab('splits')}><I.dumbbell/><span className="lbl">Splits</span></button>
-          <button className={`bn-item ${tab==='cardio'?'active':''}`} onClick={()=>setTab('cardio')}><I.cardio/><span className="lbl">Cardio</span></button>
+          <button className={`bn-item ${tab==='schedule'?'active':''}`} onClick={()=>setTab('schedule')}><I.cal/><span className="lbl">Schedule</span></button>
           <button className={`bn-item ${tab==='body'?'active':''}`} onClick={()=>setTab('body')}><I.cover/><span className="lbl">Body</span></button>
           <button className={`bn-item ${tab==='dashboard'?'active':''}`} onClick={()=>setTab('dashboard')}><I.score/><span className="lbl">Dashboard</span></button>
         </div>
@@ -1304,7 +1315,10 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout }) {
 function Root() {
   const [screen, setScreen] = useState('landing');
   const [theme, setTheme] = useState('light');
-  const [profile, setProfile] = useState({ days: 4, height: 178, hUnit: 'cm', weight: 74, wUnit: 'kg', pulse: '', sport: 'soccer' });
+  const [profile, setProfile] = useState({
+    days: 4, height: 178, hUnit: 'cm', weight: 74, wUnit: 'kg',
+    age: 22, sex: 'm', sport: 'soccer', cardioMin: 90,
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle('theme-dark', theme === 'dark');

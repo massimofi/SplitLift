@@ -374,8 +374,46 @@ function totalLiftKcal(days) { return Math.round(totalLiftMinutes(days) * 6); }
 function estimateBMR({ weight, wUnit, height, hUnit, age = 28, sex = 'm' }) {
   const wKg = wUnit === 'lb' ? weight * 0.4536 : Number(weight);
   const hCm = hUnit === 'ft' ? height * 30.48 : Number(height);
-  const base = 10 * wKg + 6.25 * hCm - 5 * age;
-  return Math.round(sex === 'f' ? base - 161 : base + 5);
+  const base = 10 * wKg + 6.25 * hCm - 5 * (age || 28);
+  // Mifflin–St Jeor: m +5, f −161; non-binary / undisclosed → midpoint (−78).
+  if (sex === 'f' || sex === 'female') return Math.round(base - 161);
+  if (sex === 'm' || sex === 'male')   return Math.round(base + 5);
+  return Math.round(base - 78);
+}
+
+// Activity multiplier from training days/week.
+function activityMultiplier(days) {
+  const d = Number(days) || 4;
+  if (d <= 2) return 1.375;
+  if (d === 3) return 1.45;
+  if (d === 4) return 1.55;
+  if (d === 5) return 1.65;
+  return 1.725;
+}
+
+function tdeeFor(profile) {
+  const bmr = estimateBMR(profile);
+  return Math.round(bmr * activityMultiplier(profile.days));
+}
+
+// Macro targets (g/day). Protein 1.8g/kg (2.2 if cutting flag set), fat 25% TDEE / 9, carbs remainder / 4.
+function macrosFor(profile, tdee) {
+  const wKg = profile.wUnit === 'lb' ? Number(profile.weight) * 0.4536 : Number(profile.weight);
+  const proteinPerKg = profile.cutting ? 2.2 : 1.8;
+  const protein = Math.round(wKg * proteinPerKg);
+  const fat = Math.round((tdee * 0.25) / 9);
+  const carbs = Math.max(0, Math.round((tdee - (protein * 4 + fat * 9)) / 4));
+  return { protein, fat, carbs };
+}
+
+// Tanaka max HR + zones.
+function hrZonesFor(age) {
+  const a = Number(age) || 28;
+  const max = Math.round(208 - 0.7 * a);
+  const z2  = [Math.round(max * 0.60), Math.round(max * 0.70)];
+  const tempo = [Math.round(max * 0.75), Math.round(max * 0.85)];
+  const hiit  = [Math.round(max * 0.85), Math.round(max * 0.95)];
+  return { max, z2, tempo, hiit };
 }
 
 function dailyKcalNeed(profile, weeklyTrainingKcal) {
@@ -458,6 +496,7 @@ Object.assign(window, {
   totalCardioMinutes, totalCardioKcal, totalCardioMiles,
   liftMinutesForDay, totalLiftMinutes, totalLiftKcal,
   estimateBMR, dailyKcalNeed, computeScore,
+  activityMultiplier, tdeeFor, macrosFor, hrZonesFor,
   // new
   DAY_TYPES, exercisesForDayType, planForSport,
   liftingScore, cardioScoreFor, underworkedMuscles,

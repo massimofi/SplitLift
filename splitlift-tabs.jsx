@@ -61,85 +61,231 @@ function applySplitsByTypeToDays(days, splitsByType) {
 Object.assign(window, { splitsByTypeFromDays, applySplitsByTypeToDays });
 
 // ================================================================
-// SCHEDULE TAB — only the week. Drag splits + cardios onto days.
-// Templates / quick-actions live behind the "Presets" sheet.
+// GENERAL TAB — main stats + computed numbers (BMR / TDEE / macros / HR)
+// First tab in the navbar. Drives everything downstream.
+// ================================================================
+function GeneralTab({ profile, setProfile, days, cardioDays, showToast }) {
+  const [sportOpen, setSportOpen] = useState(false);
+
+  const adjust = (key, delta, opts = {}) => {
+    const min = opts.min ?? 0;
+    const max = opts.max ?? 999;
+    setProfile(p => ({ ...p, [key]: Math.max(min, Math.min(max, Number(p[key] || 0) + delta)) }));
+  };
+  const setUnit = (kind, unit) => {
+    setProfile(p => {
+      const n = { ...p };
+      if (kind === 'h') {
+        if (unit === 'cm' && p.hUnit === 'ft') n.height = Math.round(p.height * 30.48);
+        if (unit === 'ft' && p.hUnit === 'cm') n.height = Math.round((p.height / 30.48) * 10) / 10;
+        n.hUnit = unit;
+      } else if (kind === 'w') {
+        if (unit === 'kg' && p.wUnit === 'lb') n.weight = Math.round(p.weight * 0.4536);
+        if (unit === 'lb' && p.wUnit === 'kg') n.weight = Math.round(p.weight / 0.4536);
+        n.wUnit = unit;
+      }
+      return n;
+    });
+  };
+
+  const sportObj = (window.SPORTS || []).find(s => s.id === profile.sport) || { label: '—', sub: '' };
+  const tdee = window.tdeeFor ? window.tdeeFor(profile) : 0;
+  const bmr = window.estimateBMR ? window.estimateBMR(profile) : 0;
+  const macros = window.macrosFor ? window.macrosFor(profile, tdee) : { protein: 0, fat: 0, carbs: 0 };
+  const hr = window.hrZonesFor ? window.hrZonesFor(profile.age) : { max: 0, z2: [0,0], hiit: [0,0] };
+
+  // Quick week totals so General feels alive
+  const liftDays = (days || []).filter(d => d && !d.rest).length;
+  const cardioMin = window.totalCardioMinutes ? window.totalCardioMinutes(cardioDays || []) : 0;
+
+  return (
+    <div className="tab-pane gen-page">
+      {/* Greeting hero */}
+      <div className="gen-hero">
+        <div className="gh-kicker mono">YOUR PROFILE</div>
+        <div className="gh-h">Hi, {sportObj.label.toLowerCase()} athlete.</div>
+        <div className="gh-sub">{liftDays} lift / wk · {cardioMin}m cardio planned</div>
+      </div>
+
+      {/* Inputs grid */}
+      <div className="gen-section-h">Inputs</div>
+      <div className="gen-grid">
+        <button className="gen-tile span-2 sport" onClick={() => setSportOpen(true)}>
+          <div className="gt-label mono">SPORT</div>
+          <div className="gt-row">
+            <div className="gt-value">{sportObj.label}</div>
+            <span className="gt-chev" aria-hidden="true">›</span>
+          </div>
+          <div className="gt-sub">{sportObj.sub || 'Tap to change'}</div>
+        </button>
+
+        <div className="gen-tile">
+          <div className="gt-label mono">AGE</div>
+          <div className="gt-value">{profile.age || 22}<span className="gt-unit">yrs</span></div>
+          <Stepper onMinus={()=>adjust('age', -1, {min:14, max:90})} onPlus={()=>adjust('age', +1, {min:14, max:90})}/>
+        </div>
+
+        <div className="gen-tile">
+          <div className="gt-label mono">DAYS / WEEK</div>
+          <div className="gt-value">{profile.days}<span className="gt-unit">/wk</span></div>
+          <Stepper onMinus={()=>adjust('days', -1, {min:1, max:7})} onPlus={()=>adjust('days', +1, {min:1, max:7})}/>
+        </div>
+
+        <div className="gen-tile">
+          <div className="gt-label mono">CARDIO</div>
+          <div className="gt-value">{profile.cardioMin || 90}<span className="gt-unit">m/wk</span></div>
+          <Stepper onMinus={()=>adjust('cardioMin', -10, {min:0, max:600})} onPlus={()=>adjust('cardioMin', +10, {min:0, max:600})}/>
+        </div>
+
+        <div className="gen-tile">
+          <div className="gt-row">
+            <div className="gt-label mono">HEIGHT</div>
+            <UnitToggle value={profile.hUnit} onChange={u=>setUnit('h', u)} options={[['cm','CM'],['ft','FT']]}/>
+          </div>
+          <div className="gt-value">{profile.height}<span className="gt-unit">{profile.hUnit}</span></div>
+          <Stepper onMinus={()=>adjust('height', profile.hUnit==='cm'?-1:-0.1, {min:80, max:240})}
+                   onPlus={()=>adjust('height', profile.hUnit==='cm'?+1:+0.1, {min:80, max:240})}/>
+        </div>
+
+        <div className="gen-tile">
+          <div className="gt-row">
+            <div className="gt-label mono">WEIGHT</div>
+            <UnitToggle value={profile.wUnit} onChange={u=>setUnit('w', u)} options={[['kg','KG'],['lb','LB']]}/>
+          </div>
+          <div className="gt-value">{profile.weight}<span className="gt-unit">{profile.wUnit}</span></div>
+          <Stepper onMinus={()=>adjust('weight', -1, {min:30, max:300})} onPlus={()=>adjust('weight', +1, {min:30, max:300})}/>
+        </div>
+
+        <div className="gen-tile span-2 sex">
+          <div className="gt-label mono">SEX (FOR BMR)</div>
+          <div className="gt-seg">
+            {[['m','Male'],['f','Female'],['nb','Non-binary']].map(([k,l]) => (
+              <button key={k} className={profile.sex===k?'on':''} onClick={()=>setProfile(p=>({...p, sex:k}))}>{l}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Computed */}
+      <div className="gen-section-h">Your numbers</div>
+      <div className="gen-grid computed">
+        <div className="gen-tile read">
+          <div className="gt-label mono">CALORIES / DAY</div>
+          <div className="gt-value">{tdee || '—'}<span className="gt-unit">kcal</span></div>
+          <div className="gt-sub">BMR {bmr} · {profile.days || 4}d/wk active</div>
+        </div>
+        <div className="gen-tile read">
+          <div className="gt-label mono">PROTEIN</div>
+          <div className="gt-value">{macros.protein || '—'}<span className="gt-unit">g</span></div>
+          <div className="gt-sub">1.8 g / kg body</div>
+        </div>
+        <div className="gen-tile read">
+          <div className="gt-label mono">FAT</div>
+          <div className="gt-value">{macros.fat || '—'}<span className="gt-unit">g</span></div>
+          <div className="gt-sub">25% of TDEE</div>
+        </div>
+        <div className="gen-tile read">
+          <div className="gt-label mono">CARBS</div>
+          <div className="gt-value">{macros.carbs || '—'}<span className="gt-unit">g</span></div>
+          <div className="gt-sub">remainder</div>
+        </div>
+        <div className="gen-tile read">
+          <div className="gt-label mono">MAX HR</div>
+          <div className="gt-value">{hr.max || '—'}<span className="gt-unit">bpm</span></div>
+          <div className="gt-sub">Tanaka · 208 − 0.7 × age</div>
+        </div>
+        <div className="gen-tile read">
+          <div className="gt-label mono">Z2 ZONE</div>
+          <div className="gt-value">{hr.z2?.[0] || '—'}<span className="gt-unit">–{hr.z2?.[1] || '—'}</span></div>
+          <div className="gt-sub">60–70% of max · easy aerobic</div>
+        </div>
+      </div>
+
+      {sportOpen && (
+        <SportSheet
+          current={profile.sport}
+          onPick={(id) => { setProfile(p => ({ ...p, sport: id })); setSportOpen(false); showToast(`Sport: ${(window.SPORTS.find(s=>s.id===id))?.label}`); }}
+          onClose={() => setSportOpen(false)}
+        />
+      )}
+
+      <div style={{ height: 24 }}/>
+    </div>
+  );
+}
+
+function Stepper({ onMinus, onPlus }) {
+  return (
+    <div className="gt-step">
+      <button className="gt-step-btn" onClick={(e)=>{ e.stopPropagation(); onMinus(); }} aria-label="Decrease">−</button>
+      <button className="gt-step-btn" onClick={(e)=>{ e.stopPropagation(); onPlus(); }} aria-label="Increase">+</button>
+    </div>
+  );
+}
+
+function UnitToggle({ value, onChange, options }) {
+  return (
+    <div className="gt-unit-toggle" onClick={e=>e.stopPropagation()}>
+      {options.map(([k, l]) => (
+        <button key={k} className={value===k?'on':''} onClick={()=>onChange(k)}>{l}</button>
+      ))}
+    </div>
+  );
+}
+
+function SportSheet({ current, onPick, onClose }) {
+  return (
+    <div className="ps-overlay" onClick={onClose}>
+      <div className="ps-sheet" onClick={e=>e.stopPropagation()}>
+        <div className="ps-head">
+          <div>
+            <div className="ps-t">Pick a sport</div>
+            <div className="ps-s mono">{(window.SPORTS || []).length} OPTIONS</div>
+          </div>
+          <button className="ip-x" onClick={onClose} aria-label="Close"><IconX/></button>
+        </div>
+        <div className="sx-list">
+          {(window.SPORTS || []).map(s => (
+            <button key={s.id} className={`sx-row ${current === s.id ? 'in' : ''}`}
+              style={{ '--bp': 'var(--accent)' }}
+              onClick={() => onPick(s.id)}
+              disabled={current === s.id}>
+              <div className="sx-body">
+                <div className="sx-n">{s.label}</div>
+                <div className="sx-m mono">{s.sub}</div>
+              </div>
+              <span className="sx-add">{current === s.id ? <IconX/> : <IconPlus/>}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// SCHEDULE TAB — vertical day rows. Tap a row to edit (no drag).
+// One sheet does it all: lift type + cardio + lock + clear.
 // ================================================================
 function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLocked, profile, showToast, onJumpToSplits, splitsByType, setSplitsByType }) {
-  const dayTypes = days.map(d => d.type || (d.rest ? 'rest' : 'custom'));
-  const splitChips = ['push','pull','legs','upper','lower','full','rest'];
-  const cardioChips = (window.CARDIO_LIBRARY || []);
-
   const [presetsOpen, setPresetsOpen] = useState(false);
   const [pickFor, setPickFor] = useState(null);
 
-  // Drag — single handler for both split and cardio chips.
-  // payload: { kind: 'split'|'cardio', id }
-  const [drag, setDrag] = useState(null);
-  const [hoverIdx, setHoverIdx] = useState(null);
-
-  const startDrag = (e, payload) => {
-    const isTouch = e.touches !== undefined;
-    const px = isTouch ? e.touches[0].clientX : e.clientX;
-    const py = isTouch ? e.touches[0].clientY : e.clientY;
-    if (!isTouch) e.preventDefault();
-    setDrag({ ...payload, x: px, y: py });
-  };
-
-  useEffect(() => {
-    if (!drag) return;
-    const move = (e) => {
-      const isTouch = e.touches !== undefined;
-      const px = isTouch ? e.touches[0].clientX : e.clientX;
-      const py = isTouch ? e.touches[0].clientY : e.clientY;
-      const el = document.elementFromPoint(px, py);
-      const slot = el && el.closest && el.closest('[data-sched-day]');
-      const idx = slot ? parseInt(slot.getAttribute('data-sched-day'), 10) : null;
-      setDrag(d => d ? { ...d, x: px, y: py } : null);
-      setHoverIdx(idx);
-      if (isTouch) e.preventDefault();
-    };
-    const up = () => {
-      if (drag && hoverIdx !== null) {
-        if (locked[hoverIdx]) {
-          showToast('Locked — unlock first');
-        } else if (drag.kind === 'split') {
-          setDays(prev => prev.map((d, i) => i === hoverIdx ? makeDayForType(drag.id, profile, splitsByType) : d));
-          showToast(`${window.DAY_NAMES[hoverIdx]}: ${window.DAY_TYPES[drag.id]?.label}`);
-        } else if (drag.kind === 'cardio') {
-          setCardioDays(prev => {
-            const next = prev.map(d => ({ items: [...d.items] }));
-            next[hoverIdx].items.push(drag.id);
-            return next;
-          });
-          const c = window.cardioFor(drag.id);
-          showToast(`${window.DAY_NAMES[hoverIdx]}: + ${c?.name || 'cardio'}`);
-        }
-      }
-      setDrag(null); setHoverIdx(null);
-    };
-    window.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', up);
-    window.addEventListener('touchmove', move, { passive: false });
-    window.addEventListener('touchend', up);
-    return () => {
-      window.removeEventListener('mousemove', move);
-      window.removeEventListener('mouseup', up);
-      window.removeEventListener('touchmove', move);
-      window.removeEventListener('touchend', up);
-    };
-  }, [drag, hoverIdx, locked, profile, setDays, setCardioDays, showToast]);
-
-  const toggleLockAt = (idx) => {
-    setLocked(prev => prev.map((v,j) => j===idx ? !v : v));
-    showToast(locked[idx] ? `${window.DAY_NAMES[idx]} unlocked` : `${window.DAY_NAMES[idx]} locked`);
-  };
-
-  const clearDay = (idx) => {
+  const setDayType = (idx, typeId) => {
     if (locked[idx]) { showToast('Locked — unlock first'); return; }
-    setDays(prev => prev.map((d,i)=> i===idx ? makeDayForType('rest', profile, splitsByType) : d));
-    setCardioDays(prev => prev.map((d,i)=> i===idx ? { items: [] } : d));
-    setPickFor(null);
-    showToast(`${window.DAY_NAMES[idx]} cleared`);
+    setDays(prev => prev.map((d, i) => i === idx ? makeDayForType(typeId, profile, splitsByType) : d));
+    showToast(`${window.DAY_NAMES[idx]}: ${window.DAY_TYPES[typeId]?.label}`);
+  };
+
+  const addCardioToDay = (idx, cid) => {
+    if (locked[idx]) { showToast('Locked — unlock first'); return; }
+    setCardioDays(prev => {
+      const next = prev.map(d => ({ items: [...d.items] }));
+      next[idx].items.push(cid);
+      return next;
+    });
+    const c = window.cardioFor(cid);
+    showToast(`${window.DAY_NAMES[idx]}: + ${c?.name || 'cardio'}`);
   };
 
   const removeCardio = (dayIdx, itemIdx) => {
@@ -151,119 +297,96 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
     });
   };
 
+  const toggleLockAt = (idx) => {
+    setLocked(prev => prev.map((v, j) => j === idx ? !v : v));
+    showToast(locked[idx] ? `${window.DAY_NAMES[idx]} unlocked` : `${window.DAY_NAMES[idx]} locked`);
+  };
+
+  const clearDay = (idx) => {
+    if (locked[idx]) { showToast('Locked — unlock first'); return; }
+    setDays(prev => prev.map((d, i) => i === idx ? makeDayForType('rest', profile, splitsByType) : d));
+    setCardioDays(prev => prev.map((d, i) => i === idx ? { items: [] } : d));
+    setPickFor(null);
+    showToast(`${window.DAY_NAMES[idx]} cleared`);
+  };
+
   const todayIdx = (() => { const j = new Date().getDay(); return j === 0 ? 6 : j - 1; })();
 
   return (
     <div className="tab-pane sched-page">
-      {/* Tiny header — title left, Presets right */}
       <div className="sched-bar">
         <div className="sched-h1">Your week</div>
         <button className="presets-btn" onClick={()=>setPresetsOpen(true)}>Presets</button>
       </div>
 
-      {/* The week */}
-      <div className="sched-week">
+      <div className="sched-rows">
         {window.DAY_NAMES.map((dn, i) => {
-          const t = dayTypes[i];
+          const day = days[i] || { type: 'rest', rest: true };
+          const t = day.type || 'rest';
           const dt = window.DAY_TYPES[t] || window.DAY_TYPES.custom;
           const cItems = (cardioDays && cardioDays[i] && cardioDays[i].items) || [];
+          const isToday = todayIdx === i;
+          const isLocked = locked[i];
+          const isRest = t === 'rest';
+
           return (
-            <div key={i} data-sched-day={i}
-              className={`sched-cell ${hoverIdx===i?'hover':''} ${locked[i]?'locked':''} ${todayIdx===i?'is-today':''}`}
+            <button key={i} className={`sched-row ${isToday?'today':''} ${isLocked?'locked':''} ${isRest?'is-rest':''}`}
               style={{ '--bp': `var(--bp-${t})` }}
-              onClick={()=>setPickFor(i)}>
-              <div className="dn mono">{dn}</div>
-              <div className="dt">{dt.label}</div>
-              {cItems.length > 0 && (
-                <div className="cd-dots">
-                  {cItems.slice(0, 4).map((cid, k) => {
-                    const c = window.cardioFor(cid);
-                    const col = c && window.CARDIO_TYPES[c.type]?.color;
-                    return <span key={k} className="cd-dot" style={{ background: col || 'var(--ink-3)' }}/>;
-                  })}
-                  {cItems.length > 4 && <span className="cd-dot more mono">+{cItems.length - 4}</span>}
-                </div>
-              )}
-              {locked[i] && <span className="lock-mark"><IconLock/></span>}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Drag palette: splits, then cardios */}
-      <div className="pal-h mono">SPLITS · drag onto a day</div>
-      <div className="pal-row">
-        {splitChips.map(p => {
-          const dt = window.DAY_TYPES[p];
-          if (!dt) return null;
-          return (
-            <button key={p} className="pal-pill split"
-              style={{ '--bp': `var(--bp-${p})` }}
-              onMouseDown={(e)=>startDrag(e, { kind:'split', id:p })}
-              onTouchStart={(e)=>startDrag(e, { kind:'split', id:p })}
-              onClick={()=>onJumpToSplits && onJumpToSplits(p)}>
-              {dt.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="pal-h mono">CARDIO · drag onto a day</div>
-      <div className="pal-row">
-        {cardioChips.map(c => {
-          const t = window.CARDIO_TYPES[c.type];
-          return (
-            <button key={c.id} className="pal-pill cardio"
-              style={{ '--bp': t?.color || 'var(--ink-3)' }}
-              onMouseDown={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
-              onTouchStart={(e)=>startDrag(e, { kind:'cardio', id:c.id })}>
-              <span className="cp-name">{c.name}</span>
-              <span className="cp-meta mono">{c.dur}m</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tap-day inline action sheet — Lock / Clear / current cardios */}
-      {pickFor !== null && (
-        <div className="day-actions">
-          <div className="da-head">
-            <div><b>{window.DAY_NAMES[pickFor]}</b> · {window.DAY_TYPES[dayTypes[pickFor]]?.label}</div>
-            <button className="ip-x" onClick={()=>setPickFor(null)} aria-label="Close"><IconX/></button>
-          </div>
-          <div className="da-actions">
-            <button className={`ip-action ${locked[pickFor]?'locked':''}`} onClick={()=>toggleLockAt(pickFor)}>
-              <IconLock open={locked[pickFor]}/>
-              {locked[pickFor] ? 'Unlock' : 'Lock'}
-            </button>
-            <button className="ip-action danger" onClick={()=>clearDay(pickFor)} disabled={locked[pickFor]}
-                    style={locked[pickFor] ? { opacity: 0.4, cursor: 'not-allowed' } : null}>
-              <IconTrash/>
-              Clear day
-            </button>
-          </div>
-          {(cardioDays[pickFor]?.items.length || 0) > 0 && (
-            <div className="da-cardios">
-              <div className="ip-divider">Cardio on this day</div>
-              {cardioDays[pickFor].items.map((cid, ii) => {
-                const c = window.cardioFor(cid); if (!c) return null;
-                const t = window.CARDIO_TYPES[c.type];
-                return (
-                  <div key={ii} className="da-cardio-row" style={{ '--bp': t?.color }}>
-                    <div className="dac-body">
-                      <div className="dac-n">{c.name}</div>
-                      <div className="dac-m mono">{c.dur}m{c.dist>0?` · ${c.dist}${c.unit}`:''}</div>
-                    </div>
-                    <button className="dac-x" onClick={()=>removeCardio(pickFor, ii)} aria-label="Remove"><IconX/></button>
+              onClick={() => setPickFor(i)}>
+              <div className="sr-day">
+                <div className="sr-d mono">{dn.toUpperCase()}</div>
+                {isToday && <span className="sr-today-tag mono">TODAY</span>}
+              </div>
+              <div className="sr-mid">
+                <div className="sr-type">{dt.label}</div>
+                {cItems.length > 0 ? (
+                  <div className="sr-cardios">
+                    {cItems.slice(0, 3).map((cid, k) => {
+                      const c = window.cardioFor(cid);
+                      const col = c && window.CARDIO_TYPES[c.type]?.color;
+                      return (
+                        <span key={k} className="sr-c-pill" style={{ background: col || 'var(--ink-3)' }}>
+                          {c?.dur || 0}m
+                        </span>
+                      );
+                    })}
+                    {cItems.length > 3 && <span className="sr-c-pill more mono">+{cItems.length - 3}</span>}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                ) : (
+                  <div className="sr-sub">{dt.sub}</div>
+                )}
+              </div>
+              <div className="sr-right">
+                {isLocked && <span className="sr-lock"><IconLock/></span>}
+                <span className="sr-chev" aria-hidden="true">›</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {pickFor !== null && (
+        <DayPickerSheet
+          dayIdx={pickFor}
+          dayType={(days[pickFor] && days[pickFor].type) || 'rest'}
+          cardios={(cardioDays[pickFor] && cardioDays[pickFor].items) || []}
+          isLocked={locked[pickFor]}
+          onClose={() => setPickFor(null)}
+          onSetType={(t) => setDayType(pickFor, t)}
+          onAddCardio={(cid) => addCardioToDay(pickFor, cid)}
+          onRemoveCardio={(idx) => removeCardio(pickFor, idx)}
+          onClear={() => clearDay(pickFor)}
+          onToggleLock={() => toggleLockAt(pickFor)}
+          onEditExercises={() => {
+            const t = (days[pickFor] && days[pickFor].type) || 'rest';
+            if (t !== 'rest' && t !== 'sport' && t !== 'cardio') {
+              setPickFor(null);
+              onJumpToSplits && onJumpToSplits(t);
+            }
+          }}
+        />
       )}
 
-      {/* Presets sheet — opens on demand only */}
       {presetsOpen && (
         <PresetsSheet
           profile={profile}
@@ -277,19 +400,102 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
         />
       )}
 
-      {/* Floating drag ghost */}
-      {drag && (
-        <div className="drag-ghost" style={{ left: drag.x - 60, top: drag.y - 22,
-              '--bp': drag.kind === 'split'
-                ? `var(--bp-${drag.id})`
-                : (window.CARDIO_TYPES[window.cardioFor(drag.id)?.type]?.color || 'var(--ink-3)') }}>
-          {drag.kind === 'split'
-            ? window.DAY_TYPES[drag.id]?.label
-            : window.cardioFor(drag.id)?.name}
-        </div>
-      )}
-
       <div style={{ height: 28 }}/>
+    </div>
+  );
+}
+
+// One sheet to edit a day: lift type chips + cardio adds + lock + clear + cardios on this day.
+function DayPickerSheet({ dayIdx, dayType, cardios, isLocked, onClose, onSetType, onAddCardio, onRemoveCardio, onClear, onToggleLock, onEditExercises }) {
+  const splitTypes = ['push','pull','legs','upper','lower','full','rest'];
+  const cardioLib = window.CARDIO_LIBRARY || [];
+  const dt = window.DAY_TYPES[dayType] || window.DAY_TYPES.custom;
+  const canEditExercises = dayType && dayType !== 'rest' && dayType !== 'sport' && dayType !== 'cardio';
+
+  return (
+    <div className="ps-overlay" onClick={onClose}>
+      <div className="ps-sheet" onClick={e=>e.stopPropagation()}>
+        <div className="ps-head">
+          <div>
+            <div className="ps-t">{window.DAY_NAMES[dayIdx]}</div>
+            <div className="ps-s mono">CURRENT · {dt.label.toUpperCase()}</div>
+          </div>
+          <button className="ip-x" onClick={onClose} aria-label="Close"><IconX/></button>
+        </div>
+
+        <div className="ip-actions">
+          <button className={`ip-action ${isLocked?'locked':''}`} onClick={onToggleLock}>
+            <IconLock open={isLocked}/>{isLocked ? 'Unlock' : 'Lock'}
+          </button>
+          <button className="ip-action danger" onClick={onClear} disabled={isLocked}
+                  style={isLocked ? { opacity: 0.4, cursor:'not-allowed' } : null}>
+            <IconTrash/>Clear
+          </button>
+        </div>
+
+        <div className="ps-section">Lift type</div>
+        <div className="dp-grid">
+          {splitTypes.map(t => {
+            const dt2 = window.DAY_TYPES[t] || window.DAY_TYPES.custom;
+            const isOn = dayType === t;
+            return (
+              <button key={t}
+                className={`dp-chip ${isOn ? 'on' : ''}`}
+                style={{ '--bp': `var(--bp-${t})` }}
+                onClick={() => onSetType(t)}
+                disabled={isLocked}>
+                {dt2.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {canEditExercises && (
+          <button className="dp-edit-btn" onClick={onEditExercises}>
+            Edit {dt.label} exercises →
+          </button>
+        )}
+
+        <div className="ps-section">Add cardio</div>
+        <div className="dp-cardio-list">
+          {cardioLib.map(c => {
+            const tcol = window.CARDIO_TYPES[c.type]?.color;
+            return (
+              <button key={c.id} className="dp-cardio"
+                style={{ '--bp': tcol || 'var(--ink-3)' }}
+                onClick={() => onAddCardio(c.id)}
+                disabled={isLocked}>
+                <div className="dp-c-body">
+                  <div className="dp-c-name">{c.name}</div>
+                  <div className="dp-c-meta mono">{c.dur}m{c.dist > 0 ? ` · ${c.dist}${c.unit}` : ''}</div>
+                </div>
+                <span className="dp-c-add"><IconPlus/></span>
+              </button>
+            );
+          })}
+        </div>
+
+        {cardios.length > 0 && (
+          <>
+            <div className="ps-section">Currently scheduled</div>
+            <div className="da-cardios">
+              {cardios.map((cid, ii) => {
+                const c = window.cardioFor(cid); if (!c) return null;
+                const tcol = window.CARDIO_TYPES[c.type]?.color;
+                return (
+                  <div key={ii} className="da-cardio-row" style={{ '--bp': tcol }}>
+                    <div className="dac-body">
+                      <div className="dac-n">{c.name}</div>
+                      <div className="dac-m mono">{c.dur}m{c.dist > 0 ? ` · ${c.dist}${c.unit}` : ''}</div>
+                    </div>
+                    <button className="dac-x" onClick={() => onRemoveCardio(ii)} aria-label="Remove"><IconX/></button>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -1209,4 +1415,5 @@ function BodyTabV2({ days, onAddExercise, setTab }) {
 Object.assign(window, {
   ScheduleTab, DashboardPage, ProfileV2, CardioPageV2, BodyTabV2, makeDayForType,
   SplitsTab, SplitExSheet, PresetsSheet,
+  GeneralTab, DayPickerSheet, SportSheet,
 });

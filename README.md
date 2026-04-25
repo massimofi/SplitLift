@@ -61,6 +61,17 @@ Libraries to be credited as they're added in later batches:
 
 ## Changelog
 
+### 2026-04-25 — General tab + Schedule rebuilt for tap-first UX
+On user feedback ("the schedule tab is very unintuitive… make it really nice and UI friendly… inputs are kind of guided by the order of the navbar"):
+
+- **Bottom nav reordered to General → Splits → Schedule → Body → Dashboard.** Default tab is now `general`, so the user lands on inputs / stats first and walks rightward through the build flow.
+- **New General tab** (`splitlift-tabs.jsx`): editable input tiles for sport, age, sex, days/wk, cardio target, height, weight (with cm/ft and kg/lb unit toggles per tile), plus a read-only "Your numbers" grid for BMR, TDEE, protein/fat/carbs targets, and Tanaka max-HR + Z2 zone. New `SportSheet` modal for sport pick.
+- **Schedule rebuilt as vertical day-rows** instead of a tiny 7-column grid + drag palette. Each day is a full-width tappable row showing day-type, cardio pills, lock indicator, and a today badge. Tapping a row opens a single `DayPickerSheet` that handles lift type (chip grid), cardio adds, lock/unlock, clear, and a quick "Edit Push exercises →" jump into Splits. Drag is gone — tap is the primary mechanism on mobile.
+- **Profile defaults gained `age` (22), `sex` (`'m'`), `cardioMin` (90), and lost `pulse`.** Onboarding step 2 now only asks height + weight (the resting-pulse field is removed). Pulse references in the JSX layer are fully gone (the only remaining "pulse" is a CSS animation class name on the anatomy SVG, unrelated).
+- **New math helpers in `splitlift-data.jsx`:** `activityMultiplier(days)`, `tdeeFor(profile)`, `macrosFor(profile, tdee)` (1.8 g/kg protein, 25% fat, carbs remainder), and `hrZonesFor(age)` (Tanaka max-HR + Z2 / tempo / HIIT bands).
+- **CmdK** now lists General first and drops Cardio from the tab list (Cardio still has its own page reachable from Schedule and Dashboard).
+- Removed the now-dead `.pal-row`, `.pal-pill`, `.cd-dots`, `.lock-mark`, `.day-actions` CSS.
+
 ### 2026-04-25 — Batch 3: Splits tab is now a per-day-type editor
 - Single source of truth for "what's in a Push day" is now `splitsByType` (object: `{push:[exId,...], pull:[...]}`). Editing it propagates to every day in the week with that type, so Push-day-1 and Push-day-2 share the same exercise list.
 - New `SplitsTab` (in `splitlift-tabs.jsx`): horizontal chip row of types currently in the schedule → exercise list (full-bleed muscle color, ≥64 px tall, one-tap delete) → single Add button → lightweight `SplitExSheet` filtered by `exercisesForDayType()`.
