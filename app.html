@@ -1184,15 +1184,22 @@
 
   /* ============== SCHEDULE TAB ============== */
   .sched-page { padding: 8px 16px 24px; }
-  .sched-hero {
-    background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 18%, var(--bg-2)) 0%, color-mix(in oklab, var(--accent-2) 14%, var(--bg-2)) 100%);
-    border: 1px solid color-mix(in oklab, var(--accent) 22%, transparent);
-    border-radius: 18px; padding: 16px; margin-bottom: 18px;
+
+  /* Schedule top bar — title left, Presets button right */
+  .sched-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 0 12px;
   }
-  .sched-hero .row { display: flex; justify-content: space-between; align-items: center; }
-  .sched-hero .kicker { font-size: 10px; letter-spacing: 0.12em; color: var(--accent); }
-  .sched-hero .hero-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-top: 6px; }
-  .sched-hero .hero-sub { color: var(--ink-2); font-size: 13px; margin-bottom: 14px; }
+  .sched-h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.025em; }
+  .presets-btn {
+    min-height: 44px; padding: 0 16px;
+    background: var(--bg-2); border: 1.5px solid var(--hair);
+    border-radius: 12px; cursor: pointer;
+    color: var(--ink); font-weight: 700; font-size: 13px;
+    font-family: inherit;
+  }
+  .presets-btn:active { transform: scale(0.97); }
+
   .btn-mesh {
     width: 100%; padding: 14px 18px; border-radius: 14px; border: none;
     background:
@@ -1206,53 +1213,153 @@
   .sec-head .t { font-size: 15px; font-weight: 700; letter-spacing: -0.015em; }
   .sec-head .s { font-size: 11px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; }
 
-  .tpl-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
-  .tpl-row::-webkit-scrollbar { display: none; }
-  .tpl-card {
-    flex-shrink: 0; min-width: 150px; background: var(--bg-2); border: 1px solid var(--hair);
-    border-radius: 14px; padding: 12px; text-align: left; cursor: pointer;
-    transition: transform 160ms ease, border-color 160ms ease;
-  }
-  .tpl-card:active { transform: scale(0.97); }
-  .tpl-card.active { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 10%, var(--bg-2)); }
-  .tpl-name { font-size: 14px; font-weight: 700; }
-  .tpl-sub { font-size: 11px; color: var(--ink-3); margin: 2px 0 8px; }
   .tpl-mini { display: flex; gap: 3px; }
   .tpl-cell { width: 14px; height: 14px; border-radius: 4px; }
 
-  .sched-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .sched-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 18px; }
   .sched-cell {
-    position: relative; aspect-ratio: 1/1.4; border-radius: 12px;
+    position: relative; aspect-ratio: 1/1.5; border-radius: 12px;
     background: color-mix(in oklab, var(--bp) 18%, var(--bg-2));
     border: 1.5px solid color-mix(in oklab, var(--bp) 35%, transparent);
-    padding: 8px 6px; display: flex; flex-direction: column; justify-content: space-between;
-    cursor: pointer; min-height: 84px;
-    transition: transform 160ms ease, border-color 160ms ease;
+    padding: 6px 5px 8px; display: flex; flex-direction: column; justify-content: space-between;
+    cursor: pointer; min-height: 86px;
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
   }
   .sched-cell.is-today { box-shadow: 0 0 0 2px var(--accent); }
-  .sched-cell.hover { transform: scale(1.05); border-color: var(--accent); }
+  .sched-cell.hover { transform: scale(1.05); border-color: var(--accent); box-shadow: 0 6px 16px color-mix(in oklab, var(--accent) 25%, transparent); }
   .sched-cell.locked { opacity: 0.7; }
   .sched-cell .dn { font-size: 9px; color: var(--ink-3); letter-spacing: 0.08em; }
   .sched-cell .dt { font-size: 11px; font-weight: 700; line-height: 1.15; }
+  .sched-cell .cd-dots { display: flex; gap: 3px; align-items: center; flex-wrap: wrap; }
+  .sched-cell .cd-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .sched-cell .cd-dot.more {
+    width: auto; height: auto; border-radius: 4px;
+    background: var(--bg-3); color: var(--ink-2); font-size: 8px; padding: 1px 3px;
+  }
   .sched-cell .lock-mark {
-    position: absolute; top: 4px; right: 4px; width: 16px; height: 16px;
+    position: absolute; top: 4px; right: 4px; width: 14px; height: 14px;
     color: var(--ink-2); pointer-events: none;
   }
   .sched-cell .lock-mark svg { display: block; width: 100%; height: 100%; }
 
-  /* ============== Suggested templates strip ============== */
+  /* Drag palette — flat horizontal scroll, splits + cardios in two rows */
+  .pal-h {
+    font-size: 10px; color: var(--ink-3);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin: 10px 2px 6px;
+  }
+  .pal-row {
+    display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 8px;
+    scrollbar-width: none;
+  }
+  .pal-row::-webkit-scrollbar { display: none; }
+  .pal-pill {
+    flex-shrink: 0; min-height: 44px;
+    padding: 10px 14px; border-radius: 999px;
+    background: color-mix(in oklab, var(--bp) 22%, var(--bg-2));
+    border: 1.5px solid color-mix(in oklab, var(--bp) 45%, transparent);
+    color: var(--ink); font-weight: 700; font-size: 13px;
+    font-family: inherit; cursor: grab; touch-action: none; user-select: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pal-pill:active { cursor: grabbing; transform: scale(0.96); }
+  .pal-pill.cardio .cp-name { font-weight: 700; }
+  .pal-pill.cardio .cp-meta {
+    font-size: 10px; color: var(--ink-3);
+    background: var(--bg); padding: 2px 6px; border-radius: 999px;
+  }
+
+  /* Tap-on-day inline action sheet — stays compact */
+  .day-actions {
+    margin-top: 14px; padding: 14px;
+    background: var(--bg-2); border: 1px solid var(--accent); border-radius: 14px;
+    animation: tabFade 200ms ease;
+  }
+  .da-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .da-actions {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  }
+  .ip-x {
+    background: transparent; border: none; cursor: pointer; color: var(--ink-2);
+    width: 44px; height: 44px; border-radius: 10px;
+    display: grid; place-items: center;
+  }
+  .ip-x svg { width: 18px; height: 18px; }
+  .ip-action {
+    min-height: 44px; padding: 10px 12px; border-radius: 10px;
+    border: 1.5px solid var(--hair); background: var(--bg);
+    font-size: 13px; font-weight: 700; cursor: pointer; color: var(--ink);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: inherit;
+  }
+  .ip-action svg { width: 14px; height: 14px; }
+  .ip-action.danger {
+    color: #C73E5C;
+    border-color: color-mix(in oklab, #C73E5C 35%, transparent);
+    background: color-mix(in oklab, #C73E5C 8%, var(--bg));
+  }
+  .ip-action.locked {
+    color: var(--accent); border-color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 12%, var(--bg));
+  }
+  .ip-action:active { transform: scale(0.97); }
+  .ip-divider {
+    font-size: 10px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em; text-transform: uppercase; margin: 12px 0 6px;
+  }
+  .da-cardios { display: flex; flex-direction: column; gap: 6px; }
+  .da-cardio-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; border-radius: 10px; background: var(--bg);
+    border-left: 4px solid var(--bp);
+  }
+  .dac-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .dac-n { font-size: 13px; font-weight: 700; }
+  .dac-m { font-size: 10px; color: var(--ink-3); letter-spacing: 0.06em; text-transform: uppercase; }
+  .dac-x {
+    background: transparent; border: none; cursor: pointer; color: var(--ink-3);
+    width: 44px; height: 44px; border-radius: 8px;
+    display: grid; place-items: center;
+  }
+  .dac-x svg { width: 14px; height: 14px; }
+
+  /* Presets bottom-sheet — modal, opens only on Presets tap */
+  .ps-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200;
+    display: flex; align-items: flex-end; justify-content: center;
+    animation: tabFade 180ms ease;
+  }
+  .ps-sheet {
+    background: var(--bg); width: 100%; max-width: 420px;
+    border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
+    max-height: 85%; overflow-y: auto;
+    animation: psSlideUp 240ms cubic-bezier(0.2,0.8,0.2,1);
+  }
+  @keyframes psSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .ps-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .ps-t { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+  .ps-s { font-size: 10px; color: var(--ink-3); letter-spacing: 0.12em; margin-top: 2px; }
+  .ps-auto { margin-bottom: 4px; }
+  .ps-section {
+    font-size: 11px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em; text-transform: uppercase; margin: 16px 0 8px;
+  }
+
+  /* Suggested templates row inside the sheet */
   .tpl-rec-row {
     display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
-    gap: 8px; margin-top: 4px;
+    gap: 8px;
   }
   .tpl-rec {
     text-align: left; cursor: pointer;
-    padding: 12px 12px 14px; border-radius: 14px;
+    padding: 10px 10px 12px; border-radius: 14px;
     background: color-mix(in oklab, var(--accent) 8%, var(--bg-2));
     border: 1.5px solid color-mix(in oklab, var(--accent) 26%, transparent);
     display: flex; flex-direction: column; gap: 6px;
-    min-height: 44px;
-    transition: transform 160ms ease, border-color 160ms ease;
+    min-height: 44px; font-family: inherit;
   }
   .tpl-rec:active { transform: scale(0.97); }
   .tpl-rec.top {
@@ -1265,74 +1372,26 @@
     font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--accent); font-weight: 700;
   }
-  .tpl-rec .rec-name { font-size: 13px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
-  .tpl-rec .rec-meta { font-size: 10.5px; color: var(--ink-3); line-height: 1.25; }
+  .tpl-rec .rec-name { font-size: 12px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
+  .tpl-rec .rec-meta { font-size: 10px; color: var(--ink-3); line-height: 1.25; }
   .tpl-rec .rec-mini { display: flex; gap: 2px; margin-top: 2px; }
-  .tpl-rec .rec-mini .tpl-cell { width: 9px; height: 9px; border-radius: 3px; }
+  .tpl-rec .rec-mini .tpl-cell { width: 8px; height: 8px; border-radius: 3px; }
 
-  .inline-picker {
-    margin-top: 12px; padding: 14px; background: var(--bg-2);
-    border: 1px solid var(--accent); border-radius: 14px;
-    animation: tabFade 200ms ease;
+  .ps-list { display: flex; flex-direction: column; gap: 6px; }
+  .ps-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 56px; padding: 12px 14px; border-radius: 12px;
+    background: var(--bg-2); border: 1px solid var(--hair);
+    text-align: left; cursor: pointer; font-family: inherit; color: var(--ink);
   }
-  .ip-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .ip-x {
-    background: transparent; border: none; cursor: pointer; color: var(--ink-2);
-    width: 44px; height: 44px; border-radius: 10px;
-    display: grid; place-items: center;
-  }
-  .ip-x svg { width: 18px; height: 18px; }
-  .ip-actions {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;
-  }
-  .ip-action {
-    min-height: 44px; padding: 10px 12px; border-radius: 10px;
-    border: 1.5px solid var(--hair); background: var(--bg);
-    font-size: 12px; font-weight: 700; cursor: pointer; color: var(--ink);
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    font-family: inherit;
-  }
-  .ip-action svg { width: 14px; height: 14px; }
-  .ip-action.danger {
-    color: #C73E5C;
-    border-color: color-mix(in oklab, #C73E5C 35%, transparent);
-    background: color-mix(in oklab, #C73E5C 8%, var(--bg));
-  }
-  .ip-action.locked {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: color-mix(in oklab, var(--accent) 12%, var(--bg));
-  }
-  .ip-action:active { transform: scale(0.97); }
-  .ip-divider {
-    font-size: 10px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.1em; text-transform: uppercase; margin: 8px 0 6px;
-  }
-  .ip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .ip-chip {
-    min-height: 44px;
-    padding: 10px 8px; border-radius: 10px;
-    border: 1.5px solid color-mix(in oklab, var(--bp) 30%, transparent);
-    background: color-mix(in oklab, var(--bp) 14%, var(--bg-1));
-    font-size: 12px; font-weight: 600; cursor: pointer; color: var(--ink);
-    font-family: inherit;
-  }
-  .ip-chip:active { transform: scale(0.96); }
+  .ps-row:active { transform: scale(0.99); }
+  .ps-row-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .ps-row-n { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+  .ps-row-s { font-size: 11px; color: var(--ink-3); }
 
-  .palette-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .pal-chip {
-    padding: 12px 10px; border-radius: 12px;
-    background: color-mix(in oklab, var(--bp) 16%, var(--bg-2));
-    border: 1.5px solid color-mix(in oklab, var(--bp) 30%, transparent);
-    text-align: left; cursor: grab; touch-action: none; color: var(--ink);
-    user-select: none; min-height: 56px;
-  }
-  .pal-chip:active { cursor: grabbing; transform: scale(0.97); }
-  .pal-lbl { font-size: 13px; font-weight: 700; }
-  .pal-sub { font-size: 10px; color: var(--ink-3); margin-top: 2px; }
   .drag-ghost {
     position: fixed; pointer-events: none; z-index: 9999;
-    padding: 10px 16px; border-radius: 10px;
+    padding: 10px 16px; border-radius: 999px;
     background: color-mix(in oklab, var(--bp) 80%, white);
     color: white; font-weight: 700; font-size: 13px;
     box-shadow: 0 12px 32px rgba(0,0,0,0.35);

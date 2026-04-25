@@ -29,46 +29,28 @@ const IconTrash = () => (
 );
 
 // ================================================================
-// SCHEDULE TAB — drag day-types onto the week + template picker
+// SCHEDULE TAB — only the week. Drag splits + cardios onto days.
+// Templates / quick-actions live behind the "Presets" sheet.
 // ================================================================
-function ScheduleTab({ days, setDays, locked, setLocked, profile, showToast, onJumpToSplits }) {
-  // template picker
-  const [templateId, setTemplateId] = useState('ppl');
-
-  // The schedule is derived from `days` array — each day has a `type`.
-  // Editing here just changes the .type and clears exercises.
+function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLocked, profile, showToast, onJumpToSplits }) {
   const dayTypes = days.map(d => d.type || (d.rest ? 'rest' : 'custom'));
+  const splitChips = ['push','pull','legs','upper','lower','full','rest'];
+  const cardioChips = (window.CARDIO_LIBRARY || []);
 
-  const palette = [
-    'push','pull','legs','upper','lower','full',
-    'chest','back','shoulder','arms','quads','hams','glutes','core',
-    'cardio','sport','rest','custom',
-  ];
+  const [presetsOpen, setPresetsOpen] = useState(false);
+  const [pickFor, setPickFor] = useState(null);
 
-  const applyTemplate = (id) => {
-    const tpl = window.SPLIT_TEMPLATES.find(t => t.id === id);
-    if (!tpl) return;
-    setTemplateId(id);
-    // Build new days: respect locked entries
-    setDays(prev => prev.map((d, i) => {
-      if (locked[i]) return d;
-      const t = tpl.days[i];
-      return makeDayForType(t, profile);
-    }));
-    showToast(`Applied: ${tpl.name}`);
-  };
-
-  // Drag a chip onto a day — touch + mouse
-  const dragRef = useRef(null);
+  // Drag — single handler for both split and cardio chips.
+  // payload: { kind: 'split'|'cardio', id }
   const [drag, setDrag] = useState(null);
   const [hoverIdx, setHoverIdx] = useState(null);
 
-  const startDrag = (e, typeId) => {
+  const startDrag = (e, payload) => {
     const isTouch = e.touches !== undefined;
     const px = isTouch ? e.touches[0].clientX : e.clientX;
     const py = isTouch ? e.touches[0].clientY : e.clientY;
     if (!isTouch) e.preventDefault();
-    setDrag({ typeId, x: px, y: py });
+    setDrag({ ...payload, x: px, y: py });
   };
 
   useEffect(() => {
@@ -86,12 +68,20 @@ function ScheduleTab({ days, setDays, locked, setLocked, profile, showToast, onJ
     };
     const up = () => {
       if (drag && hoverIdx !== null) {
-        setDays(prev => prev.map((d, i) => {
-          if (i !== hoverIdx) return d;
-          if (locked[i]) return d;
-          return makeDayForType(drag.typeId, profile);
-        }));
-        showToast(`${window.DAY_NAMES[hoverIdx]}: ${window.DAY_TYPES[drag.typeId]?.label}`);
+        if (locked[hoverIdx]) {
+          showToast('Locked — unlock first');
+        } else if (drag.kind === 'split') {
+          setDays(prev => prev.map((d, i) => i === hoverIdx ? makeDayForType(drag.id, profile) : d));
+          showToast(`${window.DAY_NAMES[hoverIdx]}: ${window.DAY_TYPES[drag.id]?.label}`);
+        } else if (drag.kind === 'cardio') {
+          setCardioDays(prev => {
+            const next = prev.map(d => ({ items: [...d.items] }));
+            next[hoverIdx].items.push(drag.id);
+            return next;
+          });
+          const c = window.cardioFor(drag.id);
+          showToast(`${window.DAY_NAMES[hoverIdx]}: + ${c?.name || 'cardio'}`);
+        }
       }
       setDrag(null); setHoverIdx(null);
     };
@@ -105,18 +95,7 @@ function ScheduleTab({ days, setDays, locked, setLocked, profile, showToast, onJ
       window.removeEventListener('touchmove', move);
       window.removeEventListener('touchend', up);
     };
-  }, [drag, hoverIdx, locked, profile, setDays, showToast]);
-
-  // Inline picker for tap-on-day. Always opens (Lock/Clear live inside).
-  const [pickFor, setPickFor] = useState(null);
-  const tapDay = (idx) => setPickFor(idx);
-
-  const setDayType = (idx, typeId) => {
-    if (locked[idx]) { showToast('Locked — unlock first'); return; }
-    setDays(prev => prev.map((d,i)=> i===idx ? makeDayForType(typeId, profile) : d));
-    setPickFor(null);
-    showToast(`${window.DAY_NAMES[idx]}: ${window.DAY_TYPES[typeId]?.label}`);
-  };
+  }, [drag, hoverIdx, locked, profile, setDays, setCardioDays, showToast]);
 
   const toggleLockAt = (idx) => {
     setLocked(prev => prev.map((v,j) => j===idx ? !v : v));
@@ -126,11 +105,163 @@ function ScheduleTab({ days, setDays, locked, setLocked, profile, showToast, onJ
   const clearDay = (idx) => {
     if (locked[idx]) { showToast('Locked — unlock first'); return; }
     setDays(prev => prev.map((d,i)=> i===idx ? makeDayForType('rest', profile) : d));
+    setCardioDays(prev => prev.map((d,i)=> i===idx ? { items: [] } : d));
     setPickFor(null);
     showToast(`${window.DAY_NAMES[idx]} cleared`);
   };
 
-  // Suggested templates: top 3 ranked by sport priority + days-fit.
+  const removeCardio = (dayIdx, itemIdx) => {
+    if (locked[dayIdx]) { showToast('Locked — unlock first'); return; }
+    setCardioDays(prev => {
+      const next = prev.map(d => ({ items: [...d.items] }));
+      next[dayIdx].items.splice(itemIdx, 1);
+      return next;
+    });
+  };
+
+  const todayIdx = (() => { const j = new Date().getDay(); return j === 0 ? 6 : j - 1; })();
+
+  return (
+    <div className="tab-pane sched-page">
+      {/* Tiny header — title left, Presets right */}
+      <div className="sched-bar">
+        <div className="sched-h1">Your week</div>
+        <button className="presets-btn" onClick={()=>setPresetsOpen(true)}>Presets</button>
+      </div>
+
+      {/* The week */}
+      <div className="sched-week">
+        {window.DAY_NAMES.map((dn, i) => {
+          const t = dayTypes[i];
+          const dt = window.DAY_TYPES[t] || window.DAY_TYPES.custom;
+          const cItems = (cardioDays && cardioDays[i] && cardioDays[i].items) || [];
+          return (
+            <div key={i} data-sched-day={i}
+              className={`sched-cell ${hoverIdx===i?'hover':''} ${locked[i]?'locked':''} ${todayIdx===i?'is-today':''}`}
+              style={{ '--bp': `var(--bp-${t})` }}
+              onClick={()=>setPickFor(i)}>
+              <div className="dn mono">{dn}</div>
+              <div className="dt">{dt.label}</div>
+              {cItems.length > 0 && (
+                <div className="cd-dots">
+                  {cItems.slice(0, 4).map((cid, k) => {
+                    const c = window.cardioFor(cid);
+                    const col = c && window.CARDIO_TYPES[c.type]?.color;
+                    return <span key={k} className="cd-dot" style={{ background: col || 'var(--ink-3)' }}/>;
+                  })}
+                  {cItems.length > 4 && <span className="cd-dot more mono">+{cItems.length - 4}</span>}
+                </div>
+              )}
+              {locked[i] && <span className="lock-mark"><IconLock/></span>}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Drag palette: splits, then cardios */}
+      <div className="pal-h mono">SPLITS · drag onto a day</div>
+      <div className="pal-row">
+        {splitChips.map(p => {
+          const dt = window.DAY_TYPES[p];
+          if (!dt) return null;
+          return (
+            <button key={p} className="pal-pill split"
+              style={{ '--bp': `var(--bp-${p})` }}
+              onMouseDown={(e)=>startDrag(e, { kind:'split', id:p })}
+              onTouchStart={(e)=>startDrag(e, { kind:'split', id:p })}
+              onClick={()=>onJumpToSplits && onJumpToSplits(p)}>
+              {dt.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="pal-h mono">CARDIO · drag onto a day</div>
+      <div className="pal-row">
+        {cardioChips.map(c => {
+          const t = window.CARDIO_TYPES[c.type];
+          return (
+            <button key={c.id} className="pal-pill cardio"
+              style={{ '--bp': t?.color || 'var(--ink-3)' }}
+              onMouseDown={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
+              onTouchStart={(e)=>startDrag(e, { kind:'cardio', id:c.id })}>
+              <span className="cp-name">{c.name}</span>
+              <span className="cp-meta mono">{c.dur}m</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tap-day inline action sheet — Lock / Clear / current cardios */}
+      {pickFor !== null && (
+        <div className="day-actions">
+          <div className="da-head">
+            <div><b>{window.DAY_NAMES[pickFor]}</b> · {window.DAY_TYPES[dayTypes[pickFor]]?.label}</div>
+            <button className="ip-x" onClick={()=>setPickFor(null)} aria-label="Close"><IconX/></button>
+          </div>
+          <div className="da-actions">
+            <button className={`ip-action ${locked[pickFor]?'locked':''}`} onClick={()=>toggleLockAt(pickFor)}>
+              <IconLock open={locked[pickFor]}/>
+              {locked[pickFor] ? 'Unlock' : 'Lock'}
+            </button>
+            <button className="ip-action danger" onClick={()=>clearDay(pickFor)} disabled={locked[pickFor]}
+                    style={locked[pickFor] ? { opacity: 0.4, cursor: 'not-allowed' } : null}>
+              <IconTrash/>
+              Clear day
+            </button>
+          </div>
+          {(cardioDays[pickFor]?.items.length || 0) > 0 && (
+            <div className="da-cardios">
+              <div className="ip-divider">Cardio on this day</div>
+              {cardioDays[pickFor].items.map((cid, ii) => {
+                const c = window.cardioFor(cid); if (!c) return null;
+                const t = window.CARDIO_TYPES[c.type];
+                return (
+                  <div key={ii} className="da-cardio-row" style={{ '--bp': t?.color }}>
+                    <div className="dac-body">
+                      <div className="dac-n">{c.name}</div>
+                      <div className="dac-m mono">{c.dur}m{c.dist>0?` · ${c.dist}${c.unit}`:''}</div>
+                    </div>
+                    <button className="dac-x" onClick={()=>removeCardio(pickFor, ii)} aria-label="Remove"><IconX/></button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Presets sheet — opens on demand only */}
+      {presetsOpen && (
+        <PresetsSheet
+          profile={profile}
+          locked={locked}
+          setDays={setDays}
+          showToast={showToast}
+          onClose={()=>setPresetsOpen(false)}
+        />
+      )}
+
+      {/* Floating drag ghost */}
+      {drag && (
+        <div className="drag-ghost" style={{ left: drag.x - 60, top: drag.y - 22,
+              '--bp': drag.kind === 'split'
+                ? `var(--bp-${drag.id})`
+                : (window.CARDIO_TYPES[window.cardioFor(drag.id)?.type]?.color || 'var(--ink-3)') }}>
+          {drag.kind === 'split'
+            ? window.DAY_TYPES[drag.id]?.label
+            : window.cardioFor(drag.id)?.name}
+        </div>
+      )}
+
+      <div style={{ height: 28 }}/>
+    </div>
+  );
+}
+
+// Presets bottom sheet — auto-build + suggested + all templates.
+// Lives behind the Presets button on Schedule. Not on the main surface.
+function PresetsSheet({ profile, locked, setDays, showToast, onClose }) {
   const ranked = useMemo(
     () => (window.rankTemplatesForSport
       ? window.rankTemplatesForSport({ sport: profile.sport, days: profile.days, limit: 3 })
@@ -139,147 +270,71 @@ function ScheduleTab({ days, setDays, locked, setLocked, profile, showToast, onJ
   );
   const sportLabel = window.SPORTS.find(s => s.id === profile.sport)?.label || 'your sport';
 
+  const applyTemplate = (id) => {
+    const tpl = (window.SPLIT_TEMPLATES || []).find(t => t.id === id);
+    if (!tpl) return;
+    setDays(prev => prev.map((d, i) => locked[i] ? d : makeDayForType(tpl.days[i], profile)));
+    showToast(`Applied: ${tpl.name}`);
+    onClose();
+  };
+
+  const autoBuild = () => {
+    const plan = window.planForSport({ ...profile });
+    setDays(prev => plan.map((p,i)=> locked[i] ? prev[i] : p));
+    showToast('Auto-built for your sport');
+    onClose();
+  };
+
   return (
-    <div className="tab-pane sched-page">
-      {/* Sport-aware quick plan */}
-      <div className="sched-hero">
-        <div className="row">
-          <div className="kicker mono">QUICK START</div>
+    <div className="ps-overlay" onClick={onClose}>
+      <div className="ps-sheet" onClick={e=>e.stopPropagation()}>
+        <div className="ps-head">
+          <div>
+            <div className="ps-t">Presets</div>
+            <div className="ps-s mono">{sportLabel.toUpperCase()} · {profile.days}/WK</div>
+          </div>
+          <button className="ip-x" onClick={onClose} aria-label="Close presets"><IconX/></button>
         </div>
-        <div className="hero-title">Auto-build for {sportLabel}</div>
-        <div className="hero-sub">Uses your sport, weight & height to weight muscle priority.</div>
-        <button className="btn-mesh" onClick={() => {
-          const plan = window.planForSport({ ...profile });
-          setDays(prev => plan.map((p,i)=> locked[i] ? prev[i] : p));
-          showToast('Sport-aware plan generated');
-        }}>Generate sport-aware plan</button>
-      </div>
 
-      {/* Suggested templates (top 3 by sport-fit) */}
-      {ranked.length > 0 && (
-        <>
-          <div className="sec-head">
-            <div className="t">Suggested for {sportLabel}</div>
-            <div className="s">Tap to apply</div>
-          </div>
-          <div className="tpl-rec-row">
-            {ranked.map(({ tpl, liftDays }, i) => (
-              <button key={tpl.id} className={`tpl-rec ${i===0?'top':''}`} onClick={()=>applyTemplate(tpl.id)}>
-                <div className="rec-rank">{i===0 ? 'BEST FIT' : `#${i+1}`}</div>
-                <div className="rec-name">{tpl.name}</div>
-                <div className="rec-meta">{liftDays} lift / {7-liftDays} off</div>
-                <div className="rec-mini">
-                  {tpl.days.map((d, j) => (
-                    <span key={j} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
-                  ))}
-                </div>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+        <button className="btn-mesh ps-auto" onClick={autoBuild}>Auto-build for my sport</button>
 
-      {/* All templates */}
-      <div className="sec-head"><div className="t">All templates</div><div className="s">Swipe to scroll</div></div>
-      <div className="tpl-row">
-        {window.SPLIT_TEMPLATES.map(t => (
-          <button key={t.id} className={`tpl-card ${templateId===t.id?'active':''}`} onClick={()=>applyTemplate(t.id)}>
-            <div className="tpl-name">{t.name}</div>
-            <div className="tpl-sub">{t.sub}</div>
-            <div className="tpl-mini">
-              {t.days.map((d, i) => (
-                <span key={i} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
+        {ranked.length > 0 && (
+          <>
+            <div className="ps-section">Suggested for {sportLabel}</div>
+            <div className="tpl-rec-row">
+              {ranked.map(({ tpl, liftDays }, i) => (
+                <button key={tpl.id} className={`tpl-rec ${i===0?'top':''}`} onClick={()=>applyTemplate(tpl.id)}>
+                  <div className="rec-rank">{i===0 ? 'BEST FIT' : `#${i+1}`}</div>
+                  <div className="rec-name">{tpl.name}</div>
+                  <div className="rec-meta">{liftDays} lift / {7-liftDays} off</div>
+                  <div className="rec-mini">
+                    {tpl.days.map((d, j) => (
+                      <span key={j} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
+                    ))}
+                  </div>
+                </button>
               ))}
             </div>
-          </button>
-        ))}
-      </div>
+          </>
+        )}
 
-      {/* Week strip */}
-      <div className="sec-head"><div className="t">Your week</div><div className="s">Drag chips below or tap a day</div></div>
-      <div className="sched-week">
-        {window.DAY_NAMES.map((dn, i) => {
-          const t = dayTypes[i];
-          const dt = window.DAY_TYPES[t] || window.DAY_TYPES.custom;
-          const todayJs = new Date().getDay();
-          const todayIdx = todayJs === 0 ? 6 : todayJs - 1;
-          return (
-            <div key={i} data-sched-day={i}
-              className={`sched-cell ${hoverIdx===i?'hover':''} ${locked[i]?'locked':''} ${todayIdx===i?'is-today':''}`}
-              style={{ '--bp': `var(--bp-${t})` }}
-              onClick={()=>tapDay(i)}>
-              <div className="dn mono">{dn}</div>
-              <div className="dt">{dt.label}</div>
-              {locked[i] && <span className="lock-mark"><IconLock/></span>}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Tap-day inline picker — Lock + Clear up top, then day-type chips */}
-      {pickFor !== null && (
-        <div className="inline-picker">
-          <div className="ip-head">
-            <div>Set <b>{window.DAY_NAMES[pickFor]}</b> as…</div>
-            <button className="ip-x" onClick={()=>setPickFor(null)} aria-label="Close picker"><IconX/></button>
-          </div>
-          <div className="ip-actions">
-            <button
-              className={`ip-action ${locked[pickFor] ? 'locked' : ''}`}
-              onClick={() => toggleLockAt(pickFor)}
-            >
-              <IconLock open={locked[pickFor]}/>
-              {locked[pickFor] ? 'Unlock day' : 'Lock day'}
+        <div className="ps-section">All templates</div>
+        <div className="ps-list">
+          {(window.SPLIT_TEMPLATES || []).map(t => (
+            <button key={t.id} className="ps-row" onClick={()=>applyTemplate(t.id)}>
+              <div className="ps-row-body">
+                <div className="ps-row-n">{t.name}</div>
+                <div className="ps-row-s">{t.sub}</div>
+              </div>
+              <div className="tpl-mini">
+                {t.days.map((d, i) => (
+                  <span key={i} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
+                ))}
+              </div>
             </button>
-            <button
-              className="ip-action danger"
-              onClick={() => clearDay(pickFor)}
-              disabled={locked[pickFor]}
-              style={locked[pickFor] ? { opacity: 0.4, cursor: 'not-allowed' } : null}
-            >
-              <IconTrash/>
-              Clear day
-            </button>
-          </div>
-          <div className="ip-divider">Or set as…</div>
-          <div className="ip-grid">
-            {palette.map(p => (
-              <button key={p} className="ip-chip" style={{ '--bp': `var(--bp-${p})` }} onClick={()=>setDayType(pickFor, p)}>
-                {window.DAY_TYPES[p]?.label || p}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
-      )}
-
-      {/* Day-type palette (draggable) */}
-      <div className="sec-head"><div className="t">Day-type palette</div><div className="s">Long-press & drag onto a day</div></div>
-      <div className="palette-grid">
-        {palette.map(p => {
-          const dt = window.DAY_TYPES[p];
-          if (!dt) return null;
-          return (
-            <button key={p} className="pal-chip"
-              style={{ '--bp': `var(--bp-${p})` }}
-              onMouseDown={(e)=>startDrag(e, p)}
-              onTouchStart={(e)=>startDrag(e, p)}
-              onClick={()=>onJumpToSplits && onJumpToSplits(p)}
-            >
-              <div className="pal-lbl">{dt.label}</div>
-              <div className="pal-sub">{dt.sub}</div>
-            </button>
-          );
-        })}
       </div>
-
-      {/* Floating drag ghost */}
-      {drag && (
-        <div className="drag-ghost" style={{ left: drag.x - 60, top: drag.y - 24, '--bp': `var(--bp-${drag.typeId})` }}>
-          {window.DAY_TYPES[drag.typeId]?.label}
-        </div>
-      )}
-
-      <div style={{ height: 24 }}/>
     </div>
   );
 }

@@ -1249,7 +1249,7 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout }) {
             </button>
           </div>
         )}
-        {tab === 'schedule' && <window.ScheduleTab days={days} setDays={setDays} locked={locked} setLocked={setLocked} profile={profile} showToast={showToast} onJumpToSplits={()=>setTab('splits')}/>}
+        {tab === 'schedule' && <window.ScheduleTab days={days} setDays={setDays} cardioDays={cardioDays} setCardioDays={setCardioDays} locked={locked} setLocked={setLocked} profile={profile} showToast={showToast} onJumpToSplits={()=>setTab('splits')}/>}
         {tab === 'body' && (window.BodyTabV2 ? <window.BodyTabV2 days={days} onAddExercise={addToToday} setTab={setTab}/> : <BodyTab days={days} onAddExercise={addToToday}/>)}
         {tab === 'cardio' && (window.CardioPageV2 ? <window.CardioPageV2 cardioDays={cardioDays} setCardioDays={setCardioDays} onOpenCardioSheet={openCardioSheet}/> : <CardioPage cardioDays={cardioDays} setCardioDays={setCardioDays} onOpenCardioSheet={openCardioSheet}/>)}
         {tab === 'dashboard' && <window.DashboardPage days={days} cardioDays={cardioDays} profile={profile} setTab={setTab}/>}

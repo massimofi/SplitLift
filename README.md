@@ -61,6 +61,13 @@ Libraries to be credited as they're added in later batches:
 
 ## Changelog
 
+### 2026-04-25 — Batch 2 follow-up: Schedule = literally the schedule
+On user feedback ("very mobile friendly, easier to use — schedule should literally only be the schedule"), the Schedule tab was pared back to a single surface:
+- Just a tiny title bar with a single **Presets** button, the week grid, and a flat horizontal-scroll palette with two rows: **SPLITS** and **CARDIO**. Drag any chip onto any day. Splits replace the day-type; cardios append to that day.
+- Day cells now show small colored dots for each cardio session on that day; tap a day to open a compact action sheet with **Lock / Unlock**, **Clear day**, and a removable list of that day's cardios.
+- Templates / suggested-for-sport / auto-build moved into a `PresetsSheet` modal that opens only when the Presets button is tapped — none of that lives on the main schedule surface anymore.
+- Removed the `.sched-hero`, `.tpl-row`, `.tpl-card`, `.inline-picker`, `.palette-grid`, `.pal-chip` styles to keep the CSS in sync.
+
 ### 2026-04-25 — Batch 2: split-template picker + schedule polish
 - New `splitlift-templates.jsx` owns the template catalog (Full body × 2/3, PPL × 3/5/6, Upper/Lower, Bro split, UL+PPL hybrid, Sport-focused, Custom).
 - Added `rankTemplatesForSport()` — scores each template against the sport's muscle-priority weights and a days/week target; the Schedule tab now surfaces the top 3 as a "Suggested for [sport]" strip (one tap to apply).
