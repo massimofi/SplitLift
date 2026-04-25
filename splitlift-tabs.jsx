@@ -8,6 +8,26 @@ const Dumbbell = ({size=16, color='currentColor'}) => (
   </svg>
 );
 
+// ============ SHARED: small inline icons (no emoji per Rule 8) ============
+const IconLock = ({open=false}) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="4" y="11" width="16" height="10" rx="2"/>
+    {open
+      ? <path d="M8 11V7a4 4 0 0 1 7-1"/>
+      : <path d="M8 11V7a4 4 0 0 1 8 0v4"/>}
+  </svg>
+);
+const IconX = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+    <path d="M18 6L6 18M6 6l12 12"/>
+  </svg>
+);
+const IconTrash = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/>
+  </svg>
+);
+
 // ================================================================
 // SCHEDULE TAB — drag day-types onto the week + template picker
 // ================================================================
@@ -87,17 +107,37 @@ function ScheduleTab({ days, setDays, locked, setLocked, profile, showToast, onJ
     };
   }, [drag, hoverIdx, locked, profile, setDays, showToast]);
 
-  // Tap a day to cycle through compatible types? Better: tap to open inline picker
+  // Inline picker for tap-on-day. Always opens (Lock/Clear live inside).
   const [pickFor, setPickFor] = useState(null);
-  const tapDay = (idx) => {
-    if (locked[idx]) { showToast('Locked — unlock to edit'); return; }
-    setPickFor(idx);
-  };
+  const tapDay = (idx) => setPickFor(idx);
+
   const setDayType = (idx, typeId) => {
+    if (locked[idx]) { showToast('Locked — unlock first'); return; }
     setDays(prev => prev.map((d,i)=> i===idx ? makeDayForType(typeId, profile) : d));
     setPickFor(null);
     showToast(`${window.DAY_NAMES[idx]}: ${window.DAY_TYPES[typeId]?.label}`);
   };
+
+  const toggleLockAt = (idx) => {
+    setLocked(prev => prev.map((v,j) => j===idx ? !v : v));
+    showToast(locked[idx] ? `${window.DAY_NAMES[idx]} unlocked` : `${window.DAY_NAMES[idx]} locked`);
+  };
+
+  const clearDay = (idx) => {
+    if (locked[idx]) { showToast('Locked — unlock first'); return; }
+    setDays(prev => prev.map((d,i)=> i===idx ? makeDayForType('rest', profile) : d));
+    setPickFor(null);
+    showToast(`${window.DAY_NAMES[idx]} cleared`);
+  };
+
+  // Suggested templates: top 3 ranked by sport priority + days-fit.
+  const ranked = useMemo(
+    () => (window.rankTemplatesForSport
+      ? window.rankTemplatesForSport({ sport: profile.sport, days: profile.days, limit: 3 })
+      : []),
+    [profile.sport, profile.days]
+  );
+  const sportLabel = window.SPORTS.find(s => s.id === profile.sport)?.label || 'your sport';
 
   return (
     <div className="tab-pane sched-page">
@@ -106,7 +146,7 @@ function ScheduleTab({ days, setDays, locked, setLocked, profile, showToast, onJ
         <div className="row">
           <div className="kicker mono">QUICK START</div>
         </div>
-        <div className="hero-title">Auto-build for {window.SPORTS.find(s=>s.id===profile.sport)?.label || 'your sport'}</div>
+        <div className="hero-title">Auto-build for {sportLabel}</div>
         <div className="hero-sub">Uses your sport, weight & height to weight muscle priority.</div>
         <button className="btn-mesh" onClick={() => {
           const plan = window.planForSport({ ...profile });
@@ -115,8 +155,32 @@ function ScheduleTab({ days, setDays, locked, setLocked, profile, showToast, onJ
         }}>Generate sport-aware plan</button>
       </div>
 
-      {/* Templates */}
-      <div className="sec-head"><div className="t">Templates</div><div className="s">Tap to apply</div></div>
+      {/* Suggested templates (top 3 by sport-fit) */}
+      {ranked.length > 0 && (
+        <>
+          <div className="sec-head">
+            <div className="t">Suggested for {sportLabel}</div>
+            <div className="s">Tap to apply</div>
+          </div>
+          <div className="tpl-rec-row">
+            {ranked.map(({ tpl, liftDays }, i) => (
+              <button key={tpl.id} className={`tpl-rec ${i===0?'top':''}`} onClick={()=>applyTemplate(tpl.id)}>
+                <div className="rec-rank">{i===0 ? 'BEST FIT' : `#${i+1}`}</div>
+                <div className="rec-name">{tpl.name}</div>
+                <div className="rec-meta">{liftDays} lift / {7-liftDays} off</div>
+                <div className="rec-mini">
+                  {tpl.days.map((d, j) => (
+                    <span key={j} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
+                  ))}
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* All templates */}
+      <div className="sec-head"><div className="t">All templates</div><div className="s">Swipe to scroll</div></div>
       <div className="tpl-row">
         {window.SPLIT_TEMPLATES.map(t => (
           <button key={t.id} className={`tpl-card ${templateId===t.id?'active':''}`} onClick={()=>applyTemplate(t.id)}>
@@ -146,21 +210,38 @@ function ScheduleTab({ days, setDays, locked, setLocked, profile, showToast, onJ
               onClick={()=>tapDay(i)}>
               <div className="dn mono">{dn}</div>
               <div className="dt">{dt.label}</div>
-              <button className={`mini-lock ${locked[i]?'on':''}`} onClick={(e)=>{e.stopPropagation(); setLocked(prev=>prev.map((v,j)=>j===i?!v:v));}}>
-                {locked[i] ? '🔒' : '🔓'}
-              </button>
+              {locked[i] && <span className="lock-mark"><IconLock/></span>}
             </div>
           );
         })}
       </div>
 
-      {/* Tap-day inline picker */}
+      {/* Tap-day inline picker — Lock + Clear up top, then day-type chips */}
       {pickFor !== null && (
         <div className="inline-picker">
           <div className="ip-head">
             <div>Set <b>{window.DAY_NAMES[pickFor]}</b> as…</div>
-            <button className="ip-x" onClick={()=>setPickFor(null)}>✕</button>
+            <button className="ip-x" onClick={()=>setPickFor(null)} aria-label="Close picker"><IconX/></button>
           </div>
+          <div className="ip-actions">
+            <button
+              className={`ip-action ${locked[pickFor] ? 'locked' : ''}`}
+              onClick={() => toggleLockAt(pickFor)}
+            >
+              <IconLock open={locked[pickFor]}/>
+              {locked[pickFor] ? 'Unlock day' : 'Lock day'}
+            </button>
+            <button
+              className="ip-action danger"
+              onClick={() => clearDay(pickFor)}
+              disabled={locked[pickFor]}
+              style={locked[pickFor] ? { opacity: 0.4, cursor: 'not-allowed' } : null}
+            >
+              <IconTrash/>
+              Clear day
+            </button>
+          </div>
+          <div className="ip-divider">Or set as…</div>
           <div className="ip-grid">
             {palette.map(p => (
               <button key={p} className="ip-chip" style={{ '--bp': `var(--bp-${p})` }} onClick={()=>setDayType(pickFor, p)}>

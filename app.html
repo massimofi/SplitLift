@@ -1234,10 +1234,41 @@
   .sched-cell.locked { opacity: 0.7; }
   .sched-cell .dn { font-size: 9px; color: var(--ink-3); letter-spacing: 0.08em; }
   .sched-cell .dt { font-size: 11px; font-weight: 700; line-height: 1.15; }
-  .sched-cell .mini-lock {
-    position: absolute; top: 4px; right: 4px; width: 22px; height: 22px;
-    border-radius: 6px; border: none; background: transparent; font-size: 11px; cursor: pointer;
+  .sched-cell .lock-mark {
+    position: absolute; top: 4px; right: 4px; width: 16px; height: 16px;
+    color: var(--ink-2); pointer-events: none;
   }
+  .sched-cell .lock-mark svg { display: block; width: 100%; height: 100%; }
+
+  /* ============== Suggested templates strip ============== */
+  .tpl-rec-row {
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 8px; margin-top: 4px;
+  }
+  .tpl-rec {
+    text-align: left; cursor: pointer;
+    padding: 12px 12px 14px; border-radius: 14px;
+    background: color-mix(in oklab, var(--accent) 8%, var(--bg-2));
+    border: 1.5px solid color-mix(in oklab, var(--accent) 26%, transparent);
+    display: flex; flex-direction: column; gap: 6px;
+    min-height: 44px;
+    transition: transform 160ms ease, border-color 160ms ease;
+  }
+  .tpl-rec:active { transform: scale(0.97); }
+  .tpl-rec.top {
+    background:
+      radial-gradient(110% 140% at 0% 0%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 60%),
+      color-mix(in oklab, var(--accent) 10%, var(--bg-2));
+    border-color: var(--accent);
+  }
+  .tpl-rec .rec-rank {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); font-weight: 700;
+  }
+  .tpl-rec .rec-name { font-size: 13px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
+  .tpl-rec .rec-meta { font-size: 10.5px; color: var(--ink-3); line-height: 1.25; }
+  .tpl-rec .rec-mini { display: flex; gap: 2px; margin-top: 2px; }
+  .tpl-rec .rec-mini .tpl-cell { width: 9px; height: 9px; border-radius: 3px; }
 
   .inline-picker {
     margin-top: 12px; padding: 14px; background: var(--bg-2);
@@ -1245,12 +1276,46 @@
     animation: tabFade 200ms ease;
   }
   .ip-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .ip-x { background: transparent; border: none; font-size: 18px; cursor: pointer; color: var(--ink-2); width: 32px; height: 32px; }
+  .ip-x {
+    background: transparent; border: none; cursor: pointer; color: var(--ink-2);
+    width: 44px; height: 44px; border-radius: 10px;
+    display: grid; place-items: center;
+  }
+  .ip-x svg { width: 18px; height: 18px; }
+  .ip-actions {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;
+  }
+  .ip-action {
+    min-height: 44px; padding: 10px 12px; border-radius: 10px;
+    border: 1.5px solid var(--hair); background: var(--bg);
+    font-size: 12px; font-weight: 700; cursor: pointer; color: var(--ink);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: inherit;
+  }
+  .ip-action svg { width: 14px; height: 14px; }
+  .ip-action.danger {
+    color: #C73E5C;
+    border-color: color-mix(in oklab, #C73E5C 35%, transparent);
+    background: color-mix(in oklab, #C73E5C 8%, var(--bg));
+  }
+  .ip-action.locked {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 12%, var(--bg));
+  }
+  .ip-action:active { transform: scale(0.97); }
+  .ip-divider {
+    font-size: 10px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em; text-transform: uppercase; margin: 8px 0 6px;
+  }
   .ip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .ip-chip {
-    padding: 12px 8px; border-radius: 10px; border: 1.5px solid color-mix(in oklab, var(--bp) 30%, transparent);
+    min-height: 44px;
+    padding: 10px 8px; border-radius: 10px;
+    border: 1.5px solid color-mix(in oklab, var(--bp) 30%, transparent);
     background: color-mix(in oklab, var(--bp) 14%, var(--bg-1));
     font-size: 12px; font-weight: 600; cursor: pointer; color: var(--ink);
+    font-family: inherit;
   }
   .ip-chip:active { transform: scale(0.96); }
 
@@ -1735,6 +1800,7 @@
 <div id="root"></div>
 
 <script type="text/babel" src="splitlift-data.jsx"></script>
+<script type="text/babel" src="splitlift-templates.jsx"></script>
 <script type="text/babel" src="splitlift-anatomy.jsx"></script>
 <script type="text/babel" src="splitlift-brand.jsx"></script>
 <script type="text/babel" src="splitlift-tabs.jsx"></script>

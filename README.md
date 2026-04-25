@@ -33,7 +33,8 @@ Or just open `app.html` directly in a browser. The CDN-loaded React + Babel will
 
 Files (all in repo root):
 - `app.html` — entry, theme tokens, all CSS, script loader
-- `splitlift-data.jsx` — exercise DB, sports, split templates, scoring math
+- `splitlift-data.jsx` — exercise DB, sports, scoring math, cardio library
+- `splitlift-templates.jsx` — split templates (PPL, Upper/Lower, Full body, Bro, hybrid, Custom) + sport-aware ranking
 - `splitlift-anatomy.jsx` — detailed front/back anatomy SVG with named muscle regions
 - `splitlift-brand.jsx` — dumbbell mark + wordmark lockup
 - `splitlift-tabs.jsx` — Schedule, Dashboard, Cardio, Body, Profile tab content
@@ -59,6 +60,13 @@ Libraries to be credited as they're added in later batches:
 ---
 
 ## Changelog
+
+### 2026-04-25 — Batch 2: split-template picker + schedule polish
+- New `splitlift-templates.jsx` owns the template catalog (Full body × 2/3, PPL × 3/5/6, Upper/Lower, Bro split, UL+PPL hybrid, Sport-focused, Custom).
+- Added `rankTemplatesForSport()` — scores each template against the sport's muscle-priority weights and a days/week target; the Schedule tab now surfaces the top 3 as a "Suggested for [sport]" strip (one tap to apply).
+- Schedule tab now has a tap-to-clear path: tapping any day opens an inline picker with **Lock / Unlock** and **Clear day** actions before the day-type chips. Removed the cramped per-cell lock toggle (which used 🔒/🔓 emoji and a 22 px hit area, violating Rules 1 and 8) — replaced with a non-interactive lock indicator inside locked cells.
+- Bumped `.ip-chip` to a 44 px min-height, swapped picker close button to an SVG.
+- `splitlift-data.jsx` no longer owns templates; `planForSport()` resolves them via `window.SPLIT_TEMPLATES`.
 
 ### 2026-04-25 — Batch 1: brand + header + nav icons
 - New `splitlift-brand.jsx` with `BrandMark` (gradient-tile dumbbell) and `BrandLockup` (mark + "SplitLift" wordmark).

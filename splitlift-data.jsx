@@ -129,24 +129,7 @@ const FILTER_CHIPS = [
 
 const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-// ---------- SPLIT TEMPLATES ----------
-// Each template defines a 7-day type plan. User can drag/edit afterward.
-const SPLIT_TEMPLATES = [
-  { id:'ppl',       name:'Push / Pull / Legs',  sub:'Classic 6-day. The crowd favorite.',
-    days:['push','pull','legs','push','pull','legs','rest'] },
-  { id:'ppl5',      name:'PPL × 5',             sub:'5-day PPL with one repeat + rest.',
-    days:['push','pull','legs','push','pull','rest','rest'] },
-  { id:'ulhalf',    name:'Upper / Lower',       sub:'4-day, balanced and time-efficient.',
-    days:['upper','lower','rest','upper','lower','rest','rest'] },
-  { id:'full3',     name:'Full body × 3',       sub:'3-day generalist. Big bang for buck.',
-    days:['full','rest','full','rest','full','rest','rest'] },
-  { id:'bro',       name:'Bro split',           sub:'5-day body-part split. Volume per group.',
-    days:['chest','back','shoulder','arms','legs','rest','rest'] },
-  { id:'sport4',    name:'Sport-focused × 4',   sub:'2 lift + 2 cardio + sport practice.',
-    days:['lower','sport','upper','rest','full','sport','rest'] },
-  { id:'custom',    name:'Custom',              sub:'Build it yourself, day by day.',
-    days:['rest','rest','rest','rest','rest','rest','rest'] },
-];
+// SPLIT_TEMPLATES has moved to splitlift-templates.jsx. Reference it via window.SPLIT_TEMPLATES.
 
 const INITIAL_DAYS = [
   { type:'push', focus:'Push',                exIds:['bench','ohp','fly','tri'] },
@@ -261,7 +244,9 @@ function exercisesForDayType(typeId) {
 function planForSport({ sport, days = 4, weight = 75, wUnit = 'kg', height = 175, hUnit = 'cm', template = null }) {
   const sp = SPORTS.find(s => s.id === sport) || SPORTS[0];
   const tplId = template || sp.template;
-  const tpl = SPLIT_TEMPLATES.find(t => t.id === tplId) || SPLIT_TEMPLATES[0];
+  const templates = window.SPLIT_TEMPLATES || [];
+  const tpl = templates.find(t => t.id === tplId) || templates[0];
+  if (!tpl) return [];
   const priority = sp.priority || {};
 
   const score = (ex) => {
@@ -474,6 +459,6 @@ Object.assign(window, {
   liftMinutesForDay, totalLiftMinutes, totalLiftKcal,
   estimateBMR, dailyKcalNeed, computeScore,
   // new
-  DAY_TYPES, SPLIT_TEMPLATES, exercisesForDayType, planForSport,
+  DAY_TYPES, exercisesForDayType, planForSport,
   liftingScore, cardioScoreFor, underworkedMuscles,
 });
