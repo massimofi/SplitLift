@@ -390,39 +390,64 @@
   /* ============== APP CHROME (compact header) ============== */
   .app-screen { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
   .app-header-mini {
-    padding: 4px 16px 8px;
+    min-height: 56px;
+    padding: 6px 14px;
     display: flex; align-items: center; justify-content: space-between;
     background: var(--bg); z-index: 10; gap: 10px;
   }
   .app-header-mini .left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-  .app-header-mini .logo-mini {
-    width: 32px; height: 32px;
-    background: var(--inv-bg); color: var(--inv-accent);
-    border-radius: 9px;
-    display: grid; place-items: center;
-    flex-shrink: 0;
-    box-shadow: 0 4px 14px color-mix(in oklab, var(--inv-bg) 25%, transparent);
-  }
   .app-header-mini .title-block { display: flex; flex-direction: column; min-width: 0; }
-  .app-header-mini .h-title { font-size: 18px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.05; }
+  .app-header-mini .h-title { font-size: 17px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.05; }
   .app-header-mini .h-sub {
     font-size: 9.5px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.08em; text-transform: uppercase; margin-top: 1px;
+    letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px;
   }
-  .app-header-mini .right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .app-header-mini .right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
   .icon-btn {
-    width: 40px; height: 40px; border-radius: 11px;
+    width: 44px; height: 44px; border-radius: 12px;
     background: var(--bg-2); border: none; cursor: pointer;
     color: var(--ink); display: grid; place-items: center;
   }
   .icon-btn.green { background: var(--accent); color: var(--on-accent); }
   .icon-btn.ghost { background: transparent; }
+  .icon-btn:active { transform: scale(0.94); }
   .avatar-mini {
-    width: 36px; height: 36px; border-radius: 50%;
+    width: 44px; height: 44px; border-radius: 50%;
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
     color: white; display: grid; place-items: center;
-    font-weight: 700; font-size: 13px; cursor: pointer;
+    font-weight: 700; font-size: 15px; cursor: pointer;
+    flex-shrink: 0; border: none; font-family: inherit;
+  }
+  .avatar-mini:active { transform: scale(0.94); }
+
+  /* ============== BRAND lockup + mark ============== */
+  .brand-mark {
+    border-radius: 11px;
+    background:
+      radial-gradient(120% 180% at 0% 0%, color-mix(in oklab, var(--accent) 60%, white) 0%, transparent 60%),
+      linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    color: var(--on-accent);
+    display: grid; place-items: center;
     flex-shrink: 0;
+    box-shadow:
+      0 6px 18px color-mix(in oklab, var(--accent) 35%, transparent),
+      inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  .brand-lockup {
+    display: flex; align-items: center; gap: 12px; min-width: 0;
+  }
+  .brand-text { display: flex; flex-direction: column; min-width: 0; line-height: 1; }
+  .brand-word {
+    font-size: 22px; font-weight: 800; letter-spacing: -0.035em; line-height: 1;
+  }
+  .brand-word .brand-split { color: var(--ink); }
+  .brand-word .brand-lift {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .brand-tag {
+    font-size: 9.5px; color: var(--ink-3); letter-spacing: 0.16em; margin-top: 4px;
+    text-transform: uppercase;
   }
   /* compact stats row */
   .stats-mini {
@@ -1711,6 +1736,7 @@
 
 <script type="text/babel" src="splitlift-data.jsx"></script>
 <script type="text/babel" src="splitlift-anatomy.jsx"></script>
+<script type="text/babel" src="splitlift-brand.jsx"></script>
 <script type="text/babel" src="splitlift-tabs.jsx"></script>
 <script type="text/babel" src="splitlift-app.jsx"></script>
 </body>

@@ -234,8 +234,7 @@ function Landing({ onStart }) {
       <div className="screen-body landing">
         <div className="top">
           <div className="logo-row">
-            <div className="logo-mark">S</div>
-            <div className="logo-name">Split<span className="slash">/</span>Lift</div>
+            <window.BrandLockup markSize={48}/>
           </div>
           <h1 className="hero-title">Lift smarter.<br/>Cover <span className="accent">everything.</span></h1>
           <p className="hero-sub">A weekly split tailored to your sport, your body, your week — built in under a minute.</p>
@@ -1212,20 +1211,18 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout }) {
       <StatusBar/>
       <div className="app-header-mini">
         <div className="left">
-          <div className="logo-mini" title="SplitLift">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6.5 8v8M3 10v4M17.5 8v8M21 10v4M6.5 12h11"/></svg>
-          </div>
+          <window.BrandMark size={36}/>
           <div className="title-block">
             <div className="h-title">{tab === 'splits' ? 'Your week' : tab==='schedule'?'Schedule':tab==='cardio'?'Cardio':tab==='dashboard'?'Dashboard':tab==='profile'?'Profile':'Body'}</div>
             <div className="h-sub mono">{sportLabel.toUpperCase()} · {totalLiftDays} LIFT · {7-totalLiftDays} OFF</div>
           </div>
         </div>
         <div className="right">
-          <button className="icon-btn ghost" onClick={()=>setCmdkOpen(true)} title="Search ⌘K"><I.search/></button>
-          <button className="icon-btn ghost" onClick={()=>setTheme(theme==='dark'?'light':'dark')} title="Theme">
+          <button className="icon-btn ghost" onClick={()=>setCmdkOpen(true)} title="Search ⌘K" aria-label="Search"><I.search/></button>
+          <button className="icon-btn ghost" onClick={()=>setTheme(theme==='dark'?'light':'dark')} title="Theme" aria-label="Toggle theme">
             {theme === 'dark' ? <I.sun/> : <I.moon/>}
           </button>
-          <div className="avatar-mini" onClick={()=>setTab('profile')}>A</div>
+          <button className="avatar-mini" onClick={()=>setTab('profile')} aria-label="Profile">A</button>
         </div>
       </div>
 
