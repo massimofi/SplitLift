@@ -33,6 +33,17 @@ const IconPlus = () => (
   </svg>
 );
 
+// Map a cardio session's type to an HR zone band using profile.age.
+// Used by Schedule's day picker to show target bpm next to each session.
+function cardioHRZone(cardio, profile) {
+  if (!cardio || !profile) return null;
+  const intensityMap = { zone2:'z2', easy:'z2', bike:'z2', row:'z2', tempo:'tempo', long:'tempo', hiit:'hiit' };
+  const key = intensityMap[cardio.type];
+  if (!key || !window.hrZonesFor) return null;
+  const zones = window.hrZonesFor(profile.age);
+  return zones[key];
+}
+
 // ============ SHARED HELPERS for splits-by-type model ============
 // splitsByType is the source of truth: { push: [exId,...], pull: [exId,...], ... }
 // days[i].exIds is derived/cached for backward-compat with everything else.
@@ -465,6 +476,7 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
           dayType={(days[pickFor] && days[pickFor].type) || 'rest'}
           cardios={(cardioDays[pickFor] && cardioDays[pickFor].items) || []}
           isLocked={locked[pickFor]}
+          profile={profile}
           onClose={() => setPickFor(null)}
           onSetType={(t) => setDayType(pickFor, t)}
           onAddCardio={(cid) => addCardioToDay(pickFor, cid)}
@@ -500,11 +512,14 @@ function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLock
 }
 
 // One sheet to edit a day: lift type chips + cardio adds + lock + clear + cardios on this day.
-function DayPickerSheet({ dayIdx, dayType, cardios, isLocked, onClose, onSetType, onAddCardio, onRemoveCardio, onClear, onToggleLock, onEditExercises }) {
+function DayPickerSheet({ dayIdx, dayType, cardios, isLocked, profile, onClose, onSetType, onAddCardio, onRemoveCardio, onClear, onToggleLock, onEditExercises }) {
+  const [whyOpen, setWhyOpen] = useState(false);
   const splitTypes = ['push','pull','legs','upper','lower','full','rest'];
   const cardioLib = window.CARDIO_LIBRARY || [];
   const dt = window.DAY_TYPES[dayType] || window.DAY_TYPES.custom;
   const canEditExercises = dayType && dayType !== 'rest' && dayType !== 'sport' && dayType !== 'cardio';
+  const targetMin = profile?.cardioMin || 90;
+  const perDay = Math.round(targetMin / 7);
 
   return (
     <div className="ps-overlay" onClick={onClose}>
@@ -550,10 +565,21 @@ function DayPickerSheet({ dayIdx, dayType, cardios, isLocked, onClose, onSetType
           </button>
         )}
 
-        <div className="ps-section">Add cardio</div>
+        <div className="ps-section-row">
+          <div className="ps-section">Add cardio</div>
+          <button className="ps-why" onClick={()=>setWhyOpen(o=>!o)}>{whyOpen ? 'Hide why' : 'Why this much?'}</button>
+        </div>
+        {whyOpen && (
+          <div className="ps-why-body">
+            Your weekly target is <b>{targetMin} min</b> (set on General). Spread across 7 days
+            that's about <b>{perDay} min/day</b>. CDC suggests 150 min/wk moderate or 75 min/wk vigorous —
+            you can adjust the target on the General tab.
+          </div>
+        )}
         <div className="dp-cardio-list">
           {cardioLib.map(c => {
             const tcol = window.CARDIO_TYPES[c.type]?.color;
+            const hr = cardioHRZone(c, profile);
             return (
               <button key={c.id} className="dp-cardio"
                 style={{ '--bp': tcol || 'var(--ink-3)' }}
@@ -561,7 +587,10 @@ function DayPickerSheet({ dayIdx, dayType, cardios, isLocked, onClose, onSetType
                 disabled={isLocked}>
                 <div className="dp-c-body">
                   <div className="dp-c-name">{c.name}</div>
-                  <div className="dp-c-meta mono">{c.dur}m{c.dist > 0 ? ` · ${c.dist}${c.unit}` : ''}</div>
+                  <div className="dp-c-meta mono">
+                    {c.dur}m{c.dist > 0 ? ` · ${c.dist}${c.unit}` : ''}
+                    {hr && <span className="dp-c-hr"> · {hr[0]}–{hr[1]}bpm</span>}
+                  </div>
                 </div>
                 <span className="dp-c-add"><IconPlus/></span>
               </button>
@@ -576,11 +605,15 @@ function DayPickerSheet({ dayIdx, dayType, cardios, isLocked, onClose, onSetType
               {cardios.map((cid, ii) => {
                 const c = window.cardioFor(cid); if (!c) return null;
                 const tcol = window.CARDIO_TYPES[c.type]?.color;
+                const hr = cardioHRZone(c, profile);
                 return (
                   <div key={ii} className="da-cardio-row" style={{ '--bp': tcol }}>
                     <div className="dac-body">
                       <div className="dac-n">{c.name}</div>
-                      <div className="dac-m mono">{c.dur}m{c.dist > 0 ? ` · ${c.dist}${c.unit}` : ''}</div>
+                      <div className="dac-m mono">
+                        {c.dur}m{c.dist > 0 ? ` · ${c.dist}${c.unit}` : ''}
+                        {hr && <span> · {hr[0]}–{hr[1]}bpm</span>}
+                      </div>
                     </div>
                     <button className="dac-x" onClick={() => onRemoveCardio(ii)} aria-label="Remove"><IconX/></button>
                   </div>
@@ -1077,7 +1110,7 @@ function DashboardPage({ days, cardioDays, profile, setTab }) {
       <div className="dw">
         <div className="dw-head"><div className="dw-t">Under-worked</div><div className="dw-pill mono">{under.length}</div></div>
         {under.length === 0 ? (
-          <div className="empty-pill">All muscle groups in target band ✓</div>
+          <div className="empty-pill">All muscle groups in target band</div>
         ) : (
           <div className="under-list">
             {under.slice(0,5).map(u => (
@@ -1275,7 +1308,8 @@ function BodyHeatmap({ cov, sport }) {
 }
 
 // ============================================
-// PROFILE V2 — privacy / units / account, no pulse
+// PROFILE V2 — settings only (units, display, privacy, account, reset).
+// Inputs / body math live on the General tab; this is the "gear cog" page.
 // ============================================
 function ProfileV2({ profile, setProfile, theme, setTheme, onLogout }) {
   const [units, setUnits] = useState(profile.hUnit === 'cm' ? 'metric' : 'imperial');
@@ -1283,6 +1317,7 @@ function ProfileV2({ profile, setProfile, theme, setTheme, onLogout }) {
   const [share, setShare] = useState(false);
   const [analytics, setAnalytics] = useState(true);
   const [coachTone, setCoachTone] = useState('balanced');
+  const [resetArmed, setResetArmed] = useState(false);
 
   const setUnitsTo = (u) => {
     setUnits(u);
@@ -1295,12 +1330,22 @@ function ProfileV2({ profile, setProfile, theme, setTheme, onLogout }) {
     }));
   };
 
+  const doReset = () => {
+    try {
+      window.localStorage.removeItem('sl-dash-order');
+    } catch (e) {}
+    setResetArmed(false);
+    onLogout && onLogout();
+  };
+
+  const sportLabel = window.SPORTS.find(s=>s.id===profile.sport)?.label || '';
+
   return (
     <div className="tab-pane prof2">
       <div className="prof2-hero">
         <div className="avatar-xl">A</div>
         <div className="prof2-name">Alex Chen</div>
-        <div className="prof2-handle">@alex · {window.SPORTS.find(s=>s.id===profile.sport)?.label || ''}</div>
+        <div className="prof2-handle">@alex · {sportLabel}</div>
         <div className="prof2-stats">
           <div><span className="v">{profile.height}</span><span className="u">{profile.hUnit}</span><div className="k mono">HEIGHT</div></div>
           <div><span className="v">{profile.weight}</span><span className="u">{profile.wUnit}</span><div className="k mono">WEIGHT</div></div>
@@ -1308,25 +1353,9 @@ function ProfileV2({ profile, setProfile, theme, setTheme, onLogout }) {
         </div>
       </div>
 
-      <Section title="Body & training">
-        <Row icon="📏" label="Height" right={
-          <NumStepper value={profile.height} unit={profile.hUnit}
-            onChange={v=>setProfile(p=>({...p, height: v}))}/>
-        }/>
-        <Row icon="⚖️" label="Weight" right={
-          <NumStepper value={profile.weight} unit={profile.wUnit}
-            onChange={v=>setProfile(p=>({...p, weight: v}))}/>
-        }/>
-        <Row icon="📅" label="Training days / wk" right={
-          <NumStepper value={profile.days} unit="" min={1} max={7}
-            onChange={v=>setProfile(p=>({...p, days: v}))}/>
-        }/>
-        <Row icon="🏃" label="Sport" right={
-          <select className="select" value={profile.sport} onChange={e=>setProfile(p=>({...p, sport: e.target.value}))}>
-            {window.SPORTS.map(s=>(<option key={s.id} value={s.id}>{s.label}</option>))}
-          </select>
-        }/>
-      </Section>
+      <div className="ps-callout">
+        <span>Edit body & training inputs on the General tab.</span>
+      </div>
 
       <Section title="Units & display">
         <Row label="Units" right={
@@ -1347,13 +1376,30 @@ function ProfileV2({ profile, setProfile, theme, setTheme, onLogout }) {
       </Section>
 
       <Section title="Account">
-        <Row icon="✉️" label="Email" right={<span className="prof-val">alex@splitlift.app</span>}/>
-        <Row icon="🔑" label="Password" right={<button className="link-btn">Change</button>}/>
-        <Row icon="📤" label="Export data" right={<button className="link-btn">Download</button>}/>
-        <Row icon="🚪" label="" right={<button className="danger-btn" onClick={onLogout}>Log out</button>}/>
+        <Row label="Email" right={<span className="prof-val">alex@splitlift.app</span>}/>
+        <Row label="Password" right={<button className="link-btn">Change</button>}/>
+        <Row label="Export data" right={<button className="link-btn">Download</button>}/>
+        <Row label="" right={<button className="danger-btn" onClick={onLogout}>Log out</button>}/>
       </Section>
 
-      <div className="prof2-foot mono">SplitLift · v0.4.0</div>
+      <Section title="Danger zone">
+        {!resetArmed ? (
+          <Row label="Reset all data" sub="Wipes layout + signs you out." right={
+            <button className="link-btn danger" onClick={()=>setResetArmed(true)}>Reset…</button>
+          }/>
+        ) : (
+          <div className="reset-confirm">
+            <div className="rc-t">Reset everything?</div>
+            <div className="rc-s">This clears your dashboard layout and signs you out. Inputs go back to defaults next time you sign in.</div>
+            <div className="rc-actions">
+              <button className="ip-action" onClick={()=>setResetArmed(false)}>Cancel</button>
+              <button className="ip-action danger" onClick={doReset}>Reset everything</button>
+            </div>
+          </div>
+        )}
+      </Section>
+
+      <div className="prof2-foot mono">SplitLift · v0.5.0</div>
       <div style={{height: 24}}/>
     </div>
   );
@@ -1361,8 +1407,17 @@ function ProfileV2({ profile, setProfile, theme, setTheme, onLogout }) {
 function Section({ title, children }) {
   return <div className="prof2-sec"><div className="ps-t">{title}</div><div className="ps-card">{children}</div></div>;
 }
-function Row({ icon, label, right }) {
-  return <div className="prof2-row">{icon && <span className="prow-i">{icon}</span>}<span className="prow-l">{label}</span><span className="prow-r">{right}</span></div>;
+function Row({ icon, label, sub, right }) {
+  return (
+    <div className="prof2-row">
+      {icon && <span className="prow-i">{icon}</span>}
+      <div className="prow-text">
+        <span className="prow-l">{label}</span>
+        {sub && <span className="prow-s">{sub}</span>}
+      </div>
+      <span className="prow-r">{right}</span>
+    </div>
+  );
 }
 function Toggle({ label, sub, on, setOn }) {
   return <div className="prof2-row toggle"><div><div className="prow-l">{label}</div>{sub && <div className="prow-s">{sub}</div>}</div><button className={`switch ${on?'on':''}`} onClick={()=>setOn(!on)}/></div>;
@@ -1487,7 +1542,7 @@ function CardioPageV2({ cardioDays, setCardioDays, onOpenCardioSheet }) {
                           <div className="c2-i-n">{c.name}</div>
                           <div className="c2-i-m mono">{c.dur}m{c.dist>0?` · ${c.dist}${c.unit}`:''} · {t.label}</div>
                         </div>
-                        <button className="c2-i-x" onClick={()=>removeItem(i, ii)}>✕</button>
+                        <button className="c2-i-x" onClick={()=>removeItem(i, ii)} aria-label="Remove"><IconX/></button>
                       </div>
                     );
                   })}
@@ -1563,7 +1618,7 @@ function BodyTabV2({ days, onAddExercise, setTab }) {
                 <div className="b2-d-n">{window.MUSCLE_LABELS[focus] || focus}</div>
                 <div className="b2-d-s mono">{sets[focus]||0} sets · target {window.TARGETS[focus]?.min}–{window.TARGETS[focus]?.max}</div>
               </div>
-              <button className="b2-d-x" onClick={close}>✕</button>
+              <button className="b2-d-x" onClick={close} aria-label="Close"><IconX/></button>
             </div>
             <div className="b2-d-list-h">Best exercises for this</div>
             <div className="b2-d-list">
