@@ -61,6 +61,12 @@ Libraries to be credited as they're added in later batches:
 
 ## Changelog
 
+### 2026-04-25 — Batch 4: Dashboard polish (rotating figure, persisted order, split label)
+- New `DashAnatomy` widget: slow-rotating front/back anatomy SVG (~16s per rotation, ~22°/s) using `requestAnimationFrame`. Tap to pause, tap again to resume. Replaces the static `BodyHeatmap` figure.
+- Widget order is now persisted in `localStorage` under `sl-dash-order`. Initial load merges stored order with any new widget IDs that didn't exist when saved (forwards-compatible).
+- Sport widget gains a "SPLIT — [name]" pill that detects the current schedule pattern and matches it against known templates (e.g. "Push / Pull / Legs", "Upper / Lower"); falls back to a "/-joined" list of distinct lift types or "Custom" if it can't match.
+- Default widget order moves the body figure to the top.
+
 ### 2026-04-25 — General tab + Schedule rebuilt for tap-first UX
 On user feedback ("the schedule tab is very unintuitive… make it really nice and UI friendly… inputs are kind of guided by the order of the navbar"):
 

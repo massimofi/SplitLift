@@ -788,6 +788,60 @@ function makeDayForType(typeId, profile, splitsByType) {
   return { type: typeId, focus: window.DAY_TYPES[typeId]?.label || typeId, exIds: picked };
 }
 
+// Build a short label for the user's current split:
+// match against known templates by day-type sequence; else list the distinct lift types.
+function currentSplitName(days) {
+  const dayTypes = (days || []).map(d => (d && (d.rest ? 'rest' : d.type)) || 'rest').join(',');
+  for (const t of (window.SPLIT_TEMPLATES || [])) {
+    if (t.id === 'custom') continue;
+    if (t.days.join(',') === dayTypes) return t.name;
+  }
+  const seen = [];
+  for (const d of days || []) {
+    if (!d || d.rest || !d.type) continue;
+    if (d.type === 'sport' || d.type === 'cardio') continue;
+    if (!seen.includes(d.type)) seen.push(d.type);
+  }
+  if (seen.length === 0) return 'Custom';
+  return seen.map(t => (window.DAY_TYPES[t]?.label || t)).join(' / ');
+}
+
+// Slow-rotating Anatomy3D figure for the Dashboard. Tap to pause.
+function DashAnatomy({ sets }) {
+  const [paused, setPaused] = useState(false);
+  const [angle, setAngle] = useState(0);
+
+  useEffect(() => {
+    if (paused) return;
+    let raf;
+    let last = performance.now();
+    const tick = (now) => {
+      const dt = now - last; last = now;
+      setAngle(a => (a + (dt / 1000) * 22) % 360); // ~16s per rotation
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [paused]);
+
+  return (
+    <div className="dash-anatomy" onClick={() => setPaused(p => !p)}>
+      <div className="anatomy-3d" style={{
+        transform: `rotateY(${angle}deg)`,
+        transformStyle: 'preserve-3d',
+      }}>
+        <div className="body-face front">
+          {window.AnatomyFront ? <window.AnatomyFront sets={sets}/> : null}
+        </div>
+        <div className="body-face back">
+          {window.AnatomyBack ? <window.AnatomyBack sets={sets}/> : null}
+        </div>
+      </div>
+      {paused && <div className="da-hint mono">PAUSED · TAP TO RESUME</div>}
+    </div>
+  );
+}
+
 // ================================================================
 // DASHBOARD TAB — fully redesigned
 // ================================================================
@@ -797,15 +851,37 @@ function DashboardPage({ days, cardioDays, profile, setTab }) {
   const under = useMemo(() => window.underworkedMuscles(days), [days]);
   const sp = window.SPORTS.find(s => s.id === profile.sport) || window.SPORTS[0];
   const cov = useMemo(() => window.computeCoverage(days), [days]);
+  const covV2 = useMemo(
+    () => (window.computeCoverageV2 ? window.computeCoverageV2(days) : {}),
+    [days]
+  );
+  const splitName = useMemo(() => currentSplitName(days), [days]);
 
   const liftMin = window.totalLiftMinutes(days);
   const cardioMin = window.totalCardioMinutes(cardioDays);
   const totalMin = liftMin + cardioMin;
   const trainingKcal = window.totalLiftKcal(days) + window.totalCardioKcal(cardioDays);
 
-  // ---- Moveable widgets: a simple drag-reorder list of widget IDs ----
-  const allWidgets = ['lift','cardio','sport','underworked','figure','time','streak'];
-  const [order, setOrder] = useState(allWidgets);
+  // ---- Moveable widgets: drag-reorder + persisted in localStorage ----
+  const allWidgets = ['figure','lift','cardio','sport','underworked','time','streak'];
+  const ORDER_KEY = 'sl-dash-order';
+  const [order, setOrder] = useState(() => {
+    try {
+      const raw = window.localStorage.getItem(ORDER_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.every(x => allWidgets.includes(x))) {
+          const merged = [...parsed];
+          for (const w of allWidgets) if (!merged.includes(w)) merged.push(w);
+          return merged;
+        }
+      }
+    } catch (e) { /* Safari private mode etc. */ }
+    return allWidgets;
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem(ORDER_KEY, JSON.stringify(order)); } catch (e) {}
+  }, [order]);
   const [dragId, setDragId] = useState(null);
   const [hoverId, setHoverId] = useState(null);
 
@@ -838,9 +914,9 @@ function DashboardPage({ days, cardioDays, profile, setTab }) {
   }));
   const maxMin = Math.max(60, ...dayTimes.map(d => d.lift + d.cardio));
 
-  // figure: heatmap of muscles
+  // figure: slow-rotating Anatomy3D with tap-to-pause
   const FigureWidget = () => (
-    <BodyHeatmap cov={cov} sport={sp}/>
+    <DashAnatomy sets={covV2}/>
   );
 
   const widgets = {
@@ -884,6 +960,10 @@ function DashboardPage({ days, cardioDays, profile, setTab }) {
       <div className="dw">
         <div className="dw-head"><div className="dw-t">Sport · {sp.label}</div><div className="dw-pill mono">{sp.daysHint}d/wk</div></div>
         <div className="sport-card-body">
+          <div className="split-pill" style={{ '--bp': 'var(--accent)' }}>
+            <span className="sp-k mono">SPLIT</span>
+            <span className="sp-v">{splitName}</span>
+          </div>
           <div className="sport-meta">{sp.sub}</div>
           <div className="sport-prio">
             {Object.entries(sp.priority || {}).slice(0, 6).map(([m,w]) => (
