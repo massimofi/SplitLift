@@ -168,9 +168,9 @@ function GeneralTab({ profile, setProfile, days, cardioDays, showToast }) {
         </div>
 
         <div className="gen-tile span-2 sex">
-          <div className="gt-label mono">SEX (FOR BMR)</div>
-          <div className="gt-seg">
-            {[['m','Male'],['f','Female'],['nb','Non-binary']].map(([k,l]) => (
+          <div className="gt-label mono">GENDER (FOR BMR)</div>
+          <div className="gt-seg four">
+            {[['m','Male'],['f','Female'],['nb','Non-binary'],['ud','Prefer not to say']].map(([k,l]) => (
               <button key={k} className={profile.sex===k?'on':''} onClick={()=>setProfile(p=>({...p, sex:k}))}>{l}</button>
             ))}
           </div>

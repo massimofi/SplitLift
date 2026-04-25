@@ -387,6 +387,40 @@
 
   .onboard-foot { margin-top: auto; padding-top: 16px; display: flex; flex-direction: column; gap: 8px; }
 
+  /* Onboarding step 1: Gender 4-option grid */
+  .gender-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .gender-pill {
+    min-height: 56px; padding: 12px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--hair); background: var(--bg-2);
+    color: var(--ink); font-weight: 700; font-size: 13px;
+    font-family: inherit; cursor: pointer;
+  }
+  .gender-pill.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .gender-pill:active { transform: scale(0.97); }
+
+  /* Onboarding step 3: template picker cards */
+  .onb-templates { display: flex; flex-direction: column; gap: 10px; }
+  .onb-tpl {
+    text-align: left; cursor: pointer; font-family: inherit; color: var(--ink);
+    padding: 14px 16px; border-radius: 16px;
+    background: var(--bg-2);
+    border: 1.5px solid var(--hair);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .onb-tpl.on {
+    background: color-mix(in oklab, var(--accent) 12%, var(--bg-2));
+    border-color: var(--accent);
+    box-shadow: 0 6px 18px color-mix(in oklab, var(--accent) 26%, transparent);
+  }
+  .onb-tpl:active { transform: scale(0.99); }
+  .onb-tpl-rank { font-size: 10px; color: var(--accent); letter-spacing: 0.14em; font-weight: 700; }
+  .onb-tpl-name { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+  .onb-tpl-sub { font-size: 12.5px; color: var(--ink-3); line-height: 1.35; }
+  .onb-tpl-meta { font-size: 10px; color: var(--ink-3); letter-spacing: 0.1em; }
+  .onb-tpl-mini { display: flex; gap: 4px; margin-top: 2px; }
+  .onb-tpl-mini .tpl-cell { width: 16px; height: 16px; border-radius: 4px; }
+
   /* ============== APP CHROME (compact header) ============== */
   .app-screen { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
   .app-header-mini {
@@ -1591,6 +1625,8 @@
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
     margin-top: 6px;
   }
+  .gt-seg.four { grid-template-columns: repeat(2, 1fr); }
+  .gt-seg.four button { font-size: 11.5px; }
   .gt-seg button {
     min-height: 44px; border-radius: 10px;
     border: 1.5px solid var(--hair); background: var(--bg);
