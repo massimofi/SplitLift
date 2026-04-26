@@ -1,12 +1,13 @@
 // Map SplitLift exercise IDs to slugs from yuhonas/free-exercise-db.
-// Each slug points to a folder with /images/0.jpg and /images/1.jpg that we
-// alternate as a 2-frame animation.
+// URL pattern: ${BASE}/${slug}/${frame}.jpg  (no /images/ subfolder)
+// Each slug folder contains 0.jpg and 1.jpg that ExerciseGif alternates.
 //
 // Source: https://github.com/yuhonas/free-exercise-db (public domain)
 //
-// Best-effort matches. If a slug 404s, ExerciseGif falls back to a placeholder
-// (dumbbell glyph) silently — no broken-image icons. Add new mappings here as
-// we extend EXERCISES.
+// Every slug listed here was verified against the GitHub raw URL (HTTP 200).
+// Exercises without an entry get a dumbbell-glyph placeholder — that's the
+// intended fallback, no broken image icons. Add new mappings as we extend
+// EXERCISES.
 
 export const EXERCISE_IMAGE_BASE =
   'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises';
@@ -53,7 +54,7 @@ export const EXERCISE_IMAGES = {
   lunge:     'Dumbbell_Lunges',
   split:     'Bulgarian_Split_Squat',
   legpress:  'Leg_Press',
-  box:       'Box_Jump_Up',
+  box:       'Lateral_Box_Jump',
 
   // ---- HAMSTRINGS ----
   rdl:       'Romanian_Deadlift_from_Deficit',
@@ -62,19 +63,43 @@ export const EXERCISE_IMAGES = {
 
   // ---- GLUTES ----
   tbardl:    'Trap_Bar_Deadlift',
-  thrust:    'Hip_Thrusts_-_With_Bands',
+  thrust:    'Hip_Lift_with_Band',
   gluteback: 'Glute_Kickback',
 
   // ---- CALVES ----
   calf:        'Standing_Calf_Raises',
   seatedcalf:  'Seated_Calf_Raise',
+  // donkey: no clean slug in the dataset → placeholder
 
   // ---- CORE ----
   plank:    'Plank',
   hang:     'Hanging_Leg_Raise',
   pallof:   'Pallof_Press_With_Rotation',
-  wood:     'Cable_Wood_Chops',
+  wood:     'Standing_Cable_Wood_Chop',
   abwheel:  'Ab_Roller',
 
-  // ---- CARDIO (no GIF needed; the pickers don't show ExerciseGif for cardio) ----
+  // ---- FOREARMS (added in v3) ----
+  wristcurl:  'Palms-Up_Dumbbell_Wrist_Curl_Over_A_Bench',
+  rwristcurl: 'Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench',
+  farmer:     'Farmers_Walk',
+  pinch:      'Plate_Pinch',
+
+  // ---- ADDUCTORS (added in v3) ----
+  addmach: 'Cable_Hip_Adduction',
+  sumosq:  'Sumo_Deadlift',     // closest verified match
+  copen:   'Side_Bridge',       // closest verified match
+
+  // ---- ABDUCTORS (added in v3) ----
+  abdmach:   'Standing_Hip_Circles',
+  sidelyleg: 'Lateral_Cone_Hops',
+  bandlat:   'Lateral_Raise_-_With_Bands',
+
+  // ---- NECK (added in v3) ----
+  // Dataset only has a single neck slug; all 4 variants share it for now.
+  neckflex:  'Neck-SMR',
+  neckext:   'Neck-SMR',
+  neckraise: 'Neck-SMR',
+  chintuck:  'Neck-SMR',
+
+  // CARDIO has no GIF — pickers don't render ExerciseGif for cardio types.
 };

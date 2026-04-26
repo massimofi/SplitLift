@@ -30,7 +30,8 @@ export function ExerciseGif({ exId, size = 48, round = true }) {
     );
   }
 
-  const src = `${EXERCISE_IMAGE_BASE}/${slug}/images/${frame}.jpg`;
+  // free-exercise-db structure is exercises/<slug>/0.jpg (no /images/ subfolder)
+  const src = `${EXERCISE_IMAGE_BASE}/${slug}/${frame}.jpg`;
   return (
     <img
       className={cls}
