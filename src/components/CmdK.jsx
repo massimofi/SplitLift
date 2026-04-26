@@ -13,11 +13,15 @@ export function CmdK({ open, onClose, onAddExercise, onSwitchTab }) {
   useEffect(() => { if (open) { setQ(''); setSel(0); setTimeout(()=>inputRef.current?.focus(), 60); } }, [open]);
 
   const items = useMemo(() => {
-    const exs = EXERCISES.map(ex => ({
-      kind: 'ex', id: ex.id, name: ex.name, type: ex.type,
-      sub: `${ex.sets} · ${ex.gear} · ${TYPE_LABELS[ex.type].label}`,
-      ent: 'Add to today',
-    }));
+    const exs = EXERCISES.map(ex => {
+      if (!ex || !ex.id) return null;
+      const typeLabel = TYPE_LABELS[ex.type]?.label || ex.type || '';
+      return {
+        kind: 'ex', id: ex.id, name: ex.name, type: ex.type,
+        sub: `${ex.sets} · ${ex.gear} · ${typeLabel}`,
+        ent: 'Add to today',
+      };
+    }).filter(Boolean);
     const tabs = [
       { kind: 'tab', id: 'general',  name: 'Go to General',  sub: 'Profile, stats, calories', ent: '↵' },
       { kind: 'tab', id: 'splits',   name: 'Go to Splits',   sub: 'Per-day-type exercise editor', ent: '↵' },
@@ -32,7 +36,10 @@ export function CmdK({ open, onClose, onAddExercise, onSwitchTab }) {
   const ql = q.trim().toLowerCase();
   const filteredTabs = ql ? items.tabs.filter(t => t.name.toLowerCase().includes(ql)) : items.tabs;
   const filteredExs = ql
-    ? items.exs.filter(e => e.name.toLowerCase().includes(ql) || TYPE_LABELS[e.type].label.toLowerCase().includes(ql))
+    ? items.exs.filter(e => {
+        const typeLabel = TYPE_LABELS[e.type]?.label || '';
+        return e.name.toLowerCase().includes(ql) || typeLabel.toLowerCase().includes(ql);
+      })
     : items.exs.slice(0, 8);
 
   const flat = [...filteredTabs.map(x => ({...x, group:'Navigate'})), ...filteredExs.map(x => ({...x, group:'Add to today'}))];

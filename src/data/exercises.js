@@ -33,6 +33,9 @@ export const TYPE_LABELS = {
   shoul:  { label: 'Shoulders',color: DAY_TYPES.shoulder.color },
   core:   { label: 'Core',     color: DAY_TYPES.core.color },
   cardio: { label: 'Cardio',   color: DAY_TYPES.cardio.color },
+  // 'full' is used by the new full-body exercises (farmer carry etc.) added
+  // in the demo polish round; missing it here was crashing CmdK.
+  full:   { label: 'Full',     color: DAY_TYPES.full.color },
 };
 
 // ---------- EXERCISES ----------
