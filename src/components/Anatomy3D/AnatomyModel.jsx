@@ -8,7 +8,12 @@ import * as THREE from 'three';
 import { mapMeshNameToMuscle } from './mapMeshNameToMuscle.js';
 import { useCameraTween } from './useCameraTween.js';
 
-useGLTF.preload('/models/anatomy.glb');
+// Decoder for Draco-compressed glTF. Files are copied from three's bundle to
+// public/draco/gltf/ at install (see scripts/copy-draco.js) so we don't depend
+// on the gstatic CDN — works on LAN demos too.
+const DRACO_PATH = '/draco/gltf/';
+
+useGLTF.preload('/models/anatomy.glb', DRACO_PATH);
 
 // Switch this to change the look. Default = 'clean' (recommended).
 //
@@ -64,7 +69,7 @@ function colorForCoverage(sets, target, isFocused) {
 }
 
 export function AnatomyModel({ sets, focused, onSelect, targets, controlsRef }) {
-  const { scene } = useGLTF('/models/anatomy.glb');
+  const { scene } = useGLTF('/models/anatomy.glb', DRACO_PATH);
   const inventoryLoggedRef = useRef(false);
 
   // Build the muscle-key → [meshes] map ONCE per loaded scene. While we're

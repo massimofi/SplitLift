@@ -7,7 +7,8 @@
     "dev": "vite",
     "dev:lan": "vite --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "node scripts/copy-draco.js"
   },
   "dependencies": {
     "react": "^18.3.1",
