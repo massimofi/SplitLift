@@ -13,6 +13,16 @@ import { IconX, IconPlus } from '../components/Icons.jsx';
 import { I } from '../components/Icons.jsx';
 import { ExerciseGif } from '../components/ExerciseGif.jsx';
 import { AnatomyBody } from '../components/AnatomyBody.jsx';
+import { Target } from 'lucide-react';
+
+// Coverage-status gradient palettes for the muscle coverage list cards.
+const COV_GRAD = {
+  unworked: { '--gw-1':'#666880', '--gw-2':'#444663', '--gw-base':'#1f2238' },
+  under:    { '--gw-1':'#FF8C42', '--gw-2':'#FF4444', '--gw-base':'#5b1e0e' },
+  optimal:  { '--gw-1':'#4ED9C0', '--gw-2':'#00c896', '--gw-base':'#0e3d35' },
+  over:     { '--gw-1':'#FF8A5B', '--gw-2':'#FF6BD6', '--gw-base':'#5b1e2c' },
+  unknown:  { '--gw-1':'#666880', '--gw-2':'#444663', '--gw-base':'#1f2238' },
+};
 
 function statusFromCoverage(sets, target) {
   if (!target) return 'unknown';
@@ -131,14 +141,16 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
   return (
     <div className={`tab-pane body2 ${focus ? 'is-zoomed' : ''}`}>
       <div className="b2-toolbar">
-        <div className="b2-segs">
+        <div className="fb-toggle">
+          <div className="fb-pill" style={{ transform: `translateX(${view==='back' ? 100 : 0}%)` }}/>
           <button className={view==='front'?'on':''} onClick={()=>setView('front')}>Front</button>
           <button className={view==='back'?'on':''} onClick={()=>setView('back')}>Back</button>
         </div>
-        <button className={`b2-tour ${tourActive ? 'active' : ''}`} onClick={startTour} disabled={tourActive}>
-          <span aria-hidden="true">🔥</span> Find my weak spots
-        </button>
       </div>
+      <button className={`weak-spots-btn ${tourActive ? 'active' : ''}`} onClick={startTour} disabled={tourActive}>
+        <Target size={20} strokeWidth={2.4}/>
+        <span>Find My Weak Spots</span>
+      </button>
 
       <div className={`b2-stage stage-svg ${focus ? 'zoomed' : ''}`}>
         {focus && (
@@ -174,8 +186,8 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
                              : (m === 'abs' || m === 'obliques') ? 'core'
                              : m;
               return (
-                <button key={m} className={`b2-cov-cell status-${st}`}
-                  style={{ '--bp': `var(--bp-${colorKey})` }}
+                <button key={m} className={`b2-cov-cell gw status-${st}`}
+                  style={{ '--bp': `var(--bp-${colorKey})`, ...(COV_GRAD[st] || COV_GRAD.unknown) }}
                   onClick={() => setFocus(m)}>
                   <div className="m">{MUSCLE_LABELS_V2[m] || m}</div>
                   <div className="s mono">{s} sets</div>
