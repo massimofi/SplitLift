@@ -23,10 +23,12 @@ Designed for a 380 px-wide phone viewport. Use Chrome DevTools' device emulation
 ## Tech stack
 
 - **Vite 5** + **React 18.3** (no TypeScript — speed over types)
-- **Three.js r158** + **@react-three/fiber 8.17** + **@react-three/drei 9.114** for the 3D Body tab
+- **react-body-highlighter** for the clickable muscle SVG in the Body tab
 - **lucide-react** for sport icons in onboarding
 - All CSS is hand-written in `src/index.css` (no Tailwind / styled-components)
 - `localStorage` persistence for full app state, key: `splitlift-state-v1`
+
+> **Note on the Body view.** We initially built the Body tab as a Three.js + react-three-fiber 3D anatomy loaded from a Z-Anatomy `.glb`, but the freely-licensed Sketchfab export had stripped mesh names — making per-muscle clicking unreliable enough to bench it on a hackathon timeline. Pivoted to react-body-highlighter (MIT) which ships front + back SVG silhouettes purpose-built for fitness apps, with built-in click handling and intensity-based highlighting. The same coverage data + drawer / smart-add UX sits on top.
 
 ## Project layout
 
@@ -103,10 +105,9 @@ Per BroncoHacks rule 7:
 
 - **React 18** (MIT) — Meta
 - **Vite 5** (MIT) — Evan You / Vite team
-- **Three.js r158** (MIT) — Three.js authors
-- **@react-three/fiber 8** + **@react-three/drei 9** (MIT) — Poimandres
+- **react-body-highlighter** (MIT) — Gia Vinh
 - **lucide-react** (ISC) — Lucide contributors
-- **Z-Anatomy "Myology"** (CC-BY-SA 4.0) — Gauthier Kervyn; derivative of BodyParts3D (Database Center for Life Science, Japan). See `public/models/LICENSE-MODEL.txt`.
+- **Z-Anatomy "Myology"** (CC-BY-SA 4.0) — Gauthier Kervyn; derivative of BodyParts3D (Database Center for Life Science, Japan). Originally used for the planned 3D anatomy and removed during the body-highlighter pivot. `public/models/LICENSE-MODEL.txt` kept for archival.
 - **Free Exercise DB** (public domain) — yuhonas / GitHub. Used for the 2-frame animated exercise thumbnails (`raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/...`).
 - **Mifflin–St Jeor equation** — Mifflin et al. (1990), Am J Clin Nutr. Used for BMR.
 - **Tanaka heart-rate formula** — Tanaka et al. (2001). Used for max HR + zones.

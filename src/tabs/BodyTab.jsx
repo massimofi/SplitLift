@@ -1,17 +1,17 @@
-// Body tab — 3D anatomy (Phase 2 swap-in) with 2D fallback. Phase 1 ships
-// with 2D only; the toggle / drawer / coverage list all work either way.
+// Body tab — react-body-highlighter SVG anatomy with click-to-focus drawer.
+// We pivoted off the 3D model: stripped mesh names made per-muscle clicking
+// unreliable, and the lib gives us a fitness-app silhouette out of the box.
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { EXERCISES, SPORTS, DAY_TYPES } from '../data/exercises.js';
 import {
-  AnatomyFront, AnatomyBack,
   MUSCLE_LABELS_V2, TARGETS_V2,
   computeCoverageV2, exercisesForMuscle,
 } from '../components/Anatomy2D.jsx';
 import { bestSplitTypeFor } from '../lib/splits.js';
 import { IconX, IconPlus } from '../components/Icons.jsx';
 import { ExerciseGif } from '../components/ExerciseGif.jsx';
-import { Anatomy3D } from '../components/Anatomy3D/Anatomy3D.jsx';
+import { AnatomyBody, SLUG_BY_KEY } from '../components/AnatomyBody.jsx';
 
 function statusFromCoverage(sets, target) {
   if (!target) return 'unknown';
@@ -22,16 +22,12 @@ function statusFromCoverage(sets, target) {
 }
 
 export default function BodyTab({ days, onAddExercise, setTab, profile, splitsByType, setSplitsByType, setSplitsActiveType, showToast }) {
-  const has3D = !!Anatomy3D;
-  const [mode, setMode] = useState(has3D ? '3d' : '2d');
   const [view, setView] = useState('front');
   const [focus, setFocus] = useState(null);
-  const [recently, setRecently] = useState(null);
-  const [status3d, setStatus3d] = useState('loading');
 
   const sets = useMemo(() => computeCoverageV2(days), [days]);
 
-  // One-time intro hint (dismisses after 4s or on first tap).
+  // One-time intro hint
   const [hintShown, setHintShown] = useState(() => {
     try { return !localStorage.getItem('sl-body-hint-seen'); } catch { return false; }
   });
@@ -45,13 +41,8 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
     try { localStorage.setItem('sl-body-hint-seen', '1'); } catch {}
   }
 
-  useEffect(() => {
-    if (mode === '3d' && status3d === 'failed') setMode('2d');
-  }, [status3d, mode]);
-
-  const onRegion = (k) => {
-    setRecently(k); setFocus(k);
-    setTimeout(() => setRecently(null), 700);
+  const onMuscleClick = (k) => {
+    setFocus(k);
     if (hintShown) dismissHint();
   };
   const close = () => setFocus(null);
@@ -96,40 +87,28 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
     close();
   };
 
+  // 12 most-relevant muscles for the coverage grid (granular keys).
+  // hip_flex omitted — no slug in react-body-highlighter, so it can't be
+  // visualized on the model.
   const COV_KEYS = ['chest','lats','traps','rear_delt','biceps','triceps','shoulder','abs','quads','hams','glutes','calves'];
 
   return (
     <div className="tab-pane body2">
       <div className="b2-toolbar">
-        {has3D && (
-          <div className="b2-segs">
-            <button className={mode==='3d'?'on':''} onClick={()=>setMode('3d')}>3D</button>
-            <button className={mode==='2d'?'on':''} onClick={()=>setMode('2d')}>2D</button>
-          </div>
-        )}
-        {mode === '2d' && (
-          <div className="b2-segs">
-            <button className={view==='front'?'on':''} onClick={()=>setView('front')}>Front</button>
-            <button className={view==='back'?'on':''} onClick={()=>setView('back')}>Back</button>
-          </div>
-        )}
-        <div className="b2-hint mono">{mode === '3d' ? 'DRAG · TAP A MUSCLE' : 'TAP A MUSCLE'}</div>
+        <div className="b2-segs">
+          <button className={view==='front'?'on':''} onClick={()=>setView('front')}>Front</button>
+          <button className={view==='back'?'on':''} onClick={()=>setView('back')}>Back</button>
+        </div>
+        <div className="b2-hint mono">TAP A MUSCLE</div>
       </div>
 
-      <div className={`b2-stage ${mode === '3d' ? 'stage-3d' : ''}`}>
-        {mode === '3d' && Anatomy3D ? (
-          <Anatomy3D
-            sets={sets}
-            targets={TARGETS_V2}
-            focused={focus}
-            onSelect={onRegion}
-            onFallback={()=>setStatus3d('failed')}
-          />
-        ) : view === 'front' ? (
-          <AnatomyFront sets={sets} recently={recently} onRegion={onRegion}/>
-        ) : (
-          <AnatomyBack sets={sets} recently={recently} onRegion={onRegion}/>
-        )}
+      <div className="b2-stage stage-svg">
+        <AnatomyBody
+          coverage={sets}
+          targets={TARGETS_V2}
+          view={view}
+          onMuscleClick={onMuscleClick}
+        />
         {hintShown && (
           <div className="b2-intro-hint" onClick={dismissHint}>
             Tap any muscle to see exercises that hit it.

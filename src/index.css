@@ -2346,3 +2346,11 @@
   }
   @keyframes introUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   .b2-stage { position: relative; }
+
+  /* react-body-highlighter host — keeps the SVG centered + sized */
+  .b2-stage.stage-svg {
+    background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+    padding: 14px; min-height: 380px;
+  }
+  .abh-host { width: 100%; display: flex; justify-content: center; }
+  .abh-host svg { max-height: 360px; }

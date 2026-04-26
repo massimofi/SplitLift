@@ -1,7 +1,7 @@
 // MainApp — header + tab routing + bottom nav. State lives here so all tabs
 // share days / splitsByType / cardioDays / etc.
 
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { INITIAL_DAYS, INITIAL_CARDIO_DAYS, SPORTS, computeScore } from '../data/exercises.js';
 import { splitsByTypeFromDays, applySplitsByTypeToDays } from '../lib/splits.js';
 import { fireConfetti } from '../lib/confetti.js';
@@ -18,10 +18,7 @@ import { SplitsTab } from '../tabs/SplitsTab.jsx';
 import { ScheduleTab } from '../tabs/ScheduleTab.jsx';
 import { DashboardTab } from '../tabs/DashboardTab.jsx';
 import { ProfileTab } from '../tabs/ProfileTab.jsx';
-
-// Body tab pulls in Three.js + R3F + drei (~700 KB). Lazy-load so the rest of
-// the app boots fast and we only pay the 3D weight once the user opens Body.
-const BodyTab = lazy(() => import('../tabs/BodyTab.jsx'));
+import BodyTab from '../tabs/BodyTab.jsx';
 
 export function MainApp({
   profile, setProfile,
@@ -186,22 +183,16 @@ export function MainApp({
           />
         )}
         {tab === 'body' && (
-          <Suspense fallback={
-            <div className="tab-pane body2">
-              <div className="empty-pane"><div className="emp-t">Loading 3D model…</div></div>
-            </div>
-          }>
-            <BodyTab
-              days={days}
-              onAddExercise={addToToday}
-              setTab={setTab}
-              profile={profile}
-              splitsByType={splitsByType}
-              setSplitsByType={setSplitsByType}
-              setSplitsActiveType={setSplitsActiveType}
-              showToast={showToast}
-            />
-          </Suspense>
+          <BodyTab
+            days={days}
+            onAddExercise={addToToday}
+            setTab={setTab}
+            profile={profile}
+            splitsByType={splitsByType}
+            setSplitsByType={setSplitsByType}
+            setSplitsActiveType={setSplitsActiveType}
+            showToast={showToast}
+          />
         )}
         {tab === 'dashboard' && (
           <DashboardTab days={days} cardioDays={cardioDays} profile={profile} setTab={setTab}/>
