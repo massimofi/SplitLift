@@ -120,8 +120,36 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
   };
 
   const todayIdx = (() => { const j = new Date().getDay(); return j === 0 ? 6 : j - 1; })();
-  const splitChips = ['push','pull','legs','upper','lower','full','rest'];
-  const cardioChips = CARDIO_LIBRARY.slice(0, 6);
+
+  // v9 Issue 8: palette shows ONLY the user's actual splits + the sport's
+  // recommended cardio. Rest is always included (needed to clear days).
+  const userSplitTypes = useMemo(() => {
+    // Pull from splitsByType keys; also include any types currently on the
+    // schedule (in case someone set a day-type via picker without first
+    // editing splitsByType for it). Rest is always last.
+    const fromSplits = Object.keys(splitsByType || {}).filter(k => splitsByType[k] && splitsByType[k].length > 0);
+    const fromDays = (days || []).map(d => d?.type).filter(t => t && t !== 'rest' && t !== 'sport' && t !== 'cardio');
+    const merged = [...new Set([...fromSplits, ...fromDays])];
+    return [...merged, 'rest'];
+  }, [splitsByType, days]);
+
+  const sport = SPORTS.find(s => s.id === profile?.sport);
+  const cardioProfile = sport?.cardioProfile;
+  const cardioChips = useMemo(() => {
+    if (cardioProfile) {
+      const recIds = [...(cardioProfile.primary || []), ...(cardioProfile.secondary || [])];
+      const list = recIds.map(id => CARDIO_LIBRARY.find(c => c.id === id)).filter(Boolean);
+      // Pad with a couple of generic cardios if sport list is short
+      if (list.length < 4) {
+        for (const c of CARDIO_LIBRARY) {
+          if (list.length >= 5) break;
+          if (!list.find(x => x.id === c.id)) list.push(c);
+        }
+      }
+      return list.slice(0, 6);
+    }
+    return CARDIO_LIBRARY.slice(0, 6);
+  }, [cardioProfile]);
 
   return (
     <div className="tab-pane sched-page">
@@ -133,7 +161,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
       <div className="sched-layout">
         <div className="sched-palette">
           <div className="sched-palette-head">SPLIT</div>
-          {splitChips.map(p => {
+          {userSplitTypes.map(p => {
             const dt = DAY_TYPES[p];
             if (!dt) return null;
             return (
@@ -218,7 +246,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
                         {exNames.join(' · ')}{exTrail}
                       </div>
                     ) : (
-                      <div className="sched-day-preview is-empty">No exercises yet</div>
+                      <div className="sched-day-preview is-empty">+ Drag a split here</div>
                     )}
                     {cItems.length > 0 && (
                       <div className="sched-day-cardios">
@@ -236,7 +264,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
                     )}
                   </>
                 ) : (
-                  <div className="sched-day-rest-line">{day.restNote || 'Recover.'}</div>
+                  <div className="sched-day-rest-line">+ Drop a split or cardio</div>
                 )}
               </Card>
             );
