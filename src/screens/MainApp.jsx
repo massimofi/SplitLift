@@ -187,7 +187,7 @@ export function MainApp({
             days={days} setDays={setDays}
             cardioDays={cardioDays} setCardioDays={setCardioDays}
             locked={locked} setLocked={setLocked}
-            profile={profile} showToast={showToast}
+            profile={profile} setProfile={setProfile} showToast={showToast}
             splitsByType={splitsByType} setSplitsByType={setSplitsByType}
             onJumpToSplits={(typeId)=>{ if(typeId) setSplitsActiveType(typeId); setTab('splits'); }}
           />

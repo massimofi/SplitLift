@@ -4,10 +4,13 @@
 // v1 → v2: profile.age replaced by profile.birthday (YYYY-MM-DD).
 // v2 → v3: profile gains weightLog [{ date, kg }, …] seeded with today's
 //          stored weight if missing.
+// v3 → v4: profile gains customPresets [] for user-duplicated split
+//          presets (v9 Issue 9). Migration is silent — empty array.
 
 import { birthdayFromAge } from '../data/exercises.js';
 
-const KEY    = 'splitlift-state-v3';
+const KEY    = 'splitlift-state-v4';
+const KEY_V3 = 'splitlift-state-v3';
 const KEY_V2 = 'splitlift-state-v2';
 const KEY_V1 = 'splitlift-state-v1';
 
@@ -42,24 +45,34 @@ function migrateV2ToV3(v2) {
   };
 }
 
+function migrateV3ToV4(v3) {
+  if (!v3 || typeof v3 !== 'object') return v3;
+  const profile = v3.profile || {};
+  if (Array.isArray(profile.customPresets)) return v3;
+  return { ...v3, profile: { ...profile, customPresets: [] } };
+}
+
 export function loadState() {
   try {
-    const rawV3 = localStorage.getItem(KEY);
-    if (rawV3) return JSON.parse(rawV3);
-    // No v3 — try migrating from v2, or v1 → v2 → v3.
+    const rawV4 = localStorage.getItem(KEY);
+    if (rawV4) return migrateV3ToV4(JSON.parse(rawV4));   // idempotent for v4
+    const rawV3 = localStorage.getItem(KEY_V3);
     const rawV2 = localStorage.getItem(KEY_V2);
     const rawV1 = localStorage.getItem(KEY_V1);
     let migrated = null;
-    if (rawV2) {
-      migrated = migrateV2ToV3(JSON.parse(rawV2));
+    if (rawV3) {
+      migrated = migrateV3ToV4(JSON.parse(rawV3));
+    } else if (rawV2) {
+      migrated = migrateV3ToV4(migrateV2ToV3(JSON.parse(rawV2)));
     } else if (rawV1) {
-      migrated = migrateV2ToV3(migrateV1ToV2(JSON.parse(rawV1)));
+      migrated = migrateV3ToV4(migrateV2ToV3(migrateV1ToV2(JSON.parse(rawV1))));
     }
     if (!migrated) return null;
     try {
       localStorage.setItem(KEY, JSON.stringify(migrated));
       localStorage.removeItem(KEY_V1);
       localStorage.removeItem(KEY_V2);
+      localStorage.removeItem(KEY_V3);
     } catch {}
     return migrated;
   } catch { return null; }
@@ -75,6 +88,7 @@ export function saveState(state) {
 
 export function clearState() {
   try { localStorage.removeItem(KEY); } catch {}
+  try { localStorage.removeItem(KEY_V3); } catch {}
   try { localStorage.removeItem(KEY_V2); } catch {}
   try { localStorage.removeItem(KEY_V1); } catch {}
   try { localStorage.removeItem('sl-dash-order'); } catch {}

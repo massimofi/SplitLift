@@ -34,7 +34,7 @@ function gradForDayType(t) {
   }
 }
 
-export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLocked, profile, showToast, onJumpToSplits, splitsByType, setSplitsByType }) {
+export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLocked, profile, setProfile, showToast, onJumpToSplits, splitsByType, setSplitsByType }) {
   const [presetsOpen, setPresetsOpen] = useState(false);
   const [pickFor, setPickFor] = useState(null);
   const [drag, setDrag] = useState(null);
@@ -309,6 +309,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
       {presetsOpen && (
         <PresetsSheet
           profile={profile}
+          setProfile={setProfile}
           locked={locked}
           days={days}
           setDays={setDays}
@@ -476,12 +477,28 @@ function DayPickerSheet({ dayIdx, dayType, cardios, isLocked, profile, onClose, 
   );
 }
 
-function PresetsSheet({ profile, locked, days, setDays, splitsByType, setSplitsByType, showToast, onClose }) {
+function PresetsSheet({ profile, setProfile, locked, days, setDays, splitsByType, setSplitsByType, showToast, onClose }) {
   const ranked = useMemo(
     () => rankTemplatesForSport({ sport: profile.sport, days: profile.days, limit: 3 }),
     [profile.sport, profile.days]
   );
   const sportLabel = SPORTS.find(s => s.id === profile.sport)?.label || 'your sport';
+  const customPresets = profile.customPresets || [];
+
+  // Build a unified list: built-ins + user customs (customs surface first
+  // so they're visible).
+  const allTemplates = useMemo(() => {
+    const customs = customPresets.map(c => ({
+      id: c.id,
+      name: c.name,
+      sub: c.sub || 'Your custom preset',
+      days: c.days,
+      isCustom: true,
+      sourcePresetId: c.sourcePresetId,
+    }));
+    const builtins = SPLIT_TEMPLATES.map(t => ({ ...t, isCustom: false }));
+    return [...customs, ...builtins];
+  }, [customPresets]);
 
   const syncSplits = (newDays) => {
     if (!setSplitsByType) return;
@@ -490,7 +507,7 @@ function PresetsSheet({ profile, locked, days, setDays, splitsByType, setSplitsB
   };
 
   const applyTemplate = (id) => {
-    const tpl = SPLIT_TEMPLATES.find(t => t.id === id);
+    const tpl = allTemplates.find(t => t.id === id);
     if (!tpl) return;
     const newDays = days.map((d, i) => locked[i] ? d : makeDayForType(tpl.days[i], profile, splitsByType));
     setDays(newDays);
@@ -506,6 +523,44 @@ function PresetsSheet({ profile, locked, days, setDays, splitsByType, setSplitsB
     syncSplits(newDays);
     showToast('Auto-built for your sport');
     onClose();
+  };
+
+  // ---- Duplicate flow (v9 Issue 9) ----
+  const [menuFor, setMenuFor] = useState(null);   // template id whose menu is open
+  const [dupOpen, setDupOpen] = useState(null);   // template object being duplicated
+  const [dupName, setDupName] = useState('');
+
+  const openDuplicate = (tpl) => {
+    setDupName(`${tpl.name} (copy)`);
+    setDupOpen(tpl);
+    setMenuFor(null);
+  };
+  const saveCustom = () => {
+    if (!dupOpen) return;
+    const id = `custom_${Math.random().toString(36).slice(2, 9)}`;
+    const newPreset = {
+      id,
+      name: dupName.trim() || 'Custom preset',
+      sub: 'Your custom preset',
+      sourcePresetId: dupOpen.id,
+      createdAt: Date.now(),
+      days: [...dupOpen.days],
+      splitsByType: { ...(splitsByType || {}) },
+    };
+    setProfile && setProfile(p => ({
+      ...p,
+      customPresets: [...(p.customPresets || []), newPreset],
+    }));
+    showToast(`Saved: ${newPreset.name}`);
+    setDupOpen(null);
+  };
+  const deleteCustom = (id) => {
+    setProfile && setProfile(p => ({
+      ...p,
+      customPresets: (p.customPresets || []).filter(c => c.id !== id),
+    }));
+    setMenuFor(null);
+    showToast('Deleted');
   };
 
   return (
@@ -543,21 +598,87 @@ function PresetsSheet({ profile, locked, days, setDays, splitsByType, setSplitsB
 
         <div className="ps-section">All templates</div>
         <div className="ps-list">
-          {SPLIT_TEMPLATES.map(t => (
-            <button key={t.id} className="ps-row" onClick={()=>applyTemplate(t.id)}>
-              <div className="ps-row-body">
-                <div className="ps-row-n">{t.name}</div>
-                <div className="ps-row-s">{t.sub}</div>
-              </div>
-              <div className="tpl-mini">
-                {t.days.map((d, i) => (
-                  <span key={i} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
-                ))}
-              </div>
-            </button>
+          {allTemplates.map(t => (
+            <div key={t.id} className="ps-row-wrap">
+              <button className="ps-row" onClick={()=>applyTemplate(t.id)}>
+                <div className="ps-row-body">
+                  {t.isCustom && <div className="ps-row-eyebrow">CUSTOM</div>}
+                  <div className="ps-row-n">{t.name}</div>
+                  <div className="ps-row-s">{t.sub}</div>
+                </div>
+                <div className="tpl-mini">
+                  {t.days.map((d, i) => (
+                    <span key={i} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
+                  ))}
+                </div>
+              </button>
+              <button
+                className="ps-row-menu"
+                onClick={(e) => { e.stopPropagation(); setMenuFor(menuFor === t.id ? null : t.id); }}
+                aria-label="Preset options"
+                aria-expanded={menuFor === t.id}
+              >
+                ⋯
+              </button>
+              {menuFor === t.id && (
+                <div className="ps-row-menu-sheet" onClick={e => e.stopPropagation()}>
+                  <button className="ps-menu-item" onClick={() => openDuplicate(t)}>Duplicate</button>
+                  {t.isCustom && (
+                    <button className="ps-menu-item danger" onClick={() => deleteCustom(t.id)}>Delete</button>
+                  )}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       </div>
+
+      {/* Duplicate-and-modify modal — uses position:fixed so it sits above
+          the bottom nav (the parent .ps-overlay only covers .screen-body
+          via position:absolute, leaving the bottom nav as a click target). */}
+      {dupOpen && (
+        <div
+          className="ps-overlay"
+          style={{ zIndex: 250, position: 'fixed', inset: 0 }}
+          onClick={() => setDupOpen(null)}
+        >
+          <div className="ps-sheet ps-sheet-narrow" onClick={e => e.stopPropagation()}>
+            <div className="ps-head">
+              <div>
+                <div className="ps-t">Create custom preset</div>
+                <div className="ps-s mono">FROM · {dupOpen.name.toUpperCase()}</div>
+              </div>
+              <button className="ip-x" onClick={() => setDupOpen(null)} aria-label="Cancel"><IconX/></button>
+            </div>
+            <div style={{ padding: '4px 0 16px' }}>
+              <label className="ps-dup-label">Preset name</label>
+              <input
+                className="ps-dup-input"
+                type="text"
+                value={dupName}
+                onChange={(e) => setDupName(e.target.value)}
+                placeholder="My PPL"
+                maxLength={40}
+                autoFocus
+              />
+              <div className="ps-dup-preview">
+                {dupOpen.days.map((d, i) => (
+                  <span key={i} className="tpl-cell" style={{ background:`var(--bp-${d})`, width: 18, height: 18 }}/>
+                ))}
+              </div>
+              <p className="ps-dup-help">
+                Saved to your custom presets. Apply any time. Edit by re-duplicating, or delete from the menu.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button className="ip-action" onClick={() => setDupOpen(null)}>Cancel</button>
+              <button className="ip-action primary" onClick={saveCustom} disabled={!dupName.trim()}>
+                Save preset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

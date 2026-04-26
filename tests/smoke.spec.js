@@ -42,7 +42,10 @@ const TABS = ['Dashboard', 'Splits', 'Schedule', 'Body', 'Cardio', 'Friends', 'G
 test.describe('SplitLift smoke', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(seed => {
-      try { localStorage.setItem('splitlift-state-v3', JSON.stringify(seed)); } catch {}
+      try {
+        localStorage.setItem('splitlift-state-v4', JSON.stringify(seed));
+        localStorage.removeItem('splitlift-state-v3');
+      } catch {}
     }, SEED_STATE);
   });
 
@@ -146,11 +149,11 @@ test.describe('SplitLift smoke', () => {
     // Toggle theme to light, then snap each tab.
     await page.addInitScript(() => {
       try {
-        const raw = localStorage.getItem('splitlift-state-v3');
+        const raw = localStorage.getItem('splitlift-state-v4');
         if (raw) {
           const s = JSON.parse(raw);
           s.theme = 'light';
-          localStorage.setItem('splitlift-state-v3', JSON.stringify(s));
+          localStorage.setItem('splitlift-state-v4', JSON.stringify(s));
         }
       } catch {}
     });
