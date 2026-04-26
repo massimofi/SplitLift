@@ -1,0 +1,168 @@
+// FAKE_DATA — these are not real users. In a future version this would be
+// replaced with a real backend (Supabase, etc.) and real friend connections
+// via shareable invite links.
+//
+// Each entry has enough state for the Friends tab list + the side-by-side
+// comparison view (their splitsByType, days, sport, sport-match score).
+
+const TODAY = new Date().toISOString().slice(0, 10);
+
+function day(type, exIds = []) {
+  if (type === 'rest') return { type: 'rest', focus: 'Rest', rest: true, exIds: [] };
+  return { type, focus: type[0].toUpperCase() + type.slice(1), exIds };
+}
+
+export const FAKE_FRIENDS = [
+  {
+    id: 'f_jordan',
+    name: 'Jordan T.',
+    avatarSeed: 'jordan',
+    sport: 'bball',
+    splitName: 'Hooper PPL',
+    liftDaysPerWeek: 5,
+    cardioMinPerWeek: 90,
+    sportMatchScore: 92,
+    splitsByType: {
+      push: ['bench','ohp','dip','fly'],
+      pull: ['pullup','row','curlbb','face'],
+      legs: ['squat','rdl','box','calf'],
+    },
+    days: [day('push', ['bench','ohp','dip','fly']), day('pull', ['pullup','row','curlbb','face']),
+           day('legs', ['squat','rdl','box','calf']), day('push', ['incline','dbpress','tri','lat']),
+           day('pull', ['tbar','pulldown','hammer','rear']), day('rest'), day('rest')],
+    bio: 'Plays pickup 4 nights a week. Prioritizes legs + jump training.',
+  },
+  {
+    id: 'f_alex',
+    name: 'Alex M.',
+    avatarSeed: 'alex',
+    sport: 'climb',
+    splitName: 'Climber UL+P',
+    liftDaysPerWeek: 4,
+    cardioMinPerWeek: 60,
+    sportMatchScore: 88,
+    splitsByType: {
+      upper: ['pullup','row','curlbb','overtri','face'],
+      lower: ['squat','rdl','curl','calf'],
+      pull:  ['pullup','tbar','hammer','face'],
+    },
+    days: [day('upper', ['pullup','row','curlbb','overtri','face']), day('lower', ['squat','rdl','curl','calf']),
+           day('rest'), day('upper', ['pullup','row','curlbb','overtri','face']),
+           day('pull', ['pullup','tbar','hammer','face']), day('rest'), day('rest')],
+    bio: 'V8 boulderer, lots of finger-board work outside the gym.',
+  },
+  {
+    id: 'f_sam',
+    name: 'Sam L.',
+    avatarSeed: 'sam',
+    sport: 'powerlift',
+    splitName: 'Westside-style',
+    liftDaysPerWeek: 4,
+    cardioMinPerWeek: 30,
+    sportMatchScore: 95,
+    splitsByType: {
+      push:  ['bench','ohp','tri','dip'],
+      pull:  ['tbardl','row','shrug','curlbb'],
+      legs:  ['squat','front','rdl','calf'],
+      upper: ['bench','row','ohp','curlbb','tri'],
+    },
+    days: [day('legs', ['squat','front','rdl','calf']), day('rest'),
+           day('push', ['bench','ohp','tri','dip']), day('rest'),
+           day('pull', ['tbardl','row','shrug','curlbb']),
+           day('upper', ['bench','row','ohp','curlbb','tri']), day('rest')],
+    bio: '500/350/600 club. Walks 30 min/day, no other cardio.',
+  },
+  {
+    id: 'f_riley',
+    name: 'Riley K.',
+    avatarSeed: 'riley',
+    sport: 'run',
+    splitName: 'Marathoner Lite',
+    liftDaysPerWeek: 3,
+    cardioMinPerWeek: 240,
+    sportMatchScore: 81,
+    splitsByType: {
+      full: ['squat','row','rdl','plank','dbpress'],
+    },
+    days: [day('full', ['squat','row','rdl','plank','dbpress']), day('rest'),
+           day('full', ['lunge','pulldown','curl','plank']), day('rest'),
+           day('full', ['rdl','tbar','split','plank']), day('rest'), day('rest')],
+    bio: 'Training for a half. Lifts 3× to stay durable; rest is mileage.',
+  },
+  {
+    id: 'f_casey',
+    name: 'Casey P.',
+    avatarSeed: 'casey',
+    sport: 'soccer',
+    splitName: 'Sport-focused × 4',
+    liftDaysPerWeek: 4,
+    cardioMinPerWeek: 120,
+    sportMatchScore: 78,
+    splitsByType: {
+      lower: ['squat','rdl','box','calf','curl'],
+      upper: ['bench','row','ohp','curlbb','tri'],
+      full:  ['squat','row','dbpress','plank'],
+    },
+    days: [day('lower', ['squat','rdl','box','calf','curl']), day('rest'),
+           day('upper', ['bench','row','ohp','curlbb','tri']), day('rest'),
+           day('full', ['squat','row','dbpress','plank']), day('rest'), day('rest')],
+    bio: 'Mid + winger. Sprint work twice a week, season is on.',
+  },
+  {
+    id: 'f_morgan',
+    name: 'Morgan B.',
+    avatarSeed: 'morgan',
+    sport: 'general',
+    splitName: 'Upper / Lower',
+    liftDaysPerWeek: 4,
+    cardioMinPerWeek: 60,
+    sportMatchScore: 71,
+    splitsByType: {
+      upper: ['bench','row','ohp','curlbb','overtri'],
+      lower: ['squat','rdl','curl','calf'],
+    },
+    days: [day('upper', ['bench','row','ohp','curlbb','overtri']),
+           day('lower', ['squat','rdl','curl','calf']), day('rest'),
+           day('upper', ['incline','pulldown','dbpress','hammer','skull']),
+           day('lower', ['front','rdl','split','calf']), day('rest'), day('rest')],
+    bio: 'Just lifting to feel good. Mostly walks for cardio.',
+  },
+  {
+    id: 'f_taylor',
+    name: 'Taylor S.',
+    avatarSeed: 'taylor',
+    sport: 'swimming',
+    splitName: 'Swimmer Hybrid',
+    liftDaysPerWeek: 3,
+    cardioMinPerWeek: 300,
+    sportMatchScore: 64,
+    splitsByType: {
+      pull:  ['pullup','row','face','curlbb'],
+      push:  ['bench','ohp','tri','dip'],
+      legs:  ['squat','rdl','calf'],
+    },
+    days: [day('pull', ['pullup','row','face','curlbb']), day('rest'),
+           day('push', ['bench','ohp','tri','dip']), day('rest'),
+           day('legs', ['squat','rdl','calf']), day('rest'), day('rest')],
+    bio: 'D1 swimmer, 6 pool sessions/wk. Lifts to keep shoulders healthy.',
+  },
+  {
+    id: 'f_quinn',
+    name: 'Quinn R.',
+    avatarSeed: 'quinn',
+    sport: 'crossfit',
+    splitName: 'PPL × 5',
+    liftDaysPerWeek: 5,
+    cardioMinPerWeek: 180,
+    sportMatchScore: 56,
+    splitsByType: {
+      push: ['bench','ohp','dip','tri'],
+      pull: ['pullup','row','tbar','curlbb'],
+      legs: ['squat','rdl','box','calf','split'],
+    },
+    days: [day('push', ['bench','ohp','dip','tri']), day('pull', ['pullup','row','tbar','curlbb']),
+           day('legs', ['squat','rdl','box','calf','split']), day('push', ['incline','dbpress','tri','lat']),
+           day('pull', ['pulldown','tbar','hammer','rear']), day('rest'), day('rest')],
+    bio: 'Box rat, 5 metcons + 2 strength sessions. SMS low because volume is wild.',
+  },
+];

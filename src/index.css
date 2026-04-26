@@ -532,7 +532,9 @@
     padding: 6px;
     overflow: hidden;
   }
-  /* Bottom-nav pill: position by left% so 5 cells line up exactly. */
+  .bn-track.six { grid-template-columns: repeat(6, 1fr); }
+  .bn-track.six .bn-pill { width: calc(16.6667% - 2px); }
+  /* Bottom-nav pill: position by left% so cells line up exactly. */
   .bn-pill {
     position: absolute;
     top: 6px; bottom: 6px;
@@ -2809,3 +2811,134 @@
   /* Dashboard hero — bump the headline copy */
   .dh-h1 { font-size: 26px !important; }
   .dh-sub { font-size: 14px; line-height: 1.5; color: var(--inv-ink-2); margin-top: 4px; }
+
+  /* Tighter spacing when bottom nav is 6 cells (Friends added) */
+  .bn-track.six .bn-item { padding: 8px 2px; gap: 3px; }
+  .bn-track.six .bn-item .lbl { font-size: 8px; letter-spacing: 0.04em; }
+  .bn-track.six .bn-item svg { width: 20px; height: 20px; }
+
+  /* ============== P5 — Friends tab ============== */
+  .fr-page { padding: 8px 16px 24px; }
+  .fr-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 0 12px;
+  }
+  .fr-h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; }
+  .fr-sub { font-size: 10px; color: var(--ink-3); letter-spacing: 0.14em; margin-top: 2px; }
+  .fr-add {
+    min-height: 40px; padding: 8px 14px;
+    border-radius: 999px; border: 1.5px solid var(--accent);
+    background: color-mix(in oklab, var(--accent) 12%, var(--bg));
+    color: var(--accent); font-weight: 700; font-size: 13px;
+    font-family: inherit; cursor: pointer;
+  }
+  .fr-add:active { transform: scale(0.97); }
+
+  .fr-list { display: flex; flex-direction: column; gap: 10px; }
+  .fr-row {
+    display: flex; align-items: center; gap: 14px;
+    width: 100%; min-height: 76px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--hair);
+    border-left: 5px solid var(--accent);
+    text-align: left; cursor: pointer; font-family: inherit; color: var(--ink);
+    transition: transform 140ms ease;
+  }
+  .fr-row:active { transform: scale(0.99); }
+  .fr-avatar {
+    flex-shrink: 0; border-radius: 12px;
+    display: grid; place-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+  .fr-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .fr-row-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .fr-name { font-size: 16px; font-weight: 700; letter-spacing: -0.015em; }
+  .fr-score { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; }
+  .fr-row-bot { display: flex; gap: 10px; font-size: 12px; color: var(--ink-3); align-items: center; }
+  .fr-sport { display: inline-flex; align-items: center; gap: 4px; }
+  .fr-split { font-weight: 600; color: var(--ink-2); }
+
+  /* Comparison view */
+  .fr-cmp-page { padding: 8px 16px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .fr-cmp-bar { display: flex; align-items: center; gap: 10px; }
+  .fr-back {
+    background: transparent; border: none; cursor: pointer; font-family: inherit;
+    color: var(--ink-2); font-weight: 600; font-size: 13px;
+    padding: 6px 0;
+  }
+  .fr-cmp-title { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; flex: 1; text-align: center; }
+
+  .fr-cmp-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .fr-cmp-col {
+    background: var(--bg-2); border: 1px solid var(--hair);
+    border-radius: 12px; padding: 12px 14px;
+    border-left: 4px solid var(--accent);
+  }
+  .fr-cmp-tag { font-size: 9px; color: var(--ink-3); letter-spacing: 0.14em; font-weight: 700; }
+  .fr-cmp-name { font-size: 14px; font-weight: 700; margin: 4px 0 8px; }
+  .fr-cmp-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 12px; color: var(--ink-3); padding: 3px 0;
+  }
+  .fr-cmp-row b { color: var(--ink); font-size: 14px; font-weight: 700; }
+
+  .fr-cmp-bodies {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+    border-radius: 14px; padding: 8px;
+  }
+  .fr-cmp-body {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 6px 0;
+  }
+  .fr-cmp-body-tag {
+    font-size: 9px; color: var(--ink-3); letter-spacing: 0.14em; font-weight: 700;
+  }
+  .fr-cmp-body .abh-host svg { max-width: 100%; max-height: 240px; }
+
+  .fr-cmp-deltas { display: flex; flex-direction: column; gap: 6px; }
+  .fr-delta-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-2); border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .fr-delta-name { font-size: 12px; font-weight: 700; min-width: 80px; }
+  .fr-delta-bars { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .fr-delta-bar {
+    position: relative; height: 14px; border-radius: 7px;
+    background: color-mix(in oklab, var(--ink) 5%, transparent);
+    overflow: hidden;
+  }
+  .fr-delta-bar > div { height: 100%; border-radius: 7px; transition: width 600ms cubic-bezier(.2,.8,.2,1); }
+  .fr-delta-bar.you > div { background: var(--accent); }
+  .fr-delta-bar.them > div { background: var(--accent-2); }
+  .fr-delta-bar > span {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    font-size: 10px; font-weight: 700; color: var(--ink-2);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Invite sheet */
+  .invite-copy { font-size: 13px; color: var(--ink-2); margin: 0 0 16px; line-height: 1.5; }
+  .invite-link {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-2); border: 1px dashed var(--hair);
+    border-radius: 12px; padding: 12px 14px;
+  }
+  .invite-link code {
+    flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .invite-copy-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    min-height: 32px; padding: 6px 10px;
+    border-radius: 8px; border: none;
+    background: var(--accent); color: var(--on-accent);
+    font-weight: 700; font-size: 12px; cursor: pointer;
+    font-family: inherit;
+  }
+  .invite-copy-btn:active { transform: scale(0.96); }
