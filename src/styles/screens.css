@@ -498,6 +498,17 @@
 }
 .sched-rows { display: flex; flex-direction: column; gap: var(--space-3); }
 
+/* v11.6 Issue 3: kill text selection during long-press / drag.
+   Cascades to chips + day cards. */
+.sched-chip-bar,
+.sched-chip-bar *,
+.sched-day-card,
+.sched-day-card * {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
 /* Floating chip bar — fixed above the bottom navbar. Glassy backdrop. */
 .sched-chip-bar {
   position: fixed;
