@@ -237,6 +237,23 @@ test.describe('SplitLift smoke', () => {
     await expect(page.locator('[data-sched-day="1"]')).toContainText(/PUSH/i);
   });
 
+  test('Cardio tab — three sport-context sections render', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.bn-item').filter({ hasText: 'Cardio' }).first().click();
+    await page.waitForTimeout(400);
+    await expect(page.getByTestId('cardio-athletic-profile')).toBeVisible();
+    await expect(page.getByTestId('cardio-energy-systems')).toBeVisible();
+    await expect(page.getByTestId('cardio-training-notes')).toBeVisible();
+    // Each section should have substantive copy (not a one-word placeholder)
+    const a = (await page.getByTestId('cardio-athletic-profile').innerText()).length;
+    const b = (await page.getByTestId('cardio-energy-systems').innerText()).length;
+    const c = (await page.getByTestId('cardio-training-notes').innerText()).length;
+    expect(a).toBeGreaterThan(80);
+    expect(b).toBeGreaterThan(80);
+    expect(c).toBeGreaterThan(80);
+  });
+
   test('Coach toggle highlight stays centered for N=2, 3, 4', async ({ page }) => {
     // The Profile tab uses N=2 (Units, Theme), N=3 (Coach tone). N=4 lives
     // in General's gender selector (which isn't a Toggle but a similar grid).

@@ -7,7 +7,7 @@
 
 import React, { useMemo, useState } from 'react';
 import {
-  SPORTS, CARDIO_LIBRARY, CARDIO_TYPES, DAY_NAMES,
+  SPORTS, CARDIO_LIBRARY, CARDIO_TYPES, DAY_NAMES, SPORT_DEEP_INFO,
   cardioFor, cardioHRZone, totalCardioMinutes,
 } from '../data/exercises.js';
 import { Card } from '../components/Card.jsx';
@@ -39,6 +39,9 @@ const ENERGY_NOTE = {
 export function CardioTab({ profile, cardioDays, setTab }) {
   const sport = SPORTS.find(s => s.id === profile?.sport) || SPORTS[0];
   const cardioProfile = sport.cardioProfile;
+  // v11 Issue 6: per-sport athletic profile + energy systems + training
+  // notes. Falls back to general so the tab never blanks.
+  const deep = SPORT_DEEP_INFO[sport.id] || SPORT_DEEP_INFO.general;
   const [whyOpen, setWhyOpen] = useState(false);
 
   // Build recommended list — primary first, then secondary.
@@ -89,6 +92,29 @@ export function CardioTab({ profile, cardioDays, setTab }) {
           </Chip>
         </div>
       </Card>
+
+      {/* v11 Issue 6 — three sport-context cards above the recommendations */}
+      <Subheader>About {sport.label}</Subheader>
+      <div className="cardio-rec-stack">
+        <Card variant="surface" size="md" data-testid="cardio-athletic-profile">
+          <Card.Eyebrow>ATHLETIC PROFILE</Card.Eyebrow>
+          <Card.Sub style={{ fontSize: 'var(--text-base)', lineHeight: 1.55, color: 'var(--ink-2)' }}>
+            {deep.athleticProfile}
+          </Card.Sub>
+        </Card>
+        <Card variant="surface" size="md" data-testid="cardio-energy-systems">
+          <Card.Eyebrow>ENERGY SYSTEMS</Card.Eyebrow>
+          <Card.Sub style={{ fontSize: 'var(--text-base)', lineHeight: 1.55, color: 'var(--ink-2)' }}>
+            {deep.energySystems}
+          </Card.Sub>
+        </Card>
+        <Card variant="surface" size="md" data-testid="cardio-training-notes">
+          <Card.Eyebrow>HOW {sport.label.toUpperCase()} ATHLETES TRAIN</Card.Eyebrow>
+          <Card.Sub style={{ fontSize: 'var(--text-base)', lineHeight: 1.55, color: 'var(--ink-2)' }}>
+            {deep.trainingNotes}
+          </Card.Sub>
+        </Card>
+      </div>
 
       {/* Recommended for sport */}
       {recs.length > 0 && (

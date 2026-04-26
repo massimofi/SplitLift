@@ -286,6 +286,82 @@ export const SPORTS = [
   },
 ];
 
+// v11 Issue 6: per-sport athletic context for the Cardio tab. Three short
+// human-readable strings per sport; if a sport isn't in the map we fall
+// back to the 'general' entry so the tab never renders blank.
+export const SPORT_DEEP_INFO = {
+  general: {
+    athleticProfile: "General fitness covers a balanced approach to strength, cardio, and mobility. The goal is health and resilience, not specialization. Mix moderate aerobic work with strength training to support everyday activity.",
+    energySystems: "All three systems matter: aerobic for daily energy, anaerobic for short bursts, and ATP-PC for explosive moves. No one system dominates — train all of them moderately.",
+    trainingNotes: "Aim for 150 minutes of moderate cardio per week (CDC baseline) plus 2-3 strength sessions. Don't chase any single metric. Consistency over intensity. Most over-do cardio and skimp on lower-body strength — invert that.",
+  },
+  soccer: {
+    athleticProfile: "Soccer is a 90-minute repeated-sprint sport with short recovery windows between high-intensity efforts. Players cover 7-12 km per match, with 2-3% at sprint pace. Posterior-chain strength + change-of-direction stability are critical.",
+    energySystems: "ATP-PC dominates each sprint (5-15 seconds). Glycolytic system fires for repeated sprints in the same passage of play. Aerobic system runs the show in between sprints and across the full 90 minutes.",
+    trainingNotes: "Most soccer players over-emphasize quads and neglect hamstrings + glutes (the prime sprint movers). Cardio should mix sprint intervals (6-10 × 30s) with one weekly zone-2 run for 90-min match endurance. Skip the long slow distance.",
+  },
+  bball: {
+    athleticProfile: "Basketball is a stop-go sport demanding repeated explosive sprints with brief recovery. Athletes need vertical jump, lateral agility, and the aerobic base to maintain output deep into Q4. Quads, glutes, and calves carry the load.",
+    energySystems: "ATP-PC dominates the first 10 seconds of every play (sprint, jump). Glycolytic fires in 30-90s rallies up the court. Aerobic supports recovery between possessions and full-game endurance.",
+    trainingNotes: "Most basketball players over-train chest and under-train rear delts and external rotators. Lower-body should emphasize unilateral work (lunges, single-leg deadlifts) for change-of-direction stability. Cardio: sprint intervals + one weekly zone-2 run.",
+  },
+  football: {
+    athleticProfile: "Football is short, max-effort plays with long recovery between snaps. Average play lasts 4-7 seconds with 30-40s rest. Demands explosive power, top-end strength, and positional speed.",
+    energySystems: "ATP-PC absolutely dominates (every play). Glycolytic fires on sustained drives. Aerobic system mostly for recovery between plays and avoiding cumulative fatigue.",
+    trainingNotes: "Heavy compound lifts (squat, bench, deadlift, clean) drive position-relevant power. Cardio is hill sprints + brief zone-2; avoid long aerobic work that erodes strength. Pre-season conditioning matters more than in-season volume.",
+  },
+  baseball: {
+    athleticProfile: "Baseball is rotational power sport with short bursts and long passive periods. Sprint speed (90ft to 1st base), throwing velocity, and bat speed are all rotational + explosive. Core stability across multiple planes is the foundation.",
+    energySystems: "Almost entirely ATP-PC for the actual sport actions (swing, throw, sprint to base). Aerobic system mostly contributes to recovery and avoiding mid-game fatigue from heat.",
+    trainingNotes: "Pitchers need shoulder + scapular health drills daily — the throwing motion grinds the joint. Hitters need rotational power (medicine-ball throws, cable rotations). Cardio is light: short sprints + a couple zone-2 sessions.",
+  },
+  tennis: {
+    athleticProfile: "Tennis points last 5-15 seconds at high intensity, separated by 15-25s of rest. Lateral movement dominates. Shoulder, core, and quads handle the workload; serve velocity comes from full-body rotation.",
+    energySystems: "ATP-PC for each point. Glycolytic fires on long rallies. Aerobic supports the 2-3 hour match length and recovery between points.",
+    trainingNotes: "Most tennis players over-develop the dominant arm side; train both sides equally. Agility work (ladder, cone drills) mirrors court coverage better than long-distance running. Mix sprint intervals + one zone-2 + one jump-rope session.",
+  },
+  volleyball: {
+    athleticProfile: "Volleyball is jump-and-recover. Players jump 100-300 times per match (more for hitters/blockers). Vertical leap, shoulder durability, and lateral defensive movement are key. Calves, quads, and glutes drive the jump.",
+    energySystems: "ATP-PC dominates each jump and spike. Brief glycolytic effort between rallies. Aerobic system minimal — most rest periods are short and active.",
+    trainingNotes: "Plyometric work (jump rope, box jumps, depth jumps) trumps long cardio for jump-sport athletes. Avoid heavy aerobic that taxes the legs. Shoulder mobility + rotator-cuff work daily for hitters. Most over-train chest and skip rear delts.",
+  },
+  bjj: {
+    athleticProfile: "BJJ rounds are sustained 5-minute bouts of grappling with brief rests. Demands grip endurance, posterior-chain strength, and core stability across multiple planes. Pull-dominant.",
+    energySystems: "Glycolytic system runs the show in 5-min rounds. Aerobic builds the engine for multiple matches in a competition day. ATP-PC for explosive scrambles and submissions.",
+    trainingNotes: "Most BJJ players neglect cardio entirely and gas in round 2. Build a zone-2 base with rowing or running 2× per week. Add metcons (kettlebell flows, complexes) to mimic scramble pace. Grip work (farmer carries) pays off on the mat.",
+  },
+  climb: {
+    athleticProfile: "Climbing is finger and grip endurance, pull-dominant strength, body tension, and route reading. Power-to-weight ratio matters more than absolute strength. Forearms, lats, and core do most of the work.",
+    energySystems: "Aerobic capacity in fingers/forearms = ability to recover on small holds mid-route. ATP-PC for crux moves and dynamic catches. Glycolytic for sustained pumpy sequences.",
+    trainingNotes: "Most climbers over-pull and under-press, leading to shoulder imbalances. Antagonist work (push-ups, dumbbell press) keeps shoulders healthy. Cardio: zone-2 to keep weight in check; finger-board ladders for sport-specific power.",
+  },
+  run: {
+    athleticProfile: "Distance running is dominated by aerobic systems with sport-specific stride efficiency. Running economy, lactate threshold, and VO₂max matter more than top-end strength. Posterior chain + core stability prevent injury.",
+    energySystems: "Aerobic dominates above all else (>85% of energy on long runs). Lactate threshold sets your sustainable race pace. Anaerobic only matters for kicks at the finish.",
+    trainingNotes: "80% of weekly mileage should be easy (zone-2). 20% can be tempo or intervals. Most beginners run all their easy days too hard. Add 2× weekly strength: posterior chain (RDLs, hip thrusts) + single-leg work (lunges, step-ups) to bulletproof against injury.",
+  },
+  cycling: {
+    athleticProfile: "Cycling is a quad-dominant power-endurance sport. Sustained threshold output (FTP) is the key metric. Glutes, quads, and core contribute; upper body mostly stabilizes. Position on the bike matters as much as fitness.",
+    energySystems: "Aerobic system is the engine for road cycling. Lactate threshold (sweet-spot work) extends sustainable race pace. Anaerobic capacity matters for breakaways and short climbs.",
+    trainingNotes: "Most cyclists ride too much in the 'gray zone' — neither easy enough to recover nor hard enough to drive adaptation. Polarize: 80% easy zone-2, 20% threshold/VO₂. Add lower-body strength 2× per week to support sustained power.",
+  },
+  swimming: {
+    athleticProfile: "Swimming is a pull-dominant whole-body sport. Lats, shoulders, and core drive every stroke. Streamline + technique matter more than raw strength. Demands shoulder mobility + flexibility most other sports don't need.",
+    energySystems: "Depends on event: sprint events (50m) are nearly all anaerobic; distance events (1500m+) are 80%+ aerobic. Most training balances aerobic base + race-pace intervals.",
+    trainingNotes: "Most swimmers over-pull and develop shoulder impingement; balance with rear delt + external rotation work in the gym. Land cardio (run, bike) supports off-day recovery without taxing the shoulders. Streamline + dolphin kick = free speed.",
+  },
+  powerlift: {
+    athleticProfile: "Powerlifting is one-rep-max strength in three lifts: squat, bench, deadlift. Demands maximal force production, joint stability, and the ability to generate full-body tension under heavy loads. Cardio is a recovery tool, not a goal.",
+    energySystems: "ATP-PC system handles the actual lift (1-5 second efforts). Aerobic system supports recovery between sets and across training weeks. Glycolytic mostly irrelevant for max-strength work.",
+    trainingNotes: "Cardio should be minimal — easy zone-2 walks or short stationary bike for circulation only. NO HIIT, NO hill sprints (taxes recovery). Keep heart rate < 130 bpm. Most powerlifters either over-do cardio (kills strength) or do none (poor recovery, fat gain).",
+  },
+  crossfit: {
+    athleticProfile: "CrossFit is mixed-modal fitness across all energy systems. Workouts blend strength, gymnastics, and cardio in unpredictable combinations. Demands broad capacity rather than peak in any one domain.",
+    energySystems: "All three. ATP-PC (1RM lifts, single-rep movements). Glycolytic (most metcons in the 5-20 min range). Aerobic (longer chippers, recovery between rounds, total weekly volume).",
+    trainingNotes: "CrossFit IS the cardio for most days. Pad recovery with one zone-2 session per week (row erg or run) to support total volume. Strength bias: prioritize the named lifts (squat, deadlift, press, snatch, clean) over the metcon-of-the-day for long-term gains.",
+  },
+};
+
 export const TARGETS = {
   chest:    { min:10, max:18 },
   back:     { min:12, max:20 },
