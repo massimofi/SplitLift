@@ -375,6 +375,38 @@ test.describe('SplitLift smoke', () => {
     await page.screenshot({ path: 'tests/screenshots/body-zoomed.png', fullPage: true });
   });
 
+  test('Weight tracking — sample data button populates chart', async ({ page }) => {
+    // Seed with a single weight entry so the sample button appears.
+    await page.addInitScript(() => {
+      try {
+        const raw = localStorage.getItem('splitlift-state-v4');
+        if (raw) {
+          const s = JSON.parse(raw);
+          s.profile.weightLog = [{ date: '2026-04-26', kg: 102 }];
+          s.profile.wUnit = 'lb';
+          s.profile.weight = 225;
+          localStorage.setItem('splitlift-state-v4', JSON.stringify(s));
+        }
+      } catch {}
+    });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    // Dashboard is the default; scroll to find the weight widget
+    await page.locator('.bn-item').filter({ hasText: 'Dashboard' }).first().click();
+    await page.evaluate(() => {
+      const pane = document.querySelector('.screen-body');
+      if (pane) pane.scrollTop = 99999;
+    });
+    await page.waitForTimeout(400);
+    const sampleBtn = page.getByTestId('weight-sample-btn');
+    await expect(sampleBtn).toBeVisible();
+    await sampleBtn.click();
+    await page.waitForTimeout(700);
+    // After click: chart should render (recharts SVG appears) and the
+    // sample button should disappear.
+    await expect(sampleBtn).toBeHidden();
+  });
+
   test('Onboarding height input accepts decimal feet', async ({ page }) => {
     // Wipe seed so we land on the Landing screen, then walk through
     // onboarding step 2 (You) and verify the height input.

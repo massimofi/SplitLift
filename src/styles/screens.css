@@ -430,7 +430,44 @@
   font-weight: 700;
   font-size: var(--text-sm);
 }
-.gen-weight-chart-host { margin-top: var(--space-3); height: 100px; }
+.gen-weight-chart-host { margin-top: var(--space-3); min-height: 100px; }
+
+/* v11.5 Issue 6 — empty state when weightLog has < 2 entries */
+.weight-empty {
+  background: rgba(255,255,255,0.10);
+  border: 1px dashed rgba(255,255,255,0.22);
+  border-radius: var(--r-md);
+  padding: var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+.weight-empty-copy {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--text-on-gradient-muted);
+  max-width: 36ch;
+}
+.weight-sample-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(255,255,255,0.20);
+  border: 1px solid rgba(255,255,255,0.28);
+  color: var(--text-on-gradient);
+  border-radius: var(--r-full);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background var(--dur-base) ease, transform var(--dur-fast) var(--ease-out);
+}
+.weight-sample-btn:hover { background: rgba(255,255,255,0.28); }
+.weight-sample-btn:active { transform: scale(0.96); }
 .gen-chev {
   font-size: 18px;
   color: var(--text-on-gradient-muted);
