@@ -4,12 +4,14 @@ import React from 'react';
 import { StatusBar } from '../lib/StatusBar.jsx';
 import { BrandLockup } from '../components/Brand.jsx';
 import { I } from '../components/Icons.jsx';
+import { LandingBackground } from '../components/LandingBackground.jsx';
 
 export function Landing({ onStart }) {
   return (
     <div className="screen">
       <StatusBar/>
       <div className="screen-body landing">
+        <LandingBackground/>
         <div className="top">
           <div className="logo-row">
             <BrandLockup markSize={48}/>
