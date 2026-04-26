@@ -742,13 +742,22 @@
 .cardio-day-card { gap: var(--space-2); }
 
 /* v11.5 Issue 2 — single-session row in "Your week" */
-.cardio-week-row { gap: var(--space-2); }
+/* v11.6 Issue 2: explicitly left-align all text inside Your-week cards. */
+.cardio-week-row { gap: var(--space-2); text-align: left; align-items: stretch; }
+.cardio-week-row .sl-card-title,
+.cardio-week-row .sl-card-eyebrow,
+.cardio-week-row .sl-card-sub { text-align: left; }
 .cardio-week-row-inner {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
+  text-align: left;
 }
 .cardio-week-row-l {
   display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;
+  text-align: left;
+  align-items: flex-start;
 }
 .cardio-day-head {
   display: flex; align-items: baseline; justify-content: space-between;
