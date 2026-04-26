@@ -68,6 +68,15 @@ test.describe('SplitLift smoke', () => {
         });
         await page.waitForTimeout(150);
         await page.screenshot({ path: 'tests/screenshots/body-coverage.png', fullPage: true });
+        // Snap the back view too (no clipping there either)
+        await page.evaluate(() => {
+          const pane = document.querySelector('.screen-body');
+          if (pane) pane.scrollTop = 0;
+        });
+        await page.waitForTimeout(150);
+        await page.locator('.sl-toggle-btn', { hasText: 'Back' }).click();
+        await page.waitForTimeout(300);
+        await page.screenshot({ path: 'tests/screenshots/body-back.png', fullPage: true });
       }
 
       const bodyText = await page.locator('#root').innerText();
