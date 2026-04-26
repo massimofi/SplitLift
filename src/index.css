@@ -128,14 +128,14 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body, #root { height: 100%; margin: 0; }
   body {
-    font-family: 'Neue Montreal', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
     background: var(--bg-2);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
     overscroll-behavior: none;
     transition: background 240ms ease, color 240ms ease;
   }
-  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
   /* fade transitions for theme */
   .phone, .screen, .app-screen, .day-card, .ex-row, .stat-chip, .input, .btn,

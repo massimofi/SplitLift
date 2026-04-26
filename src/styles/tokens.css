@@ -1,0 +1,194 @@
+/* ============================================================
+   SplitLift v7 — Design Tokens
+   Single source of truth for color, type, space, motion.
+   Composes with the existing .theme-light / .theme-dark
+   selectors used throughout index.css.
+   ============================================================ */
+
+:root, .theme-light {
+  /* ---- Type families ---- */
+  --font-sans: 'Satoshi', 'Neue Montreal', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-display: 'Satoshi', 'Neue Montreal', system-ui, sans-serif;
+
+  /* ---- Type scale ---- */
+  --text-xs:    11px;
+  --text-sm:    13px;
+  --text-base:  15px;
+  --text-md:    17px;
+  --text-lg:    20px;
+  --text-xl:    26px;
+  --text-2xl:   34px;
+  --text-3xl:   46px;
+  --text-display: 64px;
+
+  /* ---- Type weights ---- */
+  --fw-body:    450;
+  --fw-medium:  500;
+  --fw-strong:  700;
+  --fw-display: 900;
+
+  /* ---- Letter spacing ---- */
+  --tracking-tight:  -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.06em;
+  --tracking-mega:   0.16em;
+
+  /* ---- Line heights ---- */
+  --leading-tight:  1.05;
+  --leading-snug:   1.2;
+  --leading-body:   1.45;
+
+  /* ---- Spacing (4px base) ---- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- Radii ---- */
+  --r-xs:  6px;
+  --r-sm:  10px;
+  --r-md:  14px;
+  --r-lg:  20px;
+  --r-xl:  26px;
+  --r-2xl: 34px;
+  --r-full: 9999px;
+
+  /* ---- Shadows (light) ---- */
+  --shadow-sm: 0 1px 2px rgba(12,14,31,0.06), 0 1px 1px rgba(12,14,31,0.04);
+  --shadow-md: 0 6px 18px rgba(12,14,31,0.10), 0 2px 4px rgba(12,14,31,0.06);
+  --shadow-lg: 0 18px 48px rgba(12,14,31,0.14), 0 4px 12px rgba(12,14,31,0.08);
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 24px rgba(12,14,31,0.08);
+  --shadow-grad: 0 1px 0 rgba(255,255,255,0.18) inset, 0 14px 36px rgba(12,14,31,0.18);
+
+  /* ---- Motion ---- */
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast:   140ms;
+  --dur-base:   220ms;
+  --dur-slow:   360ms;
+  --dur-tab:    260ms;
+
+  /* ---- Text on gradient (KILLS the black-text-on-yellow bug) ---- */
+  --text-on-gradient:        #FFFFFF;
+  --text-on-gradient-muted:  rgba(255,255,255,0.78);
+  --text-on-gradient-faint:  rgba(255,255,255,0.58);
+  --shadow-on-gradient:      0 1px 2px rgba(0,0,0,0.32), 0 0 18px rgba(0,0,0,0.18);
+
+  /* ---- Surfaces ---- */
+  --surface-1: var(--bg);
+  --surface-2: var(--bg-2);
+  --surface-3: var(--bg-3);
+  --surface-subtle: rgba(91,91,255,0.06);
+
+  /* ============================================================
+     SEMANTIC GRADIENTS — referenced via Card gradient="..." prop.
+     NEVER hardcode gradient strings outside this file.
+     ============================================================ */
+  --grad-priority:  linear-gradient(135deg, #5B5BFF 0%, #9B5BFF 60%, #FF6BD6 100%);
+  --grad-energy:    linear-gradient(135deg, #FF8C42 0%, #FFD93D 100%);
+  --grad-cardio:    linear-gradient(135deg, #FF4444 0%, #FF8C42 60%, #FFD93D 100%);
+  --grad-recovery:  linear-gradient(135deg, #00c896 0%, #4ED9C0 60%, #19B6FF 100%);
+  --grad-warning:   linear-gradient(135deg, #FF8C42 0%, #FF4444 100%);
+  --grad-danger:    linear-gradient(135deg, #FF4444 0%, #FF6BD6 100%);
+  --grad-info:      linear-gradient(135deg, #19B6FF 0%, #5B5BFF 100%);
+  --grad-personal:  linear-gradient(135deg, #9B5BFF 0%, #FF6BD6 100%);
+  --grad-muted:     linear-gradient(135deg, #6A6D85 0%, #2A2D45 100%);
+  --grad-success:   linear-gradient(135deg, #00c896 0%, #4ED9C0 100%);
+
+  /* Score-based gradients (for lifting/cardio scores) */
+  --grad-score-poor:  linear-gradient(135deg, #6A6D85 0%, #2A2D45 100%);
+  --grad-score-mid:   linear-gradient(135deg, #FF8C42 0%, #FF4444 100%);
+  --grad-score-good:  linear-gradient(135deg, #FFD93D 0%, #FF8C42 100%);
+  --grad-score-great: linear-gradient(135deg, #00c896 0%, #4ED9C0 60%, #19B6FF 100%);
+
+  /* Per-day-type gradients (Schedule + Splits) */
+  --grad-push:    linear-gradient(135deg, #FF5C8A 0%, #FF4444 100%);
+  --grad-pull:    linear-gradient(135deg, #19B6FF 0%, #5B5BFF 100%);
+  --grad-legs:    linear-gradient(135deg, #9B5BFF 0%, #FF6BD6 100%);
+  --grad-shoul:   linear-gradient(135deg, #4ED9C0 0%, #19B6FF 100%);
+  --grad-core:    linear-gradient(135deg, #FF6BD6 0%, #9B5BFF 100%);
+  --grad-upper:   linear-gradient(135deg, #5B5BFF 0%, #19B6FF 100%);
+  --grad-lower:   linear-gradient(135deg, #9B5BFF 0%, #7A3DDB 100%);
+  --grad-full:    linear-gradient(135deg, #5B5BFF 0%, #9B5BFF 60%, #FF6BD6 100%);
+  --grad-sport:   linear-gradient(135deg, #FFD93D 0%, #FF8C42 100%);
+  --grad-rest:    linear-gradient(135deg, #6A6D85 0%, #2A2D45 100%);
+  --grad-cardio-day: linear-gradient(135deg, #FF8C42 0%, #FF4444 100%);
+  --grad-custom:  linear-gradient(135deg, #5B5BFF 0%, #9B5BFF 100%);
+}
+
+/* ---- Dark mode overrides ---- */
+.theme-dark {
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.45), 0 1px 1px rgba(0,0,0,0.30);
+  --shadow-md: 0 6px 18px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.35);
+  --shadow-lg: 0 18px 48px rgba(0,0,0,0.60), 0 4px 12px rgba(0,0,0,0.40);
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 24px rgba(0,0,0,0.45);
+  --shadow-grad: 0 1px 0 rgba(255,255,255,0.10) inset, 0 14px 36px rgba(0,0,0,0.55);
+
+  --surface-subtle: rgba(140,140,255,0.08);
+
+  /* Slightly punchier gradients in dark for readability */
+  --grad-priority:  linear-gradient(135deg, #6E6EFF 0%, #B07BFF 60%, #FF82DD 100%);
+  --grad-energy:    linear-gradient(135deg, #FFA15A 0%, #FFE36B 100%);
+  --grad-cardio:    linear-gradient(135deg, #FF6E6E 0%, #FFA15A 60%, #FFE36B 100%);
+  --grad-recovery:  linear-gradient(135deg, #2AE0B8 0%, #6FECD3 60%, #5BC4FF 100%);
+}
+
+/* Compatibility alias: also support [data-theme="dark"] in case anything checks it */
+[data-theme="dark"] {
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 24px rgba(0,0,0,0.45);
+  --shadow-grad: 0 1px 0 rgba(255,255,255,0.10) inset, 0 14px 36px rgba(0,0,0,0.55);
+}
+
+/* ============================================================
+   Global type baseline — wires Satoshi + tabular numbers
+   ============================================================ */
+body {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-body);
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: var(--tracking-normal);
+  line-height: var(--leading-body);
+}
+
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   Reusable utility classes (no @layer — keep specificity low).
+   ============================================================ */
+
+/* Eyebrow: tiny uppercase label above a card or section. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-mega);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.on-grad .eyebrow,
+.eyebrow.on-grad { color: var(--text-on-gradient-muted); }
+
+/* Display headline (used by section subheaders). */
+.display-h {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--ink);
+}
+.display-h.grad-text {
+  background: var(--grad-priority);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
