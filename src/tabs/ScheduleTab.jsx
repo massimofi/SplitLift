@@ -1,7 +1,7 @@
 // Schedule tab — left palette of split + cardio chips, big day boxes.
 // Drag a chip onto a day, or tap a day to open the picker sheet.
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   DAY_NAMES, DAY_TYPES, CARDIO_LIBRARY, CARDIO_TYPES, SPORTS, EXERCISES,
   cardioFor, cardioHRZone,
@@ -13,6 +13,9 @@ import { IconLock, IconX, IconTrash, IconPlus } from '../components/Icons.jsx';
 import { Card } from '../components/Card.jsx';
 import { Subheader } from '../components/Subheader.jsx';
 import { Chip } from '../components/Chip.jsx';
+// PresetsSheet is now also imported by SplitsTab; kept import here in
+// case Schedule wants a Presets button later (currently it does not).
+// import { PresetsSheet } from '../components/PresetsSheet.jsx';
 
 // Map any day-type id to one of the Card gradient names defined in tokens.css.
 // All exotic per-muscle types fold back into the closest broad category.
@@ -35,13 +38,19 @@ function gradForDayType(t) {
 }
 
 export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLocked, profile, setProfile, showToast, onJumpToSplits, splitsByType, setSplitsByType }) {
-  const [presetsOpen, setPresetsOpen] = useState(false);
+  // Presets moved to Splits tab in v11.5 Issue 3 — no presetsOpen here.
   const [pickFor, setPickFor] = useState(null);
   const [drag, setDrag] = useState(null);
   const [hoverIdx, setHoverIdx] = useState(null);
   // v10 Issue 2: tap-to-select fallback for the floating chip bar.
   // selected = { kind: 'split'|'cardio'|'rest', id } or null.
   const [selected, setSelected] = useState(null);
+  // v11.5 Issue 3: long-press timer + which chip is armed (for visual feedback).
+  const longPressRef = useRef(null);
+  const pointerOriginRef = useRef(null);
+  const [armedChip, setArmedChip] = useState(null);  // { kind, id } or null
+  const LONG_PRESS_MS = 350;
+  const MOVE_CANCEL_PX = 8;
 
   const startDrag = (e, payload) => {
     const isTouch = e.touches !== undefined;
@@ -50,6 +59,44 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
     if (!isTouch) e.preventDefault();
     setDrag({ ...payload, x: px, y: py });
   };
+
+  // Begin a long-press: after LONG_PRESS_MS without movement-cancel, fire
+  // a haptic-feel drag arm. The existing drag/drop flow takes over from
+  // there. Tap-without-hold dismisses cleanly so toggleSelect (onClick)
+  // can run as the fallback path.
+  const startLongPress = (e, payload) => {
+    cancelLongPress();
+    const isTouch = e.touches !== undefined;
+    const px = isTouch ? e.touches[0].clientX : e.clientX;
+    const py = isTouch ? e.touches[0].clientY : e.clientY;
+    pointerOriginRef.current = { x: px, y: py };
+    longPressRef.current = setTimeout(() => {
+      // Haptic on supported devices (Android Chrome, some PWA on iOS).
+      try { navigator.vibrate && navigator.vibrate(10); } catch {}
+      setArmedChip(payload);
+      setDrag({ ...payload, x: px, y: py });
+      longPressRef.current = null;
+    }, LONG_PRESS_MS);
+  };
+  const cancelLongPress = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+    pointerOriginRef.current = null;
+  };
+  const onChipMove = (e) => {
+    if (!longPressRef.current || !pointerOriginRef.current) return;
+    const isTouch = e.touches !== undefined;
+    const px = isTouch ? e.touches[0].clientX : e.clientX;
+    const py = isTouch ? e.touches[0].clientY : e.clientY;
+    const dx = px - pointerOriginRef.current.x;
+    const dy = py - pointerOriginRef.current.y;
+    if (dx*dx + dy*dy > MOVE_CANCEL_PX * MOVE_CANCEL_PX) cancelLongPress();
+  };
+
+  // Clear armed state once drag ends.
+  useEffect(() => { if (!drag) setArmedChip(null); }, [drag]);
 
   const setDayType = (idx, typeId) => {
     if (locked[idx]) { showToast('Locked — unlock first'); return; }
@@ -192,8 +239,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
   return (
     <div className="tab-pane sched-page">
       <div className="sched-bar">
-        <Subheader subtitle="Tap a chip then a day, or drag a chip onto a day. Tap a day card for full edit.">Your week</Subheader>
-        <button className="presets-btn" onClick={()=>setPresetsOpen(true)}>Presets</button>
+        <Subheader subtitle="Long-press a chip, drag onto a day. Or tap a chip then a day.">Your week</Subheader>
       </div>
 
       {/* v10 Issue 2: single column of full-width day cards (no left palette). */}
@@ -209,13 +255,15 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
             const isRest = t === 'rest';
             const isHover = hoverIdx === i;
 
-            // Exercise preview — first 4 names, e.g. "Bench · DB Press · OHP · Tris"
-            const exIds = (day.exIds && day.exIds.length) ? day.exIds : ((splitsByType && splitsByType[t]) || []);
-            const exNames = exIds
-              .slice(0, 4)
-              .map(id => EXERCISES.find(e => e.id === id)?.name)
+            // v11.5 Issue 3: vertical exercise list with muscle color dots.
+            // Pull live from splitsByType[t] so edits in Splits propagate.
+            const exIds = (splitsByType && splitsByType[t]) ? splitsByType[t]
+                          : (day.exIds || []);
+            const exObjsList = exIds
+              .slice(0, 6)
+              .map(id => EXERCISES.find(e => e.id === id))
               .filter(Boolean);
-            const exTrail = exIds.length > 4 ? ` +${exIds.length - 4}` : '';
+            const exTrailCount = exIds.length > 6 ? exIds.length - 6 : 0;
 
             return (
               <Card
@@ -246,12 +294,26 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
                 </div>
                 {!isRest ? (
                   <>
-                    {exNames.length > 0 ? (
-                      <div className="sched-day-preview">
-                        {exNames.join(' · ')}{exTrail}
-                      </div>
+                    {exObjsList.length > 0 ? (
+                      <ul className="sched-day-exlist" aria-label="Exercises">
+                        {exObjsList.map(ex => (
+                          <li key={ex.id} className="sched-day-exline">
+                            <span
+                              className="sched-day-exdot"
+                              style={{ background: `var(--bp-${ex.body || 'arms'})` }}
+                              aria-hidden="true"
+                            />
+                            <span className="sched-day-exname">{ex.name}</span>
+                          </li>
+                        ))}
+                        {exTrailCount > 0 && (
+                          <li className="sched-day-exline is-more">
+                            +{exTrailCount} more
+                          </li>
+                        )}
+                      </ul>
                     ) : (
-                      <div className="sched-day-preview is-empty">+ Drag a split here</div>
+                      <div className="sched-day-preview is-empty">+ Long-press a split chip below</div>
                     )}
                     {cItems.length > 0 && (
                       <div className="sched-day-cardios">
@@ -293,9 +355,14 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
                 size="md"
                 role="button"
                 tabIndex={0}
-                className={`sched-chip ${sel ? 'is-selected' : ''}`}
-                onMouseDown={(e)=>startDrag(e, { kind: p === 'rest' ? 'rest' : 'split', id:p })}
-                onTouchStart={(e)=>startDrag(e, { kind: p === 'rest' ? 'rest' : 'split', id:p })}
+                className={`sched-chip ${sel ? 'is-selected' : ''} ${armedChip && armedChip.id === p ? 'is-armed' : ''}`}
+                onMouseDown={(e)=>startLongPress(e, { kind: p === 'rest' ? 'rest' : 'split', id:p })}
+                onTouchStart={(e)=>startLongPress(e, { kind: p === 'rest' ? 'rest' : 'split', id:p })}
+                onMouseMove={onChipMove}
+                onTouchMove={onChipMove}
+                onMouseUp={cancelLongPress}
+                onTouchEnd={cancelLongPress}
+                onTouchCancel={cancelLongPress}
                 onClick={()=>toggleSelect(p === 'rest' ? 'rest' : 'split', p)}
                 style={{ cursor: 'pointer' }}
               >
@@ -313,9 +380,14 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
                 size="md"
                 role="button"
                 tabIndex={0}
-                className={`sched-chip ${sel ? 'is-selected' : ''}`}
-                onMouseDown={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
-                onTouchStart={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
+                className={`sched-chip ${sel ? 'is-selected' : ''} ${armedChip && armedChip.id === c.id ? 'is-armed' : ''}`}
+                onMouseDown={(e)=>startLongPress(e, { kind:'cardio', id:c.id })}
+                onTouchStart={(e)=>startLongPress(e, { kind:'cardio', id:c.id })}
+                onMouseMove={onChipMove}
+                onTouchMove={onChipMove}
+                onMouseUp={cancelLongPress}
+                onTouchEnd={cancelLongPress}
+                onTouchCancel={cancelLongPress}
                 onClick={()=>toggleSelect('cardio', c.id)}
                 style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
@@ -360,19 +432,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
         />
       )}
 
-      {presetsOpen && (
-        <PresetsSheet
-          profile={profile}
-          setProfile={setProfile}
-          locked={locked}
-          days={days}
-          setDays={setDays}
-          splitsByType={splitsByType}
-          setSplitsByType={setSplitsByType}
-          showToast={showToast}
-          onClose={()=>setPresetsOpen(false)}
-        />
-      )}
+      {/* Presets sheet moved to Splits tab in v11.5 Issue 3. */}
 
       <div style={{ height: 28 }}/>
     </div>
@@ -531,261 +591,4 @@ function DayPickerSheet({ dayIdx, dayType, cardios, isLocked, profile, onClose, 
   );
 }
 
-function PresetsSheet({ profile, setProfile, locked, days, setDays, splitsByType, setSplitsByType, showToast, onClose }) {
-  const ranked = useMemo(
-    () => rankTemplatesForSport({ sport: profile.sport, days: profile.days, limit: 3 }),
-    [profile.sport, profile.days]
-  );
-  const sportLabel = SPORTS.find(s => s.id === profile.sport)?.label || 'your sport';
-  const customPresets = profile.customPresets || [];
 
-  // Build a unified list: built-ins + user customs (customs surface first
-  // so they're visible).
-  const allTemplates = useMemo(() => {
-    const customs = customPresets.map(c => ({
-      id: c.id,
-      name: c.name,
-      sub: c.sub || 'Your custom preset',
-      days: c.days,
-      isCustom: true,
-      sourcePresetId: c.sourcePresetId,
-    }));
-    const builtins = SPLIT_TEMPLATES.map(t => ({ ...t, isCustom: false }));
-    return [...customs, ...builtins];
-  }, [customPresets]);
-
-  const syncSplits = (newDays) => {
-    if (!setSplitsByType) return;
-    const fresh = splitsByTypeFromDays(newDays);
-    setSplitsByType(prev => ({ ...(prev || {}), ...fresh }));
-  };
-
-  const applyTemplate = (id) => {
-    const tpl = allTemplates.find(t => t.id === id);
-    if (!tpl) return;
-    const newDays = days.map((d, i) => locked[i] ? d : makeDayForType(tpl.days[i], profile, splitsByType));
-    setDays(newDays);
-    syncSplits(newDays);
-    showToast(`Applied: ${tpl.name}`);
-    onClose();
-  };
-
-  const autoBuild = () => {
-    const plan = planForSport({ ...profile });
-    const newDays = plan.map((p, i) => locked[i] ? days[i] : p);
-    setDays(newDays);
-    syncSplits(newDays);
-    showToast('Auto-built for your sport');
-    onClose();
-  };
-
-  // v10 Issue 6: simpler — tap a card → detail view → Use / Duplicate /
-  // Delete. No "..." menu cluttering the list.
-  const [detail, setDetail] = useState(null);  // template object being viewed
-  const [dupOpen, setDupOpen] = useState(null);
-  const [dupName, setDupName] = useState('');
-
-  // Day-count helper for the new compact sport tag.
-  const liftCountFor = (tpl) => tpl.days.filter(d => d && d !== 'rest').length;
-
-  // Built-ins shown separately from user customs — see render below.
-  const builtIns = SPLIT_TEMPLATES.map(t => ({ ...t, isCustom: false }));
-  const customs = customPresets.map(c => ({
-    id: c.id,
-    name: c.name,
-    sub: c.sub || 'Your custom preset',
-    days: c.days,
-    isCustom: true,
-    sourcePresetId: c.sourcePresetId,
-  }));
-
-  const openDuplicate = (tpl) => {
-    setDupName(`${tpl.name} (copy)`);
-    setDupOpen(tpl);
-  };
-  const saveCustom = () => {
-    if (!dupOpen) return;
-    const id = `custom_${Math.random().toString(36).slice(2, 9)}`;
-    const newPreset = {
-      id,
-      name: dupName.trim() || 'Custom preset',
-      sub: 'Your custom preset',
-      sourcePresetId: dupOpen.id,
-      createdAt: Date.now(),
-      days: [...dupOpen.days],
-      splitsByType: { ...(splitsByType || {}) },
-    };
-    setProfile && setProfile(p => ({
-      ...p,
-      customPresets: [...(p.customPresets || []), newPreset],
-    }));
-    showToast(`Saved: ${newPreset.name}`);
-    setDupOpen(null);
-    setDetail(null);
-  };
-  const deleteCustom = (id) => {
-    setProfile && setProfile(p => ({
-      ...p,
-      customPresets: (p.customPresets || []).filter(c => c.id !== id),
-    }));
-    setDetail(null);
-    showToast('Deleted');
-  };
-
-  // Compact card subcomponent — bigger fonts, fewer fields.
-  const PresetCard = ({ tpl }) => {
-    const lifts = liftCountFor(tpl);
-    return (
-      <button className="ps-card" onClick={() => setDetail(tpl)}>
-        <div className="ps-card-head">
-          <div className="ps-card-tag mono">{lifts}-DAY</div>
-          <div className="tpl-mini">
-            {tpl.days.map((d, i) => (
-              <span key={i} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
-            ))}
-          </div>
-        </div>
-        <div className="ps-card-name">{tpl.name}</div>
-        <div className="ps-card-sub">{tpl.sub}</div>
-      </button>
-    );
-  };
-
-  return (
-    <div className="ps-overlay" onClick={onClose}>
-      <div className="ps-sheet" onClick={e=>e.stopPropagation()}>
-        <div className="ps-head">
-          <div>
-            <div className="ps-t">Presets</div>
-            <div className="ps-s mono">{sportLabel.toUpperCase()} · {profile.days}/WK</div>
-          </div>
-          <button className="ip-x" onClick={onClose} aria-label="Close presets"><IconX/></button>
-        </div>
-
-        <button className="btn-mesh ps-auto" onClick={autoBuild}>Auto-build for my sport</button>
-
-        {ranked.length > 0 && (
-          <>
-            <div className="ps-section">Suggested for {sportLabel}</div>
-            <div className="tpl-rec-row">
-              {ranked.map(({ tpl, liftDays }, i) => (
-                <button key={tpl.id} className={`tpl-rec ${i===0?'top':''}`} onClick={()=>setDetail(tpl)}>
-                  <div className="rec-rank">{i===0 ? 'BEST FIT' : `#${i+1}`}</div>
-                  <div className="rec-name">{tpl.name}</div>
-                  <div className="rec-meta">{liftDays} lift / {7-liftDays} off</div>
-                  <div className="rec-mini">
-                    {tpl.days.map((d, j) => (
-                      <span key={j} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
-                    ))}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {customs.length > 0 && (
-          <>
-            <div className="ps-section">Your custom presets</div>
-            <div className="ps-card-list">
-              {customs.map(t => <PresetCard key={t.id} tpl={t}/>)}
-            </div>
-          </>
-        )}
-
-        <div className="ps-section">All templates</div>
-        <div className="ps-card-list">
-          {builtIns.map(t => <PresetCard key={t.id} tpl={t}/>)}
-        </div>
-      </div>
-
-      {/* Detail view — opened by tapping any preset card. Use / Duplicate /
-          Delete (delete only for customs). */}
-      {detail && (
-        <div
-          className="ps-overlay"
-          style={{ zIndex: 250, position: 'fixed', inset: 0 }}
-          onClick={() => setDetail(null)}
-        >
-          <div className="ps-sheet ps-sheet-narrow" onClick={e => e.stopPropagation()}>
-            <div className="ps-head">
-              <div>
-                <div className="ps-t">{detail.name}</div>
-                <div className="ps-s mono">
-                  {liftCountFor(detail)} LIFT · {7 - liftCountFor(detail)} OFF
-                  {detail.isCustom ? ' · CUSTOM' : ''}
-                </div>
-              </div>
-              <button className="ip-x" onClick={() => setDetail(null)} aria-label="Close"><IconX/></button>
-            </div>
-            <p className="ps-detail-sub">{detail.sub}</p>
-            <div className="ps-detail-grid">
-              {detail.days.map((d, i) => (
-                <div key={i} className="ps-detail-day">
-                  <div className="ps-detail-dn mono">{['MON','TUE','WED','THU','FRI','SAT','SUN'][i]}</div>
-                  <div className="ps-detail-pill" style={{ background:`var(--bp-${d})` }}>
-                    {(DAY_TYPES[d]?.label || d).toUpperCase()}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="ps-detail-actions">
-              <button className="ip-action primary" onClick={() => applyTemplate(detail.id)}>Use this</button>
-              <button className="ip-action" onClick={() => openDuplicate(detail)}>Duplicate</button>
-              {detail.isCustom && (
-                <button className="ip-action danger" onClick={() => deleteCustom(detail.id)}>Delete</button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Duplicate-and-modify modal — uses position:fixed so it sits above
-          the bottom nav (the parent .ps-overlay only covers .screen-body
-          via position:absolute, leaving the bottom nav as a click target). */}
-      {dupOpen && (
-        <div
-          className="ps-overlay"
-          style={{ zIndex: 250, position: 'fixed', inset: 0 }}
-          onClick={() => setDupOpen(null)}
-        >
-          <div className="ps-sheet ps-sheet-narrow" onClick={e => e.stopPropagation()}>
-            <div className="ps-head">
-              <div>
-                <div className="ps-t">Create custom preset</div>
-                <div className="ps-s mono">FROM · {dupOpen.name.toUpperCase()}</div>
-              </div>
-              <button className="ip-x" onClick={() => setDupOpen(null)} aria-label="Cancel"><IconX/></button>
-            </div>
-            <div style={{ padding: '4px 0 16px' }}>
-              <label className="ps-dup-label">Preset name</label>
-              <input
-                className="ps-dup-input"
-                type="text"
-                value={dupName}
-                onChange={(e) => setDupName(e.target.value)}
-                placeholder="My PPL"
-                maxLength={40}
-                autoFocus
-              />
-              <div className="ps-dup-preview">
-                {dupOpen.days.map((d, i) => (
-                  <span key={i} className="tpl-cell" style={{ background:`var(--bp-${d})`, width: 18, height: 18 }}/>
-                ))}
-              </div>
-              <p className="ps-dup-help">
-                Saved to your custom presets. Apply any time. Edit by re-duplicating, or delete from the menu.
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="ip-action" onClick={() => setDupOpen(null)}>Cancel</button>
-              <button className="ip-action primary" onClick={saveCustom} disabled={!dupName.trim()}>
-                Save preset
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}

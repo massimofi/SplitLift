@@ -1704,11 +1704,24 @@
   /* Splits — v7 token gradients. Layout untouched, colors migrated.
      Each .st-* element is colored via the inline --st-grad CSS var
      set in JSX (mapped from day-type → semantic gradient). */
+  /* v11.5 Issue 3: type-chip row + Presets button live in a flex row. */
+  .st-types-row {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: 2px 0 var(--space-2);
+  }
   .st-types {
     display: flex; gap: 8px; overflow-x: auto;
-    padding: 2px 2px 10px; scrollbar-width: none;
+    padding: 2px 0 8px;
+    scrollbar-width: none;
+    flex: 1; min-width: 0;
   }
   .st-types::-webkit-scrollbar { display: none; }
+  .st-presets-btn {
+    flex-shrink: 0;
+    min-height: 38px;
+    padding: 8px 14px;
+    font-size: var(--text-sm);
+  }
   .st-chip {
     flex-shrink: 0; min-height: 44px; padding: 10px 18px;
     border-radius: var(--r-full); font-family: var(--font-sans);

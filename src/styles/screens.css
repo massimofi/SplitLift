@@ -466,8 +466,10 @@
   position: fixed;
   left: 0; right: 0;
   /* bottom-nav is 90-100px tall (10 top pad + ~60 content + 20-30 bottom
-     pad including safe-area). Sit 8px above it; total clearance ≥ 100. */
-  bottom: calc(94px + env(safe-area-inset-bottom));
+     pad including safe-area). Sit ~8px above it; clearance ≥ 100. The
+     6-cell nav (v11.5) is a touch taller than the old 7-cell, so this
+     buffer was bumped from 94px to 100px. */
+  bottom: calc(100px + env(safe-area-inset-bottom));
   z-index: 80;
   padding: 10px 12px;
   background: color-mix(in oklab, var(--bg) 86%, transparent);
@@ -511,6 +513,14 @@
     0 0 0 6px color-mix(in oklab, var(--accent) 35%, transparent),
     var(--shadow-md);
   transform: translateY(-1px) scale(1.04);
+}
+/* v11.5 Issue 3: long-press fired — chip "lifts" with shadow + scale */
+.sched-chip.is-armed {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 12px 24px rgba(0, 0, 0, 0.35);
+  z-index: 1;
 }
 .sched-chip:active { transform: scale(0.96); }
 
@@ -590,6 +600,44 @@
   color: var(--text-on-gradient-muted);
   text-shadow: none;
 }
+
+/* v11.5 Issue 3: vertical exercise list inside a day card. Each line gets
+   a small filled circle in the muscle's accent color. */
+.sched-day-exlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sched-day-exline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-base);
+  line-height: 1.2;
+  color: var(--text-on-gradient);
+  text-shadow: var(--shadow-on-gradient);
+}
+.sched-day-exline.is-more {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-on-gradient-muted);
+  text-shadow: none;
+  padding-left: 14px;  /* aligns with text after the dot */
+}
+.sched-day-exdot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.18);
+}
+.sched-day-exname { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .sched-day-cardios {
   display: flex; flex-wrap: wrap; gap: 6px;

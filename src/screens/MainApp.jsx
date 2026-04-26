@@ -162,12 +162,13 @@ export function MainApp({
       <div className="screen-body" style={{position:'relative'}} ref={screenBodyRef}>
         {tab === 'splits' && (
           <SplitsTab
-            days={days}
+            days={days} setDays={setDays}
+            locked={locked}
             splitsByType={splitsByType}
             setSplitsByType={setSplitsByType}
             activeType={splitsActiveType}
             setActiveType={setSplitsActiveType}
-            profile={profile}
+            profile={profile} setProfile={setProfile}
             showToast={showToast}
           />
         )}

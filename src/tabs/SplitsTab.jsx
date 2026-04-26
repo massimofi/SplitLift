@@ -5,6 +5,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { EXERCISES, DAY_TYPES, setsForExercise, exercisesForDayType } from '../data/exercises.js';
 import { IconX, IconPlus } from '../components/Icons.jsx';
 import { ExerciseGif } from '../components/ExerciseGif.jsx';
+import { PresetsSheet } from '../components/PresetsSheet.jsx';
+// v11.5: Splits now hosts the Presets browser (moved from Schedule).
 
 // Map any day-type id to a v7 gradient token (matches Schedule's mapping
 // per the v8 color semantic table).
@@ -27,8 +29,10 @@ function gradVarForDayType(t) {
   }
 }
 
-export function SplitsTab({ days, splitsByType, setSplitsByType, activeType, setActiveType, profile, showToast }) {
+export function SplitsTab({ days, setDays, splitsByType, setSplitsByType, activeType, setActiveType, profile, setProfile, locked, showToast }) {
   const [addOpen, setAddOpen] = useState(false);
+  // v11.5 Issue 3 — Presets sheet lives here now (moved from Schedule).
+  const [presetsOpen, setPresetsOpen] = useState(false);
 
   const availableTypes = useMemo(() => {
     const seen = [];
@@ -82,18 +86,28 @@ export function SplitsTab({ days, splitsByType, setSplitsByType, activeType, set
 
   return (
     <div className="tab-pane splits-page">
-      <div className="st-types">
-        {availableTypes.map(t => {
-          const isActive = t === activeType;
-          const dt2 = DAY_TYPES[t] || DAY_TYPES.custom;
-          return (
-            <button key={t} className={`st-chip ${isActive ? 'on' : ''}`}
-              style={{ '--st-grad': gradVarForDayType(t) }}
-              onClick={() => setActiveType(t)}>
-              {dt2.label}
-            </button>
-          );
-        })}
+      <div className="st-types-row">
+        <div className="st-types">
+          {availableTypes.map(t => {
+            const isActive = t === activeType;
+            const dt2 = DAY_TYPES[t] || DAY_TYPES.custom;
+            return (
+              <button key={t} className={`st-chip ${isActive ? 'on' : ''}`}
+                style={{ '--st-grad': gradVarForDayType(t) }}
+                onClick={() => setActiveType(t)}>
+                {dt2.label}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          className="presets-btn st-presets-btn"
+          onClick={() => setPresetsOpen(true)}
+          aria-label="Open presets"
+          data-testid="splits-presets-btn"
+        >
+          Presets
+        </button>
       </div>
 
       <div className="st-head" style={{ '--st-grad': gradVarForDayType(activeType) }}>
@@ -135,6 +149,20 @@ export function SplitsTab({ days, splitsByType, setSplitsByType, activeType, set
           existing={exIds}
           onAdd={addEx}
           onClose={() => setAddOpen(false)}
+        />
+      )}
+
+      {presetsOpen && (
+        <PresetsSheet
+          profile={profile}
+          setProfile={setProfile}
+          locked={locked}
+          days={days}
+          setDays={setDays}
+          splitsByType={splitsByType}
+          setSplitsByType={setSplitsByType}
+          showToast={showToast}
+          onClose={() => setPresetsOpen(false)}
         />
       )}
     </div>
