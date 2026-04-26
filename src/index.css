@@ -2415,11 +2415,11 @@
     opacity: 0.5;
   }
 
-  /* Status accent on the drawer's top border */
-  .b2-drawer-half .b2-drawer-card.status-optimal  { border-top-color: #00c896; }
+  /* Status accent on the drawer's top border — v10 red→green scale only */
+  .b2-drawer-half .b2-drawer-card.status-optimal  { border-top-color: #2E7D32; }
   .b2-drawer-half .b2-drawer-card.status-under    { border-top-color: #FF8C42; }
-  .b2-drawer-half .b2-drawer-card.status-over     { border-top-color: #FF6BD6; }
-  .b2-drawer-half .b2-drawer-card.status-unworked { border-top-color: var(--ink-3); }
+  .b2-drawer-half .b2-drawer-card.status-over     { border-top-color: #1B5E20; }
+  .b2-drawer-half .b2-drawer-card.status-unworked { border-top-color: #FF4444; }
   .b2-drawer-half .b2-drawer-card.status-unknown  { border-top-color: var(--ink-3); }
 
   @keyframes drawerSpring { from { transform: translateY(100%); } to { transform: translateY(0); } }

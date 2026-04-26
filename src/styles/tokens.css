@@ -117,14 +117,18 @@
   --grad-score-good:  linear-gradient(135deg, #FFD93D 0%, #FF8C42 100%);
   --grad-score-great: linear-gradient(135deg, #00c896 0%, #4ED9C0 60%, #19B6FF 100%);
 
-  /* Coverage gradients — for Body tab muscle cells. Red→orange→amber→green
-     scale per v9 spec. Different from score-* because "I'm not training X"
-     should scream red, whereas a low *score* might just mean "early week". */
-  --grad-cov-zero:    linear-gradient(135deg, #FF4444 0%, #C9182B 100%);  /* 0% — bright red */
-  --grad-cov-low:     linear-gradient(135deg, #FF8C42 0%, #FF4444 100%);  /* 1-30% — orange */
-  --grad-cov-mid:     linear-gradient(135deg, #FFD93D 0%, #FF8C42 100%);  /* 30-70% — amber */
-  --grad-cov-optimal: linear-gradient(135deg, #4ED9C0 0%, #00c896 100%);  /* 70-110% — green */
-  --grad-cov-over:    linear-gradient(135deg, #6E6EFF 0%, #FF6BD6 100%);  /* >110% — indigo→pink */
+  /* Coverage gradients — for Body tab muscle cells. v10 Issue 3: pure
+     red→orange→yellow→green only (no purple/pink/indigo for over).
+     Over-trained reads as a deeper saturated dark green so the message
+     is "you covered this" — direction-of-trouble is communicated by
+     the per-cell warning ring, not by hue.
+     Palette is intentionally aligned with the body-highlighter
+     HIGHLIGHTED_COLORS array in AnatomyBody.jsx. */
+  --grad-cov-zero:    linear-gradient(135deg, #FF4444 0%, #C9182B 100%);  /* 0%      — bright red */
+  --grad-cov-low:     linear-gradient(135deg, #FF8C42 0%, #FF4444 100%);  /* 1-30%   — orange */
+  --grad-cov-mid:     linear-gradient(135deg, #FFD93D 0%, #FF8C42 100%);  /* 30-70%  — amber */
+  --grad-cov-optimal: linear-gradient(135deg, #7CB342 0%, #2E7D32 100%);  /* 70-110% — green */
+  --grad-cov-over:    linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);  /* >110%   — deep green */
 
   /* Per-day-type gradients (Schedule + Splits) */
   --grad-push:    linear-gradient(135deg, #FF5C8A 0%, #FF4444 100%);

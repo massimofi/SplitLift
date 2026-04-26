@@ -76,14 +76,16 @@ export const MUSCLE_FRAMES = {
   'right-soleus':   { x:   0,  y:  35,  scale: 2.1 },
 };
 
-// v9 heatmap ramp. The default body fill stays dark gray ("you can see me
-// but I'm dim"); muscles with ANY interaction get a non-gray color. The
-// ramp walks bright-red → orange → amber → green (optimal) → indigo (over).
-//
-// WHY: previous palette put index 0 = gray which read as "no data" instead
-// of "you're not training this." Per v9 Issue 6, untrained muscles should
-// scream red, not blend in.
-const HIGHLIGHTED_COLORS = ['#FF4444', '#FF8C42', '#FFD93D', '#4ED9C0', '#00c896', '#6E6EFF'];
+// v10 heatmap ramp. Pure red → orange → yellow → green only.
+// v10 Issue 3 dropped the indigo "over" color — over-trained shows as
+// the deepest green so the body never has any cool/purple hue.
+//   index 0 = bright red    (untrained, 0 sets)
+//   index 1 = orange        (1-30% of mid)
+//   index 2 = amber/yellow  (30-60%)
+//   index 3 = light green   (60-90%)
+//   index 4 = green         (90-110%, optimal)
+//   index 5 = deep green    (>110%, over)
+const HIGHLIGHTED_COLORS = ['#FF4444', '#FF8C42', '#FFD93D', '#7CB342', '#2E7D32', '#1B5E20'];
 const BODY_COLOR = '#2d2d3d';
 
 // Map a muscle's coverage to one of 6 bucket indices.
