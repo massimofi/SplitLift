@@ -64,18 +64,6 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
         </div>
 
         <div className="gen-tile">
-          <div className="gt-label mono">DAYS / WEEK</div>
-          <div className="gt-value">{profile.days}<span className="gt-unit">/wk</span></div>
-          <Stepper onMinus={()=>adjust('days', -1, {min:1, max:7})} onPlus={()=>adjust('days', +1, {min:1, max:7})}/>
-        </div>
-
-        <div className="gen-tile">
-          <div className="gt-label mono">CARDIO</div>
-          <div className="gt-value">{profile.cardioMin || 90}<span className="gt-unit">m/wk</span></div>
-          <Stepper onMinus={()=>adjust('cardioMin', -10, {min:0, max:600})} onPlus={()=>adjust('cardioMin', +10, {min:0, max:600})}/>
-        </div>
-
-        <div className="gen-tile">
           <div className="gt-row">
             <div className="gt-label mono">HEIGHT</div>
             <UnitToggle value={profile.hUnit} onChange={u=>setUnit('h', u)} options={[['cm','CM'],['ft','FT']]}/>

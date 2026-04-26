@@ -15,13 +15,21 @@ export function Onboarding({ onDone }) {
   const [sport, setSport] = useState('soccer');
   const [hUnit, setHUnit] = useState('cm');
   const [wUnit, setWUnit] = useState('kg');
-  const [height, setHeight] = useState(178);
-  const [weight, setWeight] = useState(74);
-  const [age, setAge] = useState(22);
+  // Number inputs use string state so the user can clear / retype freely
+  // without leading-zero artifacts. We parse on submit.
+  const [heightStr, setHeightStr] = useState('');
+  const [weightStr, setWeightStr] = useState('');
+  const [ageStr, setAgeStr] = useState('');
   const [sex, setSex] = useState('m');
   const [days, setDays] = useState(4);
-  const [cardioMin, setCardioMin] = useState(90);
+  const [cardioMinStr, setCardioMinStr] = useState('');
   const [pickedTpl, setPickedTpl] = useState(null);
+
+  // Defaults applied at finish if the user leaves a field blank.
+  const height    = parseInt(heightStr, 10) || (hUnit === 'cm' ? 178 : 5.10);
+  const weight    = parseInt(weightStr, 10) || (wUnit === 'kg' ? 74  : 165);
+  const age       = parseInt(ageStr, 10) || 22;
+  const cardioMin = parseInt(cardioMinStr, 10) || 90;
   const total = 4;
   const labelByStep = ['Sport', 'You', 'Training', 'Plan'];
 
@@ -79,7 +87,9 @@ export function Onboarding({ onDone }) {
                 <button className={hUnit==='ft'?'active':''} onClick={()=>setHUnit('ft')}>FT</button>
               </div>
             </div>
-            <div className="big-number-input"><input className="num" type="number" value={height} onChange={(e)=>setHeight(e.target.value)}/><span className="unit">{hUnit}</span></div>
+            <div className="big-number-input"><input className="num" type="number" inputMode="numeric"
+              value={heightStr} placeholder={hUnit === 'cm' ? '178' : '70'}
+              onChange={(e)=>setHeightStr(e.target.value)}/><span className="unit">{hUnit}</span></div>
           </div>
 
           <div style={{ marginBottom: 18 }}>
@@ -89,12 +99,16 @@ export function Onboarding({ onDone }) {
                 <button className={wUnit==='lb'?'active':''} onClick={()=>setWUnit('lb')}>LB</button>
               </div>
             </div>
-            <div className="big-number-input"><input className="num" type="number" value={weight} onChange={(e)=>setWeight(e.target.value)}/><span className="unit">{wUnit}</span></div>
+            <div className="big-number-input"><input className="num" type="number" inputMode="numeric"
+              value={weightStr} placeholder={wUnit === 'kg' ? '74' : '165'}
+              onChange={(e)=>setWeightStr(e.target.value)}/><span className="unit">{wUnit}</span></div>
           </div>
 
           <div style={{ marginBottom: 18 }}>
             <div className="stat-input-row"><span className="label">Age</span></div>
-            <div className="big-number-input"><input className="num" type="number" value={age} onChange={(e)=>setAge(Number(e.target.value)||0)}/><span className="unit">yrs</span></div>
+            <div className="big-number-input"><input className="num" type="number" inputMode="numeric"
+              value={ageStr} placeholder="25"
+              onChange={(e)=>setAgeStr(e.target.value)}/><span className="unit">yrs</span></div>
           </div>
 
           <div>
@@ -120,7 +134,9 @@ export function Onboarding({ onDone }) {
 
           <div>
             <div className="stat-input-row"><span className="label">Cardio target / week</span></div>
-            <div className="big-number-input"><input className="num" type="number" value={cardioMin} onChange={(e)=>setCardioMin(Number(e.target.value)||0)}/><span className="unit">min</span></div>
+            <div className="big-number-input"><input className="num" type="number" inputMode="numeric"
+              value={cardioMinStr} placeholder="90"
+              onChange={(e)=>setCardioMinStr(e.target.value)}/><span className="unit">min</span></div>
           </div>
         </>)}
 

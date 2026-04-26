@@ -2537,3 +2537,51 @@
   .widget-wrap .dw {
     border-left: 5px solid color-mix(in oklab, var(--accent) 28%, transparent);
   }
+
+  /* ============== Dashboard P4 — Sport Match Score widget ============== */
+  .sms-big {
+    display: flex; align-items: baseline; justify-content: center;
+    gap: 8px; padding: 14px 0 10px;
+  }
+  .sms-num {
+    font-size: 72px; font-weight: 800; letter-spacing: -0.04em;
+    line-height: 1;
+    background: linear-gradient(135deg, currentColor, color-mix(in oklab, currentColor 70%, white));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    border-bottom: 4px solid currentColor;
+    padding-bottom: 4px;
+  }
+  .sms-units { font-size: 14px; color: var(--ink-3); letter-spacing: 0.1em; }
+
+  .sms-bars { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .sms-bar { font-size: 11px; }
+  .sms-bar-h { display: flex; justify-content: space-between; font-weight: 600; color: var(--ink-2); margin-bottom: 3px; }
+  .sms-bar-tr {
+    height: 6px; border-radius: 6px;
+    background: color-mix(in oklab, var(--ink) 8%, transparent); overflow: hidden;
+  }
+  .sms-bar-fl {
+    height: 100%; border-radius: 6px;
+    transition: width 700ms cubic-bezier(0.4, 0, 0.2, 1), background 300ms ease;
+  }
+
+  .sms-detail { font-size: 14px; line-height: 1.5; color: var(--ink-2); padding: 4px 0 12px; }
+  .sms-detail p { margin: 0 0 12px; }
+  .sms-detail b { color: var(--ink); }
+  .sms-suggest {
+    font-size: 12px; color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 10%, var(--bg-2));
+    padding: 10px 12px; border-radius: 10px;
+    border-left: 3px solid var(--accent);
+  }
+
+  /* P3c — quick-tile row (lift days / cardio min / total time) */
+  .quick-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .quick-tile {
+    background: var(--bg-2); border-radius: 12px;
+    padding: 14px 10px; text-align: center;
+    border-left: 3px solid var(--accent);
+  }
+  .qt-v { font-size: 28px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; color: var(--ink); }
+  .qt-u { font-size: 14px; color: var(--ink-3); margin-left: 2px; }
+  .qt-k { font-size: 9px; color: var(--ink-3); letter-spacing: 0.12em; margin-top: 6px; }

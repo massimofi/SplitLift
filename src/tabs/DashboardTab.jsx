@@ -9,8 +9,57 @@ import {
   totalLiftKcal, totalCardioKcal,
   liftMinutesForDay, cardioFor,
 } from '../data/exercises.js';
-import { computeCoverageV2, AnatomyFront, AnatomyBack } from '../components/Anatomy2D.jsx';
+import { computeCoverageV2, AnatomyFront, AnatomyBack, TARGETS_V2 } from '../components/Anatomy2D.jsx';
 import { currentSplitName } from '../lib/splits.js';
+import { useAnimatedNumber } from '../lib/useAnimatedNumber.js';
+import { IconX } from '../components/Icons.jsx';
+
+// Sport Match Score — composite of priority-hit / cardio-match / balance.
+// Returns { score, priorityHit, cardioMatch, balance, prioMuscles, hitMuscles }.
+function sportMatchScore(profile, days, cardioDays, sport) {
+  const cov = computeCoverageV2(days);
+  const priority = sport.priority || {};
+
+  // 1. Priority hit %: muscles with priority weight >= 1.2 (sport-specific)
+  //    that land in the optimal coverage band.
+  const prioKeys = Object.keys(priority).filter(k => priority[k] >= 1.2);
+  let inBand = 0;
+  const hitMuscles = [];
+  for (const k of prioKeys) {
+    const sets = cov[k] || 0;
+    const t = TARGETS_V2[k];
+    if (t && sets >= t.min && sets <= t.max) {
+      inBand++;
+      hitMuscles.push(k);
+    }
+  }
+  const priorityHit = prioKeys.length > 0 ? inBand / prioKeys.length : 0.5;
+
+  // 2. Cardio match %: scheduled vs target.
+  const scheduled = totalCardioMinutes(cardioDays);
+  const target = profile.cardioMin || 90;
+  const cardioMatch = target > 0 ? Math.min(scheduled / target, 1) : 0;
+
+  // 3. Balance %: penalize over-trained muscles.
+  const muscleKeys = Object.keys(TARGETS_V2);
+  let over = 0;
+  for (const k of muscleKeys) {
+    const s = cov[k] || 0;
+    const t = TARGETS_V2[k];
+    if (t && s > t.max * 1.3) over++;
+  }
+  const balance = 1 - over / muscleKeys.length;
+
+  const score = Math.round((priorityHit * 0.5 + cardioMatch * 0.25 + balance * 0.25) * 100);
+  return { score, priorityHit, cardioMatch, balance, prioKeys, hitMuscles };
+}
+
+function smsColor(score) {
+  if (score >= 90) return '#00c896';
+  if (score >= 70) return '#4ED9C0';
+  if (score >= 40) return '#ffd93d';
+  return '#ff4444';
+}
 
 export function DashboardTab({ days, cardioDays, profile, setTab }) {
   const lift = useMemo(() => liftingScore(days, profile), [days, profile]);
@@ -26,7 +75,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
   const totalMin = liftMin + cardioMin;
   const trainingKcal = totalLiftKcal(days) + totalCardioKcal(cardioDays);
 
-  const allWidgets = ['lift','cardio','sport','underworked','time','streak','figure'];
+  const allWidgets = ['sportscore','quick','lift','cardio','sport','underworked','time','streak','figure'];
   const ORDER_KEY = 'sl-dash-order';
   const [order, setOrder] = useState(() => {
     try {
@@ -70,7 +119,50 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
   }));
   const maxMin = Math.max(60, ...dayTimes.map(d => d.lift + d.cardio));
 
+  // ---- Sport match score (P4) ----
+  const sms = useMemo(() => sportMatchScore(profile, days, cardioDays, sp), [profile, days, cardioDays, sp]);
+  const animatedSms = useAnimatedNumber(sms.score, 800);
+  const [smsOpen, setSmsOpen] = useState(false);
+
   const widgets = {
+    sportscore: () => (
+      <div className="dw" onClick={()=>setSmsOpen(true)} style={{ cursor: 'pointer' }}>
+        <div className="dw-head">
+          <div className="dw-t">Sport match · {sp.label}</div>
+          <div className="dw-pill mono">TAP FOR DETAIL</div>
+        </div>
+        <div className="sms-big">
+          <div className="sms-num" style={{ color: smsColor(sms.score), borderColor: smsColor(sms.score) }}>
+            {Math.round(animatedSms)}
+          </div>
+          <div className="sms-units mono">/ 100</div>
+        </div>
+        <div className="sms-bars">
+          <SmsBar k="Priority" v={sms.priorityHit}/>
+          <SmsBar k="Cardio"   v={sms.cardioMatch}/>
+          <SmsBar k="Balance"  v={sms.balance}/>
+        </div>
+      </div>
+    ),
+    quick: () => (
+      <div className="dw">
+        <div className="dw-head"><div className="dw-t">This week</div></div>
+        <div className="quick-row">
+          <div className="quick-tile">
+            <div className="qt-v"><AnimatedInt n={days.filter(d => !d.rest).length}/></div>
+            <div className="qt-k mono">LIFT DAYS</div>
+          </div>
+          <div className="quick-tile">
+            <div className="qt-v"><AnimatedInt n={cardioMin}/><span className="qt-u">m</span></div>
+            <div className="qt-k mono">CARDIO</div>
+          </div>
+          <div className="quick-tile">
+            <div className="qt-v"><AnimatedInt n={Math.round(totalMin/60)}/><span className="qt-u">h</span></div>
+            <div className="qt-k mono">TOTAL TIME</div>
+          </div>
+        </div>
+      </div>
+    ),
     lift: () => (
       <div className="dw">
         <div className="dw-head"><div className="dw-t">Lifting</div><div className="dw-grade" data-grade={gradeOf(lift.score)}>{gradeOf(lift.score)}</div></div>
@@ -223,6 +315,42 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </div>
 
       <div style={{ height: 32 }}/>
+
+      {smsOpen && (
+        <div className="ps-overlay" onClick={()=>setSmsOpen(false)}>
+          <div className="ps-sheet" onClick={e=>e.stopPropagation()}>
+            <div className="ps-head">
+              <div>
+                <div className="ps-t">Sport match · {sp.label}</div>
+                <div className="ps-s mono">SCORE {sms.score} / 100</div>
+              </div>
+              <button className="ip-x" onClick={()=>setSmsOpen(false)} aria-label="Close"><IconX/></button>
+            </div>
+            <div className="sms-detail">
+              <p>
+                Your sport (<b>{sp.label}</b>) prioritizes{' '}
+                <b>{sms.prioKeys.length > 0
+                  ? sms.prioKeys.map(k => MUSCLE_LABELS[k] || k).join(', ')
+                  : 'a balanced load'}</b>.
+              </p>
+              <p>
+                You're hitting <b>{sms.hitMuscles.length}/{sms.prioKeys.length}</b>{' '}
+                priority muscles in the optimal band, and you've scheduled{' '}
+                <b>{Math.round(sms.cardioMatch * 100)}%</b> of your weekly cardio target.
+              </p>
+              {sms.score < 100 && (
+                <p className="sms-suggest mono">
+                  → To push closer to 100, top up{' '}
+                  {sms.prioKeys.filter(k => !sms.hitMuscles.includes(k))
+                    .map(k => MUSCLE_LABELS[k] || k)
+                    .slice(0, 3)
+                    .join(', ') || 'cardio sessions'}.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -305,4 +433,24 @@ function Bar({ k, v, c }) {
       <div className="db-tr"><div className="db-fl" style={{ width:`${v*100}%`, background: c || 'var(--accent)' }}/></div>
     </div>
   );
+}
+
+function SmsBar({ k, v }) {
+  const pct = Math.round(v * 100);
+  const color = smsColor(pct);
+  return (
+    <div className="sms-bar">
+      <div className="sms-bar-h">
+        <span>{k}</span><span className="mono" style={{ color }}>{pct}%</span>
+      </div>
+      <div className="sms-bar-tr">
+        <div className="sms-bar-fl" style={{ width: `${pct}%`, background: color }}/>
+      </div>
+    </div>
+  );
+}
+
+function AnimatedInt({ n }) {
+  const v = useAnimatedNumber(n, 600);
+  return <span>{Math.round(v)}</span>;
 }
