@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { INITIAL_DAYS, INITIAL_CARDIO_DAYS, SPORTS, computeScore } from '../data/exercises.js';
 import { splitsByTypeFromDays, applySplitsByTypeToDays } from '../lib/splits.js';
 import { fireConfetti } from '../lib/confetti.js';
-import { StatusBar } from '../lib/StatusBar.jsx';
+// Fake status bar removed in v11.7 — the real device status bar handles it.
 import { Toaster } from '../lib/Toaster.jsx';
 import { BrandMark } from '../components/Brand.jsx';
 import { I } from '../components/Icons.jsx';
@@ -134,7 +134,6 @@ export function MainApp({
 
   return (
     <div className="app-screen">
-      <StatusBar/>
       <div className="app-header-mini">
         <div className="left">
           <BrandMark size={36}/>

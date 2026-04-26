@@ -4,7 +4,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Anatomy2DSwivel, MUSCLE_LABELS_V2, TARGETS_V2, computeCoverageV2, exercisesForMuscle } from './Anatomy2D.jsx';
 import { I } from './Icons.jsx';
-import { StatusBar } from '../lib/StatusBar.jsx';
 
 export function CoveragePanel({ open, onClose, days, onAddExercise }) {
   const [view, setView] = useState('front');
@@ -27,7 +26,6 @@ export function CoveragePanel({ open, onClose, days, onAddExercise }) {
 
   return (
     <div className={`coverage-panel ${open?'open':''}`}>
-      <StatusBar dark/>
       <div className="cov-head">
         <div>
           <div className="title">{focused ? MUSCLE_LABELS_V2[focused] : 'Coverage'}</div>

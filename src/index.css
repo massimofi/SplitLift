@@ -180,17 +180,7 @@
     .phone .notch { display: none; }
   }
 
-  /* ============== Status bar ============== */
-  .statusbar {
-    height: 44px;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 28px;
-    font-size: 15px; font-weight: 600; color: var(--ink);
-    z-index: 5;
-  }
-  .statusbar.dark { color: #fff; }
-  .statusbar .icons { display: flex; gap: 6px; align-items: center; }
+  /* Fake .statusbar removed in v11.7. */
 
   /* ============== Screen container ============== */
   .screen { flex: 1; overflow: hidden; position: relative; display: flex; flex-direction: column; }
@@ -1148,7 +1138,6 @@
       radial-gradient(360px 240px at -10% 60%, rgba(155,91,255,0.10), transparent 60%);
   }
   .app-screen { position: relative; }
-  .app-screen > .statusbar,
   .app-screen > .app-header-mini,
   .app-screen > .stats-mini,
   .app-screen > .screen-body,
@@ -2499,16 +2488,24 @@
   @keyframes b2-overlay-fade { from { opacity: 0; } to { opacity: 1; } }
 
   .b2-drawer-half .b2-drawer-card {
-    position: relative;
+    /* v11.7 Issue 1: switch from flex-positioned (in overlay flex column)
+       to position:fixed so we can pin bottom above the navbar AND clamp
+       height with --sheet-max-height. Inline {drawerVh}vh from BodyTab
+       is then capped by max-height — fullscreen leaves the drag handle
+       just below the header where the user can grab it back down. */
+    position: fixed;
     z-index: 101;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: var(--sheet-bottom-offset);
     width: 100%;
     max-width: 480px;
     background: var(--bg);
     color: var(--ink);
     border-top: 4px solid var(--accent);
     border-radius: 22px 22px 0 0;
-    padding: 0 18px calc(24px + env(safe-area-inset-bottom));
-    /* v11.6 Issue 4: height comes from inline style (drag-controlled) */
+    padding: 0 18px 12px;
+    max-height: var(--sheet-max-height);
     overflow-y: auto;
     box-shadow: 0 -20px 40px rgba(0,0,0,0.55);
     animation: drawerSpring 380ms cubic-bezier(0.34, 1.56, 0.64, 1);

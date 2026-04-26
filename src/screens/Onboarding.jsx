@@ -6,7 +6,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { SPORTS, INITIAL_DAYS, ageFromBirthday, birthdayFromAge } from '../data/exercises.js';
 import { SPLIT_TEMPLATES, rankTemplatesForSport } from '../data/templates.js';
 import { makeDayForType } from '../lib/splits.js';
-import { StatusBar } from '../lib/StatusBar.jsx';
 import { I } from '../components/Icons.jsx';
 import { SportIcon } from '../components/SportIcons.jsx';
 
@@ -64,7 +63,6 @@ export function Onboarding({ onDone }) {
 
   return (
     <div className="screen">
-      <StatusBar/>
       <div className="screen-body onboard">
         <button className="back-btn" onClick={back} style={{ visibility: step===0?'hidden':'visible' }}><I.arrowL/></button>
         <div className="progress-bar"><div className="progress-fill" style={{ width: `${((step+1)/total)*100}%` }}/></div>

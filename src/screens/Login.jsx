@@ -1,7 +1,6 @@
 // Auth screen — placeholder UI; the buttons all just call onSubmit (no real auth).
 
 import React, { useState } from 'react';
-import { StatusBar } from '../lib/StatusBar.jsx';
 import { I } from '../components/Icons.jsx';
 
 export function Login({ mode, onBack, onSubmit }) {
@@ -10,7 +9,6 @@ export function Login({ mode, onBack, onSubmit }) {
   const isSignup = mode === 'signup';
   return (
     <div className="screen">
-      <StatusBar/>
       <div className="screen-body auth">
         <button className="back-btn" onClick={onBack}><I.arrowL/></button>
         <div className="auth-head">

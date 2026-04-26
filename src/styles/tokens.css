@@ -98,6 +98,16 @@
      (caught by the v8 Body zoom drawer Playwright test). */
   --bg-1: var(--bg);
 
+  /* v11.7 — layout tokens for fixed-position sheets/drawers so they
+     never sit behind the top header or bottom navbar. */
+  --header-h: 56px;
+  --navbar-h: 90px;       /* 10 top pad + ~60 content + 20 bottom pad */
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+  /* Sheet vertical bounds — convenience compositions */
+  --sheet-bottom-offset: calc(var(--navbar-h) + var(--safe-bottom));
+  --sheet-max-height: calc(100vh - var(--header-h) - var(--navbar-h) - var(--safe-top) - var(--safe-bottom) - 16px);
+
   /* ============================================================
      SEMANTIC GRADIENTS — referenced via Card gradient="..." prop.
      NEVER hardcode gradient strings outside this file.
