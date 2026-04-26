@@ -205,6 +205,28 @@ test.describe('SplitLift smoke', () => {
     expect(diff, `active gender button text/bg contrast too low: fg=${fg} bg=${bg}`).toBeGreaterThan(0.45);
   });
 
+  test('Body drawer can be closed via X button', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.bn-item').filter({ hasText: 'Body' }).first().click();
+    await page.waitForTimeout(500);
+    // Open drawer by clicking the first coverage cell
+    await page.locator('.b2-cov .sl-card[data-interactive="true"]').first().click();
+    await page.waitForTimeout(400);
+    const drawer = page.locator('.b2-drawer-card').first();
+    await expect(drawer).toBeVisible();
+
+    // Close button is reachable + tappable
+    const closeBtn = page.getByTestId('b2-close-btn');
+    await expect(closeBtn).toBeVisible();
+    const box = await closeBtn.boundingBox();
+    expect(box.width, 'close button must be ≥ 44px wide').toBeGreaterThanOrEqual(40);
+    expect(box.height, 'close button must be ≥ 44px tall').toBeGreaterThanOrEqual(40);
+    await closeBtn.click();
+    await page.waitForTimeout(300);
+    await expect(drawer).toBeHidden();
+  });
+
   test('Body zoom drawer has solid background', async ({ page }) => {
     const consoleErrors = [];
     page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });

@@ -227,6 +227,7 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
       {focus && (
         <div className="b2-drawer-half" onClick={(e)=>{ if (e.target === e.currentTarget) close(); }}>
           <div className={`b2-drawer-card status-${focusedStatus}`} onClick={e=>e.stopPropagation()}>
+            <div className="b2-d-grab" aria-hidden="true"/>
             <div className="b2-d-h">
               <div>
                 <div className="b2-d-n">{MUSCLE_LABELS_V2[focus] || focus}</div>
@@ -234,7 +235,7 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
                   {focusedSets} SETS · TARGET {focusedTarget?.min}–{focusedTarget?.max}
                 </div>
               </div>
-              <button className="b2-d-x" onClick={close} aria-label="Close"><IconX/></button>
+              <button className="b2-d-x" onClick={close} aria-label="Close drawer" data-testid="b2-close-btn"><IconX/></button>
             </div>
 
             <div className="b2-d-pills">
