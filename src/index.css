@@ -3004,3 +3004,102 @@
     50%  { transform: translate(2%, -1%); }
     100% { transform: translate(-1%, 1%); }
   }
+
+  /* ============== v6 ISSUE 2 — General tab: gradient cards everywhere ============== */
+  /* Reuses the same .gw machinery from Dashboard. Each tile sets its own
+     --gw-1 / --gw-2 / --gw-base via inline style for category-specific color. */
+
+  .gen-tile.gw {
+    background:
+      radial-gradient(circle at 20% 30%, var(--gw-1, transparent), transparent 50%),
+      radial-gradient(circle at 80% 70%, var(--gw-2, transparent), transparent 50%),
+      var(--gw-base, var(--bg-2));
+    background-size: 200% 200%;
+    animation: gw-drift 22s ease-in-out infinite alternate;
+    border: none; border-left: none;
+    overflow: hidden;
+    position: relative;
+    color: white;
+  }
+  .gen-tile.gw::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.42) 100%);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .gen-tile.gw > * { position: relative; z-index: 1; }
+
+  /* White text for everything inside a gradient tile */
+  .gen-tile.gw .gt-label,
+  .gen-tile.gw .gt-value,
+  .gen-tile.gw .gt-unit,
+  .gen-tile.gw .gt-sub,
+  .gen-tile.gw .gt-chev,
+  .gen-tile.gw .bd-k,
+  .gen-tile.gw .bd-v {
+    color: white !important;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.30);
+  }
+  .gen-tile.gw .gt-value {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 0 1px rgba(0,0,0,0.55);
+  }
+  .gen-tile.gw .gt-unit { color: rgba(255,255,255,0.85) !important; }
+  .gen-tile.gw .gt-sub  { color: rgba(255,255,255,0.85) !important; }
+
+  /* Stepper buttons get a glassy treatment */
+  .gen-tile.gw .gt-step-btn {
+    background: rgba(255,255,255,0.16);
+    border-color: rgba(255,255,255,0.25);
+    color: white;
+  }
+  .gen-tile.gw .gt-step-btn:active { background: rgba(255,255,255,0.28); }
+
+  /* Unit toggles (cm/ft, kg/lb) inside gradient tiles */
+  .gen-tile.gw .gt-unit-toggle {
+    background: rgba(255,255,255,0.14);
+  }
+  .gen-tile.gw .gt-unit-toggle button { color: rgba(255,255,255,0.80); }
+  .gen-tile.gw .gt-unit-toggle button.on {
+    background: rgba(255,255,255,0.95);
+    color: var(--ink);
+  }
+
+  /* Gender segmented inside gradient tile */
+  .gen-tile.gw .gt-seg button {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.20);
+    color: white;
+  }
+  .gen-tile.gw .gt-seg button.on {
+    background: white;
+    color: var(--ink);
+    border-color: white;
+  }
+
+  /* Birthday derived tile inside gradient parent */
+  .gen-tile.gw .bday-derived {
+    background: rgba(255,255,255,0.14);
+    border-left-color: rgba(255,255,255,0.55);
+  }
+  .gen-tile.gw .bday-input {
+    background: rgba(255,255,255,0.16);
+    color: white;
+  }
+  .gen-tile.gw .bday-input:focus { background: rgba(255,255,255,0.28); }
+
+  /* Weight log button on the gradient weight tile */
+  .gen-tile.gw .weight-log-btn {
+    background: rgba(255,255,255,0.95);
+    border-color: white;
+    color: var(--accent);
+  }
+
+  /* Weight chart background — blend with tile's gradient */
+  .gen-tile.gw .weight-chart-host { background: transparent; }
+  .gen-tile.gw .wc-empty {
+    background: rgba(255,255,255,0.10);
+    border-color: rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.85);
+  }
