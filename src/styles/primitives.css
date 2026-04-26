@@ -164,9 +164,14 @@
   background: var(--bg);
   border-radius: var(--r-full);
   box-shadow: var(--shadow-sm);
-  /* Animate left only; width is fixed at 100/N% so no jiggle. */
-  transition: left var(--dur-base) var(--ease-out);
+  /* v11.6 Issue 5: animate transform + width since the JS now reads
+     actual button rects (uneven labels are no longer a problem). */
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    width var(--dur-base) var(--ease-out),
+    left var(--dur-base) var(--ease-out);
   z-index: 0;
+  will-change: transform, width;
 }
 .sl-toggle-btn {
   position: relative;

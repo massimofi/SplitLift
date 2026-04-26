@@ -1,31 +1,56 @@
 // Toggle — segmented pill switch (front/back, kg/lb, etc.)
-// Renders n options as buttons with a sliding pill behind the active one.
+// v11.6 Issue 5: pill position + width now read from the active button's
+// actual bounding rect after layout, instead of trying to compute it from
+// 100/N math. Handles uneven label widths (e.g. Coach tone "Gentle" vs
+// "Balanced" vs "Drill") without any centering drift.
 
-import React from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 export function Toggle({ value, onChange, options, size = 'md', className = '' }) {
   const idx = Math.max(0, options.findIndex(o => o.value === value));
   const cls = ['sl-toggle', className].filter(Boolean).join(' ');
+  const containerRef = useRef(null);
+  const btnRefs = useRef([]);
+  const [pillRect, setPillRect] = useState(null);  // { left, width } in px
+
+  // Measure the active button after every render. useLayoutEffect runs
+  // before paint so the pill never appears in the wrong spot.
+  useLayoutEffect(() => {
+    const btn = btnRefs.current[idx];
+    const container = containerRef.current;
+    if (!btn || !container) return;
+    const containerLeft = container.getBoundingClientRect().left;
+    const r = btn.getBoundingClientRect();
+    setPillRect({ left: r.left - containerLeft, width: r.width });
+  }, [idx, options.length, value]);
+
+  // Re-measure on resize (orientation, window resize, font load).
+  useEffect(() => {
+    const onResize = () => {
+      const btn = btnRefs.current[idx];
+      const container = containerRef.current;
+      if (!btn || !container) return;
+      const containerLeft = container.getBoundingClientRect().left;
+      const r = btn.getBoundingClientRect();
+      setPillRect({ left: r.left - containerLeft, width: r.width });
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [idx]);
+
   return (
-    <div className={cls} data-size={size} role="tablist">
-      {/* v11 Issue 5 — REAL root cause:
-          parent had padding:2px, which makes absolute-positioned
-          children measure % against the padding-box (excludes 4px).
-          Subtracting 4px from the pill width on top of that put the
-          pill's right edge ~2px LEFT of the active option's center.
-          Fix: parent padding is now 0, pill spans exactly 100/N% of
-          parent and starts at idx*100/N% — no offsets, no fudge.
-          Tested at N=2, N=3, N=4 (see tests/smoke.spec.js). */}
+    <div ref={containerRef} className={cls} data-size={size} role="tablist">
       <div
         className="sl-toggle-pill"
-        style={{
-          width: `${100 / options.length}%`,
-          left: `${(idx * 100) / options.length}%`,
-        }}
+        style={pillRect
+          ? { width: `${pillRect.width}px`, transform: `translateX(${pillRect.left}px)`, left: 0 }
+          : { width: `${100 / options.length}%`, left: `${(idx * 100) / options.length}%` }
+        }
       />
-      {options.map((o) => (
+      {options.map((o, i) => (
         <button
           key={o.value}
+          ref={(el) => { btnRefs.current[i] = el; }}
           className={`sl-toggle-btn ${o.value === value ? 'is-on' : ''}`}
           onClick={() => onChange(o.value)}
           role="tab"
