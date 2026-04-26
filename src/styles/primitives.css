@@ -161,7 +161,11 @@
   background: var(--bg);
   border-radius: var(--r-full);
   box-shadow: var(--shadow-sm);
-  transition: transform var(--dur-base) var(--ease-out), width var(--dur-base) var(--ease-out);
+  /* WHY (v10 Issue 1c): only animate `left` — width is fixed at 1/N of
+     parent so animating it would jiggle the pill. Previous transition
+     listed transform+width but the JS uses `left`, so the slide had no
+     transition and the pill snapped, looking off-center mid-snap. */
+  transition: left var(--dur-base) var(--ease-out);
   z-index: 0;
 }
 .sl-toggle-btn {
