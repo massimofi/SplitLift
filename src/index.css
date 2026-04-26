@@ -2633,3 +2633,38 @@
     font-size: 12px; color: var(--ink-3); text-align: center;
     margin-top: 8px;
   }
+
+  /* ============== General — weight card + log button + chart ============== */
+  .weight-card { padding: 16px 18px; }
+  .weight-card-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-top: 6px;
+  }
+  .gt-weight-num { font-variant-numeric: tabular-nums; }
+  .weight-log-btn {
+    min-height: 44px; padding: 10px 14px;
+    border-radius: 12px; border: 1.5px solid var(--accent);
+    background: color-mix(in oklab, var(--accent) 12%, var(--bg));
+    color: var(--accent); font-weight: 700; font-size: 13px;
+    font-family: inherit; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+  }
+  .weight-log-btn:active { transform: scale(0.97); }
+  .weight-log-btn svg { width: 14px; height: 14px; }
+
+  .weight-chart-host { margin-top: 10px; }
+  .wc-empty {
+    text-align: center; font-size: 12px; color: var(--ink-3);
+    padding: 30px 16px; background: var(--bg); border-radius: 10px;
+    border: 1px dashed var(--hair);
+  }
+  .wc-tip {
+    background: var(--ink); color: var(--bg);
+    padding: 6px 10px; border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    pointer-events: none;
+  }
+  .wc-tip-d { font-size: 9px; letter-spacing: 0.1em; opacity: 0.7; }
+  .wc-tip-v { font-size: 14px; font-weight: 700; }
+  .wc-tip-v span { font-size: 10px; opacity: 0.6; }

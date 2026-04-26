@@ -10,10 +10,13 @@ import { MainApp } from './screens/MainApp.jsx';
 import { loadState, saveState, clearState } from './state/persist.js';
 
 // `birthday` is the source of truth (YYYY-MM-DD); `age` is kept as a fallback
-// for callers that haven't been updated yet. Defaults to a 22-year-old.
+// for callers that haven't been updated yet. weightLog stores all weigh-ins
+// in kg (canonical) — the chart converts to display unit. Defaults to 22yr.
+const TODAY_ISO = new Date().toISOString().slice(0, 10);
 const DEFAULT_PROFILE = {
   days: 4, height: 178, hUnit: 'cm', weight: 74, wUnit: 'kg',
   birthday: null, age: 22, sex: 'm', sport: 'soccer', cardioMin: 90,
+  weightLog: [{ date: TODAY_ISO, kg: 74 }],
 };
 
 export default function App() {

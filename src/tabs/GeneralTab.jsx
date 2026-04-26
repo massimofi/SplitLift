@@ -1,12 +1,41 @@
 // First tab in the navbar — main inputs + computed numbers (BMR/TDEE/macros/HR).
 // Drives everything downstream.
 
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { SPORTS, tdeeFor, estimateBMR, macrosFor, hrZonesFor, totalCardioMinutes, ageFromBirthday } from '../data/exercises.js';
 import { IconX, IconPlus } from '../components/Icons.jsx';
+import { LogWeightSheet } from '../components/LogWeightSheet.jsx';
+import { useAnimatedNumber } from '../lib/useAnimatedNumber.js';
+
+// recharts is ~120 KB gz. Lazy-load so General boots fast and only pays the
+// chart cost when there's actually a multi-point weight log to render.
+const WeightChart = lazy(() => import('../components/WeightChart.jsx'));
+
+const TODAY_ISO = () => new Date().toISOString().slice(0, 10);
+const KG_TO_LB = 2.20462;
 
 export function GeneralTab({ profile, setProfile, days, cardioDays, showToast }) {
   const [sportOpen, setSportOpen] = useState(false);
+  const [logOpen, setLogOpen] = useState(false);
+  const weightLog = profile.weightLog || [];
+
+  const logWeight = ({ date, kg, unit }) => {
+    setProfile(p => {
+      const existing = (p.weightLog || []).filter(w => w.date !== date);
+      const next = [...existing, { date, kg }].sort((a, b) => a.date.localeCompare(b.date));
+      // Update stored display weight to the most recent entry.
+      const latest = next[next.length - 1];
+      const displayWeight = (p.wUnit === 'lb')
+        ? Math.round(latest.kg * KG_TO_LB)
+        : Math.round(latest.kg * 10) / 10;
+      return { ...p, weightLog: next, weight: displayWeight, wUnit: unit || p.wUnit };
+    });
+    setLogOpen(false);
+    showToast && showToast(`Logged ${kg} kg`);
+  };
+
+  // Animated current weight (in display unit).
+  const animWeight = useAnimatedNumber(Number(profile.weight) || 0, 600);
 
   const adjust = (key, delta, opts = {}) => {
     const min = opts.min ?? 0;
@@ -68,13 +97,25 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
                    onPlus={()=>adjust('height', profile.hUnit==='cm'?+1:+0.1, {min:80, max:240})}/>
         </div>
 
-        <div className="gen-tile">
+        <div className="gen-tile span-2 weight-card">
           <div className="gt-row">
             <div className="gt-label mono">WEIGHT</div>
             <UnitToggle value={profile.wUnit} onChange={u=>setUnit('w', u)} options={[['kg','KG'],['lb','LB']]}/>
           </div>
-          <div className="gt-value">{profile.weight}<span className="gt-unit">{profile.wUnit}</span></div>
-          <Stepper onMinus={()=>adjust('weight', -1, {min:30, max:300})} onPlus={()=>adjust('weight', +1, {min:30, max:300})}/>
+          <div className="weight-card-row">
+            <div className="gt-value gt-weight-num">
+              {animWeight.toFixed(profile.wUnit === 'kg' ? 1 : 0)}
+              <span className="gt-unit">{profile.wUnit}</span>
+            </div>
+            <button className="weight-log-btn" onClick={()=>setLogOpen(true)}>
+              <IconPlus/> Log weigh-in
+            </button>
+          </div>
+          <div className="weight-chart-host">
+            <Suspense fallback={<div className="wc-empty">Loading chart…</div>}>
+              <WeightChart data={weightLog} unit={profile.wUnit}/>
+            </Suspense>
+          </div>
         </div>
 
         <div className="gen-tile span-2 sex">
@@ -131,6 +172,15 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
           current={profile.sport}
           onPick={(id) => { setProfile(p => ({ ...p, sport: id })); setSportOpen(false); showToast(`Sport: ${SPORTS.find(s=>s.id===id)?.label}`); }}
           onClose={() => setSportOpen(false)}
+        />
+      )}
+
+      {logOpen && (
+        <LogWeightSheet
+          defaultUnit={profile.wUnit}
+          defaultWeight={profile.weight}
+          onSubmit={logWeight}
+          onClose={() => setLogOpen(false)}
         />
       )}
 
