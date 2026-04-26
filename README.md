@@ -33,12 +33,14 @@ Or just open `app.html` directly in a browser. The CDN-loaded React + Babel will
 
 Files (all in repo root):
 - `app.html` — entry, theme tokens, all CSS, script loader
-- `splitlift-data.jsx` — exercise DB, sports, scoring math, cardio library
+- `splitlift-data.jsx` — exercise DB, sports, scoring math, cardio library, BMR/TDEE/HR helpers
 - `splitlift-templates.jsx` — split templates (PPL, Upper/Lower, Full body, Bro, hybrid, Custom) + sport-aware ranking
-- `splitlift-anatomy.jsx` — detailed front/back anatomy SVG with named muscle regions
+- `splitlift-anatomy.jsx` — detailed front/back 2D anatomy SVG with named muscle regions
+- `splitlift-3d.jsx` — Three.js canvas: loads `public/models/anatomy.glb`, raycast-on-tap, camera tween, coverage-colored materials. Falls back gracefully if the model is missing.
 - `splitlift-brand.jsx` — dumbbell mark + wordmark lockup
-- `splitlift-tabs.jsx` — Schedule, Dashboard, Cardio, Body, Profile tab content
+- `splitlift-tabs.jsx` — General, Splits, Schedule, Body, Dashboard, Profile tab content
 - `splitlift-app.jsx` — root, routing, onboarding, header, bottom nav
+- `public/models/anatomy.glb` — 3D anatomy mesh (not committed; see `public/models/README.md`)
 
 ---
 
@@ -48,18 +50,30 @@ Per BroncoHacks rule 7 ("All libraries / frameworks / open-source code must be c
 
 - **React 18** — UI library, MIT license, loaded via unpkg
 - **Babel Standalone** — in-browser JSX compilation, MIT license, loaded via unpkg
+- **Three.js r150** — 3D rendering, MIT license, loaded via unpkg
+- **Three.js GLTFLoader** — glTF binary loader, MIT license, loaded via unpkg
+- **Three.js OrbitControls** — orbit camera controller, MIT license, loaded via unpkg
+- **Z-Anatomy / BodyParts3D** (when `anatomy.glb` is added) — anatomical mesh, CC-BY-SA 4.0. Credit Gauthier Kervyn (Z-Anatomy) and the BodyParts3D project (Database Center for Life Science, Japan). See `public/models/README.md` for license-distribution notes.
 - **Free Exercise DB by yuhonas** — exercise dataset reference, public domain
 - **Mifflin–St Jeor equation** — Mifflin et al. (1990), Am J Clin Nutr (BMR formula)
 - **Tanaka heart-rate formula** — Tanaka et al. (2001) (max HR estimation)
 
-Libraries to be credited as they're added in later batches:
+Libraries to be credited as they're added:
 - Lucide Icons (ISC) — when SVG icon set is migrated
-- Three.js + GLTFLoader (MIT) — when the 3D anatomy model is wired up in Batch 6
-- Z-Anatomy / BodyParts3D model (CC-BY-SA 4.0) — when the .glb is added; credit Gauthier Kervyn (Z-Anatomy) and the BodyParts3D project (Database Center for Life Science, Japan)
 
 ---
 
 ## Changelog
+
+### 2026-04-25 — Batch 6: 3D anatomy with click-to-zoom
+- New `splitlift-3d.jsx` mounts a Three.js scene (r150 via UMD CDN: `three.min.js` + `examples/js/loaders/GLTFLoader.js` + `examples/js/controls/OrbitControls.js`). Loads `public/models/anatomy.glb`, auto-fits, sets up hemisphere + key + fill lights, OrbitControls (damping, no pan, clamped distance), and a render loop.
+- Click / tap → raycasts against the loaded model. Each mesh's name is fuzzy-mapped to one of the 17 canonical muscle keys (`mapMeshNameToMuscle()`). Tap is distinguished from drag by a touch-distance threshold so orbit + select feel right on mobile.
+- Selected muscle: bright emissive highlight + camera tween (easeOutCubic, 700 ms) to a fitted distance along the user's current view direction. Deselect (or close drawer) tweens back to the default body framing.
+- Mesh recolor by coverage status: dark `#393B5E` if unworked, blue if under, teal if optimal, coral if over. Sport-priority muscles get a priority pill in the drawer.
+- `Anatomy3DCanvas` reports `'loading' | 'ready' | 'failed'` via `onStatus`. **`BodyTabV2` defaults to 3D when `window.Anatomy3DCanvas` exists, then auto-falls-back to 2D if the model fails to load.** A 3D / 2D toggle always lets the user switch manually (mobile GPU choke).
+- Drawer rebuilt: status pill (in band / under / over / unworked), sport-priority pill, **`CoverageProgress` bar** showing where the user's set-count sits in the [min, max] band, top-8 exercises (with `hit %`), smart "Add" that routes to the best matching split-type via `bestSplitTypeFor()`, and "Edit relevant split →" jump.
+- Coverage list switched to granular `MUSCLE_LABELS_V2` keys (12 most-relevant) so "Lats / Traps / Rear delts" show separately instead of a vague "Back".
+- Added `public/models/README.md` with sourcing + license + mesh-naming docs. The directory exists so the relative URL is stable; the `.glb` itself is not in the repo (CC-BY-SA scope), so the demo currently shows the 2D fallback until you drop one in.
 
 ### 2026-04-25 — Schedule v3 + Batches 5–9 (mostly)
 **Schedule rebuilt for tap *and* drag.** Two-column grid: a 92 px sticky left palette of split + cardio chips, and a right column of bigger day boxes (≥86 px) with fatter colored left borders. Drag a chip onto a day OR tap a day to open the picker sheet (lift type chips, cardio adds with HR badges, lock/clear, jump-to-Splits). Day rows have a hover/drop-glow during drag.

@@ -9,6 +9,12 @@
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<!-- Three.js r150 + classic-script GLTFLoader + OrbitControls (window.THREE.*).
+     Last r-version that ships examples/js/ as global scripts; required because
+     SplitLift has no module bundler. -->
+<script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.150.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://unpkg.com/three@0.150.0/examples/js/controls/OrbitControls.js"></script>
 <style>
   /* ============== THEME TOKENS — blue / purple ============== */
   :root, .theme-light {
@@ -2010,7 +2016,7 @@
 
   /* ============== BODY V2 ============== */
   .body2 { padding: 8px 16px 24px; }
-  .b2-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .b2-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap; }
   .b2-segs { display: inline-flex; background: color-mix(in oklab, var(--ink) 6%, transparent); border-radius: 9px; padding: 3px; }
   .b2-segs button { background: transparent; border: none; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--ink-2); }
   .b2-segs button.on { background: var(--bg-1); color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
@@ -2027,6 +2033,86 @@
     pointer-events: none;
   }
   .b2-stage svg { max-height: 360px; position: relative; z-index: 1; }
+  .b2-stage.stage-3d {
+    padding: 0; min-height: 420px;
+    place-items: stretch;
+  }
+  .b2-stage.stage-3d > * { width: 100%; height: 420px; position: relative; z-index: 1; }
+
+  /* Three.js canvas host */
+  .anatomy-3d-host {
+    position: relative; width: 100%; height: 100%;
+    border-radius: 18px; overflow: hidden;
+    touch-action: none;
+  }
+  .anatomy-3d-host canvas { display: block; width: 100% !important; height: 100% !important; }
+  .a3d-status {
+    position: absolute; inset: 0; z-index: 5;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; color: var(--inv-ink-2); pointer-events: none;
+  }
+  .a3d-spinner {
+    width: 28px; height: 28px;
+    border: 3px solid color-mix(in oklab, var(--accent) 20%, transparent);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: a3dSpin 0.85s linear infinite;
+  }
+  @keyframes a3dSpin { to { transform: rotate(360deg); } }
+  .a3d-msg { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+  .a3d-sub { font-size: 11px; color: var(--inv-ink-3); text-align: center; padding: 0 24px; }
+  .a3d-sub code { background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+
+  /* Status pills + sport-priority badge */
+  .b2-d-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .b2-status-pill {
+    display: inline-flex; align-items: center;
+    padding: 5px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+  }
+  .b2-status-pill.status-optimal { background: color-mix(in oklab, #4ED9C0 22%, var(--bg-2)); color: #1f8b78; }
+  .b2-status-pill.status-under { background: color-mix(in oklab, #6E6EFF 22%, var(--bg-2)); color: #4646cc; }
+  .b2-status-pill.status-over { background: color-mix(in oklab, #FF8A5B 22%, var(--bg-2)); color: #b8531e; }
+  .b2-status-pill.status-unworked { background: color-mix(in oklab, var(--ink-3) 22%, var(--bg-2)); color: var(--ink-2); }
+  .b2-priority-pill {
+    padding: 5px 10px; border-radius: 999px;
+    background: color-mix(in oklab, var(--accent) 18%, var(--bg-2));
+    color: var(--accent); font-size: 11px; font-weight: 700;
+  }
+
+  /* Coverage progress bar inside drawer */
+  .b2-cov-progress { margin-bottom: 14px; }
+  .b2-cp-bar {
+    position: relative; height: 16px; border-radius: 8px;
+    background: color-mix(in oklab, var(--ink) 6%, transparent);
+    overflow: hidden;
+  }
+  .b2-cp-band {
+    position: absolute; top: 0; bottom: 0;
+    background: color-mix(in oklab, #4ED9C0 25%, transparent);
+    border-left: 1px dashed color-mix(in oklab, #4ED9C0 60%, transparent);
+    border-right: 1px dashed color-mix(in oklab, #4ED9C0 60%, transparent);
+  }
+  .b2-cp-fill {
+    position: absolute; top: 0; bottom: 0; left: 0;
+    border-radius: 8px;
+    transition: width 600ms cubic-bezier(.2,.8,.2,1);
+  }
+  .b2-cp-marker {
+    position: absolute; top: -3px; bottom: -3px;
+    width: 14px; border-radius: 4px;
+    box-shadow: 0 0 0 2px var(--bg-1);
+  }
+  .b2-cp-labels {
+    display: flex; font-size: 9px; color: var(--ink-3);
+    letter-spacing: 0.1em; margin-top: 6px;
+  }
+
+  /* Drawer status accent */
+  .b2-drawer-card.status-optimal { border-top-color: #4ED9C0; }
+  .b2-drawer-card.status-under   { border-top-color: #6E6EFF; }
+  .b2-drawer-card.status-over    { border-top-color: #FF8A5B; }
+  .b2-drawer-card.status-unworked{ border-top-color: var(--ink-3); }
   .b2-cov { margin-bottom: 12px; }
   .b2-cov-h { font-size: 12px; color: var(--ink-3); letter-spacing: 0.1em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; }
   .b2-cov-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
@@ -2238,6 +2324,7 @@
 <script type="text/babel" src="splitlift-templates.jsx"></script>
 <script type="text/babel" src="splitlift-anatomy.jsx"></script>
 <script type="text/babel" src="splitlift-brand.jsx"></script>
+<script type="text/babel" src="splitlift-3d.jsx"></script>
 <script type="text/babel" src="splitlift-tabs.jsx"></script>
 <script type="text/babel" src="splitlift-app.jsx"></script>
 </body>

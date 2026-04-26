@@ -1345,7 +1345,7 @@ function MainApp({ profile, setProfile, theme, setTheme, onLogout, initialDays, 
           />
         )}
         {tab === 'schedule' && <window.ScheduleTab days={days} setDays={setDays} cardioDays={cardioDays} setCardioDays={setCardioDays} locked={locked} setLocked={setLocked} profile={profile} showToast={showToast} splitsByType={splitsByType} setSplitsByType={setSplitsByType} onJumpToSplits={(typeId)=>{ if(typeId) setSplitsActiveType(typeId); setTab('splits'); }}/>}
-        {tab === 'body' && (window.BodyTabV2 ? <window.BodyTabV2 days={days} onAddExercise={addToToday} setTab={setTab}/> : <BodyTab days={days} onAddExercise={addToToday}/>)}
+        {tab === 'body' && (window.BodyTabV2 ? <window.BodyTabV2 days={days} onAddExercise={addToToday} setTab={setTab} profile={profile} splitsByType={splitsByType} setSplitsByType={setSplitsByType} setSplitsActiveType={setSplitsActiveType} showToast={showToast}/> : <BodyTab days={days} onAddExercise={addToToday}/>)}
         {tab === 'cardio' && (window.CardioPageV2 ? <window.CardioPageV2 cardioDays={cardioDays} setCardioDays={setCardioDays} onOpenCardioSheet={openCardioSheet}/> : <CardioPage cardioDays={cardioDays} setCardioDays={setCardioDays} onOpenCardioSheet={openCardioSheet}/>)}
         {tab === 'dashboard' && <window.DashboardPage days={days} cardioDays={cardioDays} profile={profile} setTab={setTab}/>}
         {tab === 'profile' && (window.ProfileV2 ? <window.ProfileV2 profile={profile} setProfile={setProfile} theme={theme} setTheme={setTheme} onLogout={onLogout}/> : <ProfilePage profile={profile} theme={theme} setTheme={setTheme} onLogout={onLogout}/>)}

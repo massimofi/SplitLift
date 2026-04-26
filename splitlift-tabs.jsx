@@ -1559,49 +1559,145 @@ function CardioPageV2({ cardioDays, setCardioDays, onOpenCardioSheet }) {
 }
 
 // ============================================
-// BODY V2 — bigger figure, region zoom, exercises list
+// BODY V2 — 3D model with click-to-zoom; falls back to 2D anatomy SVG.
+// Detail drawer shows status, target band, sport priority, exercises.
 // ============================================
-function BodyTabV2({ days, onAddExercise, setTab }) {
-  const [view, setView] = useState('front');
+
+// Best matching split-type for a given exercise — used by the "Add to X" smart button.
+function bestSplitTypeFor(ex, splitsByType) {
+  if (!ex || !splitsByType) return null;
+  const candidates = ({
+    push:  ['push','upper','full','chest'],
+    pull:  ['pull','upper','full','back'],
+    legs:  ['legs','lower','full','quads','hams','glutes'],
+    shoul: ['push','upper','shoulder'],
+    core:  ['core','full'],
+    cardio:[],
+  })[ex.type] || [ex.type];
+  for (const t of candidates) if (splitsByType[t] !== undefined) return t;
+  return null;
+}
+
+function BodyTabV2({ days, onAddExercise, setTab, profile, splitsByType, setSplitsByType, setSplitsActiveType, showToast }) {
+  const has3D = !!window.Anatomy3DCanvas;
+  const [mode, setMode] = useState(has3D ? '3d' : '2d');
+  const [view, setView] = useState('front'); // 2D only
   const [focus, setFocus] = useState(null);
   const [recently, setRecently] = useState(null);
-  const sets = useMemo(() => window.computeCoverageV2 ? window.computeCoverageV2(days) : window.computeCoverage(days), [days]);
+  const [status3d, setStatus3d] = useState('loading');
+
+  const sets = useMemo(
+    () => window.computeCoverageV2 ? window.computeCoverageV2(days) : {},
+    [days]
+  );
+
+  // Auto-fall-back to 2D if the 3D model fails to load.
+  useEffect(() => {
+    if (mode === '3d' && status3d === 'failed') setMode('2d');
+  }, [status3d, mode]);
 
   const onRegion = (k) => {
     setRecently(k); setFocus(k);
-    setTimeout(()=>setRecently(null), 700);
+    setTimeout(() => setRecently(null), 700);
   };
   const close = () => setFocus(null);
 
-  const focusedExs = focus ? (window.exercisesForMuscle ? window.exercisesForMuscle(focus) : window.EXERCISES.filter(e=>e.hits[focus])).slice(0, 8) : [];
+  const sportObj = profile && (window.SPORTS || []).find(s => s.id === profile.sport);
+  const sportPriority = sportObj && sportObj.priority && sportObj.priority[focus];
+
+  const focusedTarget = focus ? (window.TARGETS_V2 || {})[focus] : null;
+  const focusedSets = focus ? (sets[focus] || 0) : 0;
+  const focusedStatus = focus
+    ? (window.statusFromCoverage ? window.statusFromCoverage(focusedSets, focusedTarget) : 'unknown')
+    : null;
+
+  // Top exercises that hit the focused muscle (granular).
+  const focusedExs = useMemo(() => {
+    if (!focus || !window.exercisesForMuscle) return [];
+    return window.exercisesForMuscle(focus).slice(0, 8);
+  }, [focus]);
+
+  const addSmart = (exId) => {
+    const ex = (window.EXERCISES || []).find(e => e.id === exId);
+    if (!ex) return;
+    const target = bestSplitTypeFor(ex, splitsByType || {});
+    if (target && setSplitsByType) {
+      setSplitsByType(prev => {
+        const cur = [...((prev && prev[target]) || [])];
+        if (cur.includes(exId)) return prev;
+        cur.push(exId);
+        return { ...(prev || {}), [target]: cur };
+      });
+      showToast && showToast(`Added to ${window.DAY_TYPES[target]?.label || target}`);
+    } else if (onAddExercise) {
+      onAddExercise(exId);
+    }
+  };
+
+  const editFocusedSplit = () => {
+    // Pick the first split-type already in use that one of the focused muscle's
+    // top exercises maps to.
+    for (const { ex } of focusedExs) {
+      const t = bestSplitTypeFor(ex, splitsByType || {});
+      if (t) {
+        setSplitsActiveType && setSplitsActiveType(t);
+        setTab && setTab('splits');
+        close();
+        return;
+      }
+    }
+    setTab && setTab('splits');
+    close();
+  };
+
+  // 12 most-relevant muscles for the coverage grid (granular keys).
+  const COV_KEYS = ['chest','lats','traps','rear_delt','biceps','triceps','shoulder','abs','quads','hams','glutes','calves'];
 
   return (
     <div className="tab-pane body2">
       <div className="b2-toolbar">
-        <div className="b2-segs">
-          <button className={view==='front'?'on':''} onClick={()=>setView('front')}>Front</button>
-          <button className={view==='back'?'on':''} onClick={()=>setView('back')}>Back</button>
-        </div>
-        <div className="b2-hint mono">TAP A MUSCLE</div>
+        {has3D && (
+          <div className="b2-segs">
+            <button className={mode==='3d'?'on':''} onClick={()=>setMode('3d')}>3D</button>
+            <button className={mode==='2d'?'on':''} onClick={()=>setMode('2d')}>2D</button>
+          </div>
+        )}
+        {mode === '2d' && (
+          <div className="b2-segs">
+            <button className={view==='front'?'on':''} onClick={()=>setView('front')}>Front</button>
+            <button className={view==='back'?'on':''} onClick={()=>setView('back')}>Back</button>
+          </div>
+        )}
+        <div className="b2-hint mono">{mode === '3d' ? 'DRAG · TAP A MUSCLE' : 'TAP A MUSCLE'}</div>
       </div>
 
-      <div className="b2-stage">
-        {view === 'front'
-          ? <window.AnatomyFront sets={sets} recently={recently} onRegion={onRegion}/>
-          : <window.AnatomyBack sets={sets} recently={recently} onRegion={onRegion}/>}
+      <div className={`b2-stage ${mode === '3d' ? 'stage-3d' : ''}`}>
+        {mode === '3d' && has3D ? (
+          <window.Anatomy3DCanvas
+            sets={sets}
+            focused={focus}
+            onSelect={onRegion}
+            onStatus={setStatus3d}
+          />
+        ) : view === 'front' ? (
+          <window.AnatomyFront sets={sets} recently={recently} onRegion={onRegion}/>
+        ) : (
+          <window.AnatomyBack sets={sets} recently={recently} onRegion={onRegion}/>
+        )}
       </div>
 
-      {/* Coverage list (always visible) */}
       <div className="b2-cov">
         <div className="b2-cov-h">Weekly coverage</div>
         <div className="b2-cov-grid">
-          {['chest','back','shoulder','bis','tris','quads','hams','glutes','core','calves'].map(m => {
+          {COV_KEYS.map(m => {
             const s = sets[m] || 0;
-            const t = window.TARGETS[m];
-            const st = window.statusFor(s, t || {min:0,max:0});
+            const t = (window.TARGETS_V2 || {})[m];
+            const st = window.statusFromCoverage ? window.statusFromCoverage(s, t) : 'unknown';
             return (
-              <button key={m} className={`b2-cov-cell status-${st}`} style={{ '--bp': `var(--bp-${m})` }} onClick={()=>setFocus(m)}>
-                <div className="m">{window.MUSCLE_LABELS[m] || m}</div>
+              <button key={m} className={`b2-cov-cell status-${st}`}
+                style={{ '--bp': `var(--bp-${m === 'biceps' ? 'bis' : m === 'triceps' ? 'tris' : m === 'lats' || m === 'traps' || m === 'rear_delt' || m === 'lower_back' ? 'back' : m === 'abs' || m === 'obliques' ? 'core' : m})` }}
+                onClick={() => setFocus(m)}>
+                <div className="m">{(window.MUSCLE_LABELS_V2 || {})[m] || m}</div>
                 <div className="s mono">{s} sets</div>
               </button>
             );
@@ -1609,36 +1705,85 @@ function BodyTabV2({ days, onAddExercise, setTab }) {
         </div>
       </div>
 
-      {/* Focused muscle drawer */}
       {focus && (
         <div className="b2-drawer" onClick={close}>
-          <div className="b2-drawer-card" style={{ '--bp': `var(--bp-${focus})` }} onClick={e=>e.stopPropagation()}>
+          <div className={`b2-drawer-card status-${focusedStatus}`} onClick={e=>e.stopPropagation()}>
             <div className="b2-d-h">
               <div>
-                <div className="b2-d-n">{window.MUSCLE_LABELS[focus] || focus}</div>
-                <div className="b2-d-s mono">{sets[focus]||0} sets · target {window.TARGETS[focus]?.min}–{window.TARGETS[focus]?.max}</div>
+                <div className="b2-d-n">{(window.MUSCLE_LABELS_V2 || {})[focus] || focus}</div>
+                <div className="b2-d-s mono">
+                  {focusedSets} SETS · TARGET {focusedTarget?.min}–{focusedTarget?.max}
+                </div>
               </div>
               <button className="b2-d-x" onClick={close} aria-label="Close"><IconX/></button>
             </div>
-            <div className="b2-d-list-h">Best exercises for this</div>
-            <div className="b2-d-list">
-              {focusedExs.map(({ex} = {ex: undefined}, i) => {
-                const e = ex || focusedExs[i];
-                return (
-                  <div key={e.id} className="b2-d-row" style={{ '--bp': `var(--bp-${e.body})` }}>
-                    <div className="b2-d-r-body">
-                      <div className="b2-d-r-n">{e.name}</div>
-                      <div className="b2-d-r-m mono">{e.sets} · {e.gear} · {window.DAY_TYPES[e.body]?.label || e.body}</div>
-                    </div>
-                    <button className="b2-d-r-add" onClick={()=>{onAddExercise(e.id); close();}} aria-label={`Add ${e.name}`}><IconPlus/></button>
-                  </div>
-                );
-              })}
+
+            <div className="b2-d-pills">
+              <span className={`b2-status-pill status-${focusedStatus}`}>
+                {focusedStatus === 'optimal' ? 'In target band' :
+                 focusedStatus === 'under'   ? 'Under-worked' :
+                 focusedStatus === 'over'    ? 'Over the band' :
+                 focusedStatus === 'unworked'? 'Not hit yet' : 'Unknown'}
+              </span>
+              {sportPriority && sportPriority > 1 && (
+                <span className="b2-priority-pill">Priority for {sportObj.label} ×{sportPriority.toFixed(1)}</span>
+              )}
             </div>
-            <button className="b2-d-cta" onClick={()=>{ setTab('splits'); close(); }}>Edit splits →</button>
+
+            {focusedTarget && (
+              <CoverageProgress sets={focusedSets} target={focusedTarget}/>
+            )}
+
+            <div className="b2-d-list-h">Top {focusedExs.length} exercises that hit this</div>
+            <div className="b2-d-list">
+              {focusedExs.length === 0 && (
+                <div className="empty-pill" style={{textAlign:'center', padding:14}}>No matching exercises in the library.</div>
+              )}
+              {focusedExs.map(({ ex, weight }) => (
+                <div key={ex.id} className="b2-d-row" style={{ '--bp': `var(--bp-${ex.body || ex.type})` }}>
+                  <div className="b2-d-r-body">
+                    <div className="b2-d-r-n">{ex.name}</div>
+                    <div className="b2-d-r-m mono">
+                      {ex.sets} · {ex.gear} · {window.DAY_TYPES[ex.body]?.label || ex.body}
+                      {weight && weight > 0 && ` · hit ${Math.round(weight*100)}%`}
+                    </div>
+                  </div>
+                  <button className="b2-d-r-add" onClick={()=>addSmart(ex.id)} aria-label={`Add ${ex.name}`}><IconPlus/></button>
+                </div>
+              ))}
+            </div>
+
+            <button className="b2-d-cta" onClick={editFocusedSplit}>
+              Edit relevant split →
+            </button>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Visual progress bar showing where current sets fall in the [min, max] band.
+function CoverageProgress({ sets, target }) {
+  const min = target.min;
+  const max = target.max;
+  const ceiling = Math.max(max * 1.5, sets * 1.05, max + 4);
+  const minPct = (min / ceiling) * 100;
+  const maxPct = (max / ceiling) * 100;
+  const setsPct = Math.min(100, (sets / ceiling) * 100);
+  const barFill = sets >= min && sets <= max ? '#4ED9C0' : sets > max ? '#FF8A5B' : '#6E6EFF';
+  return (
+    <div className="b2-cov-progress">
+      <div className="b2-cp-bar">
+        <div className="b2-cp-band" style={{ left: `${minPct}%`, width: `${Math.max(0, maxPct - minPct)}%` }}/>
+        <div className="b2-cp-fill" style={{ width: `${setsPct}%`, background: barFill }}/>
+        <div className="b2-cp-marker" style={{ left: `calc(${setsPct}% - 7px)`, background: barFill }}/>
+      </div>
+      <div className="b2-cp-labels mono">
+        <span>0</span>
+        <span style={{ marginLeft: `${minPct - 3}%` }}>{min}</span>
+        <span style={{ marginLeft: `${maxPct - minPct - 6}%` }}>{max}</span>
+      </div>
     </div>
   );
 }
