@@ -28,12 +28,11 @@ export function Onboarding({ onDone }) {
   const [cardioMinStr, setCardioMinStr] = useState('');
   const [pickedTpl, setPickedTpl] = useState(null);
 
-  // Defaults applied at finish if the user leaves a field blank.
-  // v11.5 Issue 1: imperial height = decimal feet (e.g. 5.9). Float-parse.
+  // v11.6 Issue 1: imperial = whole inches (e.g. 70 = 5'10"). Min 36, max 96.
   const height = (() => {
     if (hUnit === 'cm') return parseInt(heightStr, 10) || 178;
-    const f = parseFloat(heightStr);
-    return Number.isFinite(f) && f > 0 ? f : 5.9;  // ~178 cm
+    const n = parseInt(heightStr, 10);
+    return Number.isFinite(n) && n > 0 ? n : 70;  // 70 in ≈ 178 cm
   })();
   const weight    = parseInt(weightStr, 10) || (wUnit === 'kg' ? 74  : 165);
   const age       = ageFromBirthday(birthday) || 22;
@@ -92,17 +91,19 @@ export function Onboarding({ onDone }) {
             <div className="stat-input-row"><span className="label">Height</span>
               <div className="unit-toggle">
                 <button className={hUnit==='cm'?'active':''} onClick={()=>setHUnit('cm')}>CM</button>
-                <button className={hUnit==='ft'?'active':''} onClick={()=>setHUnit('ft')}>FT</button>
+                <button className={hUnit==='in'?'active':''} onClick={()=>setHUnit('in')}>IN</button>
               </div>
             </div>
             <div className="big-number-input">
               <input
                 className="num"
                 type="number"
-                inputMode="decimal"
-                step={hUnit === 'cm' ? '1' : '0.1'}
+                inputMode="numeric"
+                step="1"
+                min={hUnit === 'cm' ? 80 : 36}
+                max={hUnit === 'cm' ? 240 : 96}
                 value={heightStr}
-                placeholder={hUnit === 'cm' ? '178' : '5.9'}
+                placeholder={hUnit === 'cm' ? '178' : '70'}
                 onChange={(e)=>setHeightStr(e.target.value)}
               />
               <span className="unit">{hUnit}</span>
