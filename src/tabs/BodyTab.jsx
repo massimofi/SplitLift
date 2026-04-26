@@ -200,7 +200,7 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
 
       {!focus && (
         <div className="b2-cov">
-          <Subheader>Weekly coverage</Subheader>
+          <Subheader subtitle="Sets per muscle group this week. Red = untrained, green = in target band.">Weekly coverage</Subheader>
           <div className="b2-cov-grid">
             {COV_KEYS.map(m => {
               const s = sets[m] || 0;

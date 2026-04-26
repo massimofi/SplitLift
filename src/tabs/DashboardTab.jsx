@@ -267,7 +267,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
 
   return (
     <div className="tab-pane dash-page">
-      <Subheader>Dashboard</Subheader>
+      <Subheader subtitle="Your week at a glance — sport match, lifting + cardio scores, and where to focus.">Dashboard</Subheader>
       <Card variant="subtle" size="md" style={{ marginBottom: 12 }}>
         <div className="dash-hero-top">
           <Card.Eyebrow>THIS WEEK</Card.Eyebrow>

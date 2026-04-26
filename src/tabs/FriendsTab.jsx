@@ -60,7 +60,7 @@ export default function FriendsTab({ profile, days, splitsByType }) {
   return (
     <div className="tab-pane fr-page">
       <div className="fr-bar">
-        <Subheader>Friends</Subheader>
+        <Subheader subtitle="Sorted by Sport Match Score. Tap a friend to compare your split with theirs.">Friends</Subheader>
         <button className="fr-add" onClick={()=>setInviteOpen(true)} aria-label="Invite friend">
           + Invite
         </button>

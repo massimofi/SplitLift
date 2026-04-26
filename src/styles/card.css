@@ -244,3 +244,18 @@
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
+
+/* When a Subheader has a subtitle, wrap both lines so we can collapse the
+   default top margin on the heading itself and keep predictable spacing. */
+.sl-subheader-block { margin: var(--space-6) 0 var(--space-3); }
+.sl-subheader-block > .sl-subheader { margin: 0; }
+.sl-subheader-sub {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);          /* 15px per v9 Issue 5 */
+  font-weight: 500;                      /* 500 — readable, not eyebrow-thin */
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  color: var(--ink-3);                   /* secondary text */
+  margin: 4px 0 0;
+  max-width: 56ch;
+}

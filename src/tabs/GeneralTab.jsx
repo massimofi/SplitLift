@@ -74,7 +74,7 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
         <div className="gh-sub">{liftDays} lift / wk · {cardioMin}m cardio planned</div>
       </div>
 
-      <Subheader>Inputs</Subheader>
+      <Subheader subtitle="The five inputs that drive your plan, calories, and heart-rate zones.">Inputs</Subheader>
       <div className="gen-grid">
         <Card variant="gradient" gradient="priority" size="md" interactive
               className="span-2" onClick={() => setSportOpen(true)}>
@@ -115,7 +115,7 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
         </Card>
       </div>
 
-      <Subheader gradient>Your numbers</Subheader>
+      <Subheader gradient subtitle="Auto-calculated from your inputs — Mifflin-St Jeor for BMR, Tanaka for HR.">Your numbers</Subheader>
       <div className="gen-grid">
         <Card variant="gradient" gradient="personal" size="md">
           <Card.Eyebrow>AGE</Card.Eyebrow>

@@ -126,7 +126,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
   return (
     <div className="tab-pane sched-page">
       <div className="sched-bar">
-        <Subheader>Your week</Subheader>
+        <Subheader subtitle="Drag a split or cardio onto a day. Tap a day to edit it in detail.">Your week</Subheader>
         <button className="presets-btn" onClick={()=>setPresetsOpen(true)}>Presets</button>
       </div>
 
