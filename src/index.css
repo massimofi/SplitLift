@@ -1348,15 +1348,20 @@
   .dac-x svg { width: 14px; height: 14px; }
 
   /* Presets bottom-sheet — modal, opens only on Presets tap */
+  /* v11.7 Issue 1: bottom-anchored sheets sit ABOVE the navbar and don't
+     extend behind the top header. Sheet content is bounded by
+     --sheet-max-height (defined in tokens.css). */
   .ps-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200;
     display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: var(--sheet-bottom-offset);
     animation: tabFade 180ms ease;
   }
   .ps-sheet {
     background: var(--bg); width: 100%; max-width: 420px;
-    border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
-    max-height: 85%; overflow-y: auto;
+    border-radius: 22px 22px 0 0; padding: 16px 16px 20px;
+    max-height: var(--sheet-max-height);
+    overflow-y: auto;
     animation: psSlideUp 240ms cubic-bezier(0.2,0.8,0.2,1);
   }
   @keyframes psSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
