@@ -33,7 +33,6 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
   };
 
   const sportLabel = SPORTS.find(s=>s.id===profile.sport)?.label || '';
-  // Make sure we always have a birthday — synthesise from legacy `age` once.
   const birthday = profile.birthday || birthdayFromAge(profile.age || 22);
   const age = ageFromBirthday(birthday) || 22;
   const setBirthday = (bday) => setProfile(p => ({ ...p, birthday: bday, age: ageFromBirthday(bday) || p.age }));

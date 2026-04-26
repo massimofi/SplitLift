@@ -1,5 +1,9 @@
-// Dashboard — scores, sport, under-worked muscles, weekly time, streak, body teaser.
+// Dashboard — scores, sport, under-worked muscles, weekly time.
 // Widgets are draggable; order persists in localStorage.
+//
+// v7 rebuild: every widget is a <Card variant="gradient" gradient="...">.
+// Gradient mapping is semantic: SMS uses score-based, Lift = energy,
+// Cardio = cardio, Sport = priority, Underworked = warning, Time = recovery.
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -13,15 +17,14 @@ import { computeCoverageV2, TARGETS_V2 } from '../components/Anatomy2D.jsx';
 import { currentSplitName } from '../lib/splits.js';
 import { useAnimatedNumber } from '../lib/useAnimatedNumber.js';
 import { IconX } from '../components/Icons.jsx';
+import { Card, gradFromScore } from '../components/Card.jsx';
+import { Subheader } from '../components/Subheader.jsx';
 
 // Sport Match Score — composite of priority-hit / cardio-match / balance.
-// Returns { score, priorityHit, cardioMatch, balance, prioMuscles, hitMuscles }.
 function sportMatchScore(profile, days, cardioDays, sport) {
   const cov = computeCoverageV2(days);
   const priority = sport.priority || {};
 
-  // 1. Priority hit %: muscles with priority weight >= 1.2 (sport-specific)
-  //    that land in the optimal coverage band.
   const prioKeys = Object.keys(priority).filter(k => priority[k] >= 1.2);
   let inBand = 0;
   const hitMuscles = [];
@@ -35,12 +38,10 @@ function sportMatchScore(profile, days, cardioDays, sport) {
   }
   const priorityHit = prioKeys.length > 0 ? inBand / prioKeys.length : 0.5;
 
-  // 2. Cardio match %: scheduled vs target.
   const scheduled = totalCardioMinutes(cardioDays);
   const target = profile.cardioMin || 90;
   const cardioMatch = target > 0 ? Math.min(scheduled / target, 1) : 0;
 
-  // 3. Balance %: penalize over-trained muscles.
   const muscleKeys = Object.keys(TARGETS_V2);
   let over = 0;
   for (const k of muscleKeys) {
@@ -53,29 +54,6 @@ function sportMatchScore(profile, days, cardioDays, sport) {
   const score = Math.round((priorityHit * 0.5 + cardioMatch * 0.25 + balance * 0.25) * 100);
   return { score, priorityHit, cardioMatch, balance, prioKeys, hitMuscles };
 }
-
-function smsColor(score) {
-  if (score >= 90) return '#00c896';
-  if (score >= 70) return '#4ED9C0';
-  if (score >= 40) return '#ffd93d';
-  return '#ff4444';
-}
-
-// Gradient palette per widget. Returns inline CSS vars consumed by .dw.gw.
-// Each widget's color leans into its data — score-driven for SMS, fixed
-// hue per category for the rest. Keeps dashboard visually distinct.
-function gwScore(score) {
-  if (score >= 90) return { '--gw-1': '#00c896', '--gw-2': '#4ED9C0', '--gw-base': '#0d4a3a' };
-  if (score >= 70) return { '--gw-1': '#4ED9C0', '--gw-2': '#19B6FF', '--gw-base': '#0d3a52' };
-  if (score >= 40) return { '--gw-1': '#ffd93d', '--gw-2': '#ff8c42', '--gw-base': '#5b3a0e' };
-  return { '--gw-1': '#ff4444', '--gw-2': '#ff8c42', '--gw-base': '#5b1313' };
-}
-const GW_QUICK   = { '--gw-1': '#5B5BFF', '--gw-2': '#9B5BFF', '--gw-base': '#1a1c5e' };
-const GW_LIFT    = { '--gw-1': '#FF8C42', '--gw-2': '#FFD93D', '--gw-base': '#5b3914' };
-const GW_CARDIO  = { '--gw-1': '#19B6FF', '--gw-2': '#5B5BFF', '--gw-base': '#0d3a5e' };
-const GW_SPORT   = { '--gw-1': '#9B5BFF', '--gw-2': '#FF6BD6', '--gw-base': '#3d1a5b' };
-const GW_UNDER   = { '--gw-1': '#FF5C8A', '--gw-2': '#7C2235', '--gw-base': '#3d0e1d' };
-const GW_TIME    = { '--gw-1': '#4ED9C0', '--gw-2': '#00c896', '--gw-base': '#0e3d35' };
 
 export function DashboardTab({ days, cardioDays, profile, setTab }) {
   const lift = useMemo(() => liftingScore(days, profile), [days, profile]);
@@ -90,8 +68,6 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
   const totalMin = liftMin + cardioMin;
   const trainingKcal = totalLiftKcal(days) + totalCardioKcal(cardioDays);
 
-  // Widget order. `figure` (rotating anatomy) and `streak` (faked streak) were
-  // dropped — Body tab and Dashboard's other cards already cover that ground.
   const allWidgets = ['sportscore','quick','lift','cardio','sport','underworked','time'];
   const ORDER_KEY = 'sl-dash-order';
   const [order, setOrder] = useState(() => {
@@ -100,10 +76,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          // Filter out any IDs that no longer exist (e.g. dropped 'figure' /
-          // 'streak') so old saved orders don't crash render.
           const cleaned = parsed.filter(x => allWidgets.includes(x));
-          // Append any new widgets that weren't in the saved order.
           for (const w of allWidgets) if (!cleaned.includes(w)) cleaned.push(w);
           return cleaned;
         }
@@ -130,8 +103,6 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
     setDragId(null); setHoverId(null);
   };
 
-  // Lift days planned this week. Used in the Dashboard hero ("You've got
-  // <N> lift days planned"). Replaces the old fake streak.
   const liftDaysPlanned = days.filter(d => !d.rest).length;
 
   const dayTimes = DAY_NAMES.map((_, i) => ({
@@ -141,166 +112,170 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
   }));
   const maxMin = Math.max(60, ...dayTimes.map(d => d.lift + d.cardio));
 
-  // ---- Sport match score (P4) ----
   const sms = useMemo(() => sportMatchScore(profile, days, cardioDays, sp), [profile, days, cardioDays, sp]);
   const animatedSms = useAnimatedNumber(sms.score, 800);
   const [smsOpen, setSmsOpen] = useState(false);
 
+  const heroGrade = gradeOf(Math.round(lift.score*0.6 + cardio.score*0.4));
+
   const widgets = {
     sportscore: () => (
-      <div className="dw gw" onClick={()=>setSmsOpen(true)} style={{ cursor: 'pointer', ...gwScore(sms.score) }}>
-        <div className="dw-head">
-          <div className="dw-t">Sport match · {sp.label}</div>
-          <div className="dw-pill mono">TAP FOR DETAIL</div>
+      <Card variant="gradient" gradient={gradFromScore(sms.score)} size="md" interactive onClick={()=>setSmsOpen(true)}>
+        <div className="dw-head-row">
+          <Card.Title>Sport match · {sp.label}</Card.Title>
+          <span className="dw-pill-grade">TAP FOR DETAIL</span>
         </div>
-        <div className="sms-big">
-          <div className="sms-num" style={{ color: smsColor(sms.score), borderColor: smsColor(sms.score) }}>
-            {Math.round(animatedSms)}
-          </div>
-          <div className="sms-units mono">/ 100</div>
+        <div className="dw-sms-num-row">
+          <div className="dw-sms-num">{Math.round(animatedSms)}</div>
+          <div className="dw-sms-units mono">/ 100</div>
         </div>
-        <div className="sms-bars">
+        <div className="dw-sms-bars">
           <SmsBar k="Priority" v={sms.priorityHit}/>
           <SmsBar k="Cardio"   v={sms.cardioMatch}/>
           <SmsBar k="Balance"  v={sms.balance}/>
         </div>
-      </div>
+      </Card>
     ),
     quick: () => (
-      <div className="dw gw" style={GW_QUICK}>
-        <div className="dw-head"><div className="dw-t">This week</div></div>
-        <div className="quick-row">
-          <div className="quick-tile">
-            <div className="qt-v"><AnimatedInt n={days.filter(d => !d.rest).length}/></div>
-            <div className="qt-k mono">LIFT DAYS</div>
-          </div>
-          <div className="quick-tile">
-            <div className="qt-v"><AnimatedInt n={cardioMin}/><span className="qt-u">m</span></div>
-            <div className="qt-k mono">CARDIO</div>
-          </div>
-          <div className="quick-tile">
-            <div className="qt-v"><AnimatedInt n={Math.round(totalMin/60)}/><span className="qt-u">h</span></div>
-            <div className="qt-k mono">TOTAL TIME</div>
-          </div>
+      <Card variant="gradient" gradient="info" size="md">
+        <div className="dw-head-row">
+          <Card.Title>This week</Card.Title>
         </div>
-      </div>
+        <div className="dw-quick-row">
+          <QuickTile v={days.filter(d => !d.rest).length} k="LIFT DAYS"/>
+          <QuickTile v={cardioMin} u="m" k="CARDIO"/>
+          <QuickTile v={Math.round(totalMin/60)} u="h" k="TOTAL TIME"/>
+        </div>
+      </Card>
     ),
     lift: () => (
-      <div className="dw gw" style={GW_LIFT}>
-        <div className="dw-head"><div className="dw-t">Lifting</div><div className="dw-grade" data-grade={gradeOf(lift.score)}>{gradeOf(lift.score)}</div></div>
-        <div className="dw-big">
-          <ScoreRing value={lift.score} size={84} stroke={9} color="var(--accent)"/>
+      <Card variant="gradient" gradient="energy" size="md">
+        <div className="dw-head-row">
+          <Card.Title>Lifting</Card.Title>
+          <span className="dw-pill-grade">{gradeOf(lift.score)}</span>
+        </div>
+        <div className="dw-big-row">
+          <ScoreRing value={lift.score} size={84} stroke={9}/>
           <div className="dw-stats">
-            <Stat k="Days planned" v={`${days.filter(d=>!d.rest).length}/${profile.days||4}`}/>
-            <Stat k="Sets in band" v={`${lift.inBand}/${lift.total}`}/>
-            <Stat k="Lift hours" v={`${(liftMin/60).toFixed(1)}h`}/>
+            <DStat k="Days planned" v={`${days.filter(d=>!d.rest).length}/${profile.days||4}`}/>
+            <DStat k="Sets in band" v={`${lift.inBand}/${lift.total}`}/>
+            <DStat k="Lift hours" v={`${(liftMin/60).toFixed(1)}h`}/>
           </div>
         </div>
         <div className="dw-bars">
-          <Bar k="Adherence" v={lift.adherence}/>
-          <Bar k="Coverage" v={lift.balance}/>
-          <Bar k="Volume" v={lift.timeScore}/>
+          <DBar k="Adherence" v={lift.adherence}/>
+          <DBar k="Coverage"  v={lift.balance}/>
+          <DBar k="Volume"    v={lift.timeScore}/>
         </div>
-      </div>
+      </Card>
     ),
     cardio: () => (
-      <div className="dw gw" style={GW_CARDIO}>
-        <div className="dw-head"><div className="dw-t">Cardio</div><div className="dw-grade" data-grade={gradeOf(cardio.score)}>{gradeOf(cardio.score)}</div></div>
-        <div className="dw-big">
-          <ScoreRing value={cardio.score} size={84} stroke={9} color="#19B6FF"/>
+      <Card variant="gradient" gradient="cardio" size="md">
+        <div className="dw-head-row">
+          <Card.Title>Cardio</Card.Title>
+          <span className="dw-pill-grade">{gradeOf(cardio.score)}</span>
+        </div>
+        <div className="dw-big-row">
+          <ScoreRing value={cardio.score} size={84} stroke={9}/>
           <div className="dw-stats">
-            <Stat k="Sessions" v={`${cardio.sessions}/3`}/>
-            <Stat k="Minutes" v={`${cardio.minutes}m`}/>
-            <Stat k="Variety" v={`${cardio.types} types`}/>
+            <DStat k="Sessions" v={`${cardio.sessions}/3`}/>
+            <DStat k="Minutes"  v={`${cardio.minutes}m`}/>
+            <DStat k="Variety"  v={`${cardio.types} types`}/>
           </div>
         </div>
         <div className="dw-bars">
-          <Bar k="Volume" v={cardio.minScore} c="#19B6FF"/>
-          <Bar k="Frequency" v={cardio.sessionScore} c="#19B6FF"/>
-          <Bar k="Variety" v={cardio.varietyScore} c="#19B6FF"/>
+          <DBar k="Volume"    v={cardio.minScore}/>
+          <DBar k="Frequency" v={cardio.sessionScore}/>
+          <DBar k="Variety"   v={cardio.varietyScore}/>
         </div>
-      </div>
+      </Card>
     ),
     sport: () => (
-      <div className="dw gw" style={GW_SPORT}>
-        <div className="dw-head"><div className="dw-t">Sport · {sp.label}</div><div className="dw-pill mono">{sp.daysHint}d/wk</div></div>
-        <div className="sport-card-body">
-          <div className="split-pill" style={{ '--bp': 'var(--accent)' }}>
-            <span className="sp-k mono">SPLIT</span>
-            <span className="sp-v">{splitName}</span>
-          </div>
-          <div className="sport-meta">{sp.sub}</div>
-          <div className="sport-prio">
-            {Object.entries(sp.priority || {}).slice(0, 6).map(([m,w]) => (
-              <div key={m} className="sp-pill" style={{ '--bp': `var(--bp-${m})` }}>
-                <span className="lbl">{MUSCLE_LABELS[m] || m}</span>
-                <span className="weight mono">×{w.toFixed(1)}</span>
-              </div>
-            ))}
-            {Object.keys(sp.priority || {}).length === 0 && <div className="sport-meta">Balanced — no muscle skewed.</div>}
-          </div>
+      <Card variant="gradient" gradient="priority" size="md">
+        <div className="dw-head-row">
+          <Card.Title>Sport · {sp.label}</Card.Title>
+          <span className="dw-pill-grade">{sp.daysHint}d/wk</span>
         </div>
-      </div>
+        <div className="dw-sport-split-pill">
+          <span className="k">SPLIT</span>
+          <span className="v">{splitName}</span>
+        </div>
+        <div className="dw-sport-meta">{sp.sub}</div>
+        <div className="dw-sport-prio">
+          {Object.entries(sp.priority || {}).slice(0, 6).map(([m,w]) => (
+            <span key={m} className="dw-sport-prio-chip">
+              <span>{MUSCLE_LABELS[m] || m}</span>
+              <span className="w">×{w.toFixed(1)}</span>
+            </span>
+          ))}
+          {Object.keys(sp.priority || {}).length === 0 && <div className="dw-sport-meta">Balanced — no muscle skewed.</div>}
+        </div>
+      </Card>
     ),
     underworked: () => (
-      <div className="dw gw" style={GW_UNDER}>
-        <div className="dw-head"><div className="dw-t">Under-worked</div><div className="dw-pill mono">{under.length}</div></div>
+      <Card variant="gradient" gradient="warning" size="md">
+        <div className="dw-head-row">
+          <Card.Title>Under-worked</Card.Title>
+          <span className="dw-pill-grade">{under.length}</span>
+        </div>
         {under.length === 0 ? (
-          <div className="empty-pill">All muscle groups in target band</div>
+          <div className="dw-under-empty">All muscle groups in target band</div>
         ) : (
-          <div className="under-list">
+          <div className="dw-under-list">
             {under.slice(0,5).map(u => (
-              <div key={u.key} className="under-row" style={{ '--bp': `var(--bp-${u.key})` }}>
-                <div className="ur-l">
-                  <div className="ur-name">{u.label}</div>
-                  <div className="ur-meta mono">{u.sets} sets · need +{u.gap}</div>
+              <div key={u.key} className="dw-under-row">
+                <div>
+                  <div className="dw-under-name">{u.label}</div>
+                  <div className="dw-under-meta">{u.sets} sets · need +{u.gap}</div>
                 </div>
-                <button className="ur-cta" onClick={()=>setTab('splits')}>Add →</button>
+                <button className="dw-under-cta" onClick={()=>setTab('splits')}>Add →</button>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </Card>
     ),
     time: () => (
-      <div className="dw gw" style={GW_TIME}>
-        <div className="dw-head"><div className="dw-t">Weekly time</div><div className="dw-pill mono">{Math.round(totalMin)}m</div></div>
-        <div className="time-chart">
+      <Card variant="gradient" gradient="recovery" size="md">
+        <div className="dw-head-row">
+          <Card.Title>Weekly time</Card.Title>
+          <span className="dw-pill-grade">{Math.round(totalMin)}m</span>
+        </div>
+        <div className="dw-time-chart">
           {dayTimes.map((d, i) => {
             const lh = (d.lift / maxMin) * 100;
             const ch = (d.cardio / maxMin) * 100;
             return (
-              <div key={i} className="tc-col">
-                <div className="tc-bars">
-                  <div className="tc-cardio" style={{ height: `${ch}%`}} title={`${d.cardio}m cardio`}/>
-                  <div className="tc-lift"   style={{ height: `${lh}%`}} title={`${d.lift}m lift`}/>
+              <div key={i} className="dw-tc-col">
+                <div className="dw-tc-bars">
+                  <div className="dw-tc-cardio" style={{ height: `${ch}%`}}/>
+                  <div className="dw-tc-lift"   style={{ height: `${lh}%`}}/>
                 </div>
-                <div className="tc-lbl mono">{d.name[0]}</div>
+                <div className="dw-tc-lbl">{d.name[0]}</div>
               </div>
             );
           })}
         </div>
-        <div className="tc-legend">
-          <span><i style={{background:'var(--accent)'}}/> Lift {liftMin}m</span>
-          <span><i style={{background:'#19B6FF'}}/> Cardio {cardioMin}m</span>
-          <span><i style={{background:'#FF8A5B'}}/> {trainingKcal} kcal</span>
+        <div className="dw-tc-legend">
+          <span><i style={{background:'rgba(255,255,255,0.95)'}}/> Lift {liftMin}m</span>
+          <span><i style={{background:'rgba(91,196,255,0.85)'}}/> Cardio {cardioMin}m</span>
+          <span>{trainingKcal} kcal</span>
         </div>
-      </div>
+      </Card>
     ),
   };
 
   return (
     <div className="tab-pane dash-page">
-      <div className="dash-hero">
-        <div className="dh-top">
-          <div className="dh-kicker mono">THIS WEEK</div>
-          <div className="dh-grade" data-grade={gradeOf(Math.round(lift.score*0.6 + cardio.score*0.4))}>
-            {gradeOf(Math.round(lift.score*0.6 + cardio.score*0.4))}
-          </div>
+      <Subheader>Dashboard</Subheader>
+      <Card variant="subtle" size="md" style={{ marginBottom: 12 }}>
+        <div className="dash-hero-top">
+          <Card.Eyebrow>THIS WEEK</Card.Eyebrow>
+          <span className="dash-hero-grade">{heroGrade}</span>
         </div>
-        <div className="dh-h1"><b>{liftDaysPlanned}</b> lift {liftDaysPlanned === 1 ? 'day' : 'days'} planned.</div>
-        <div className="dh-sub">{coachLine(lift.score, cardio.score, under.length)}</div>
-      </div>
+        <div className="dash-hero-h"><b>{liftDaysPlanned}</b> lift {liftDaysPlanned === 1 ? 'day' : 'days'} planned.</div>
+        <Card.Sub>{coachLine(lift.score, cardio.score, under.length)}</Card.Sub>
+      </Card>
 
       <div className="widget-grid">
         {order.map(id => (
@@ -312,7 +287,13 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
             onDrop={()=>onWDrop(id)}
             onDragEnd={()=>{setDragId(null); setHoverId(null);}}
           >
-            <button className="w-grip" title="Drag to reorder"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="9" cy="6" r="0.6"/><circle cx="15" cy="6" r="0.6"/><circle cx="9" cy="12" r="0.6"/><circle cx="15" cy="12" r="0.6"/><circle cx="9" cy="18" r="0.6"/><circle cx="15" cy="18" r="0.6"/></svg></button>
+            <button className="w-grip" title="Drag to reorder" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                <circle cx="9" cy="6" r="0.6"/><circle cx="15" cy="6" r="0.6"/>
+                <circle cx="9" cy="12" r="0.6"/><circle cx="15" cy="12" r="0.6"/>
+                <circle cx="9" cy="18" r="0.6"/><circle cx="15" cy="18" r="0.6"/>
+              </svg>
+            </button>
             {widgets[id]()}
           </div>
         ))}
@@ -375,55 +356,66 @@ function coachLine(lift, cardio, underN) {
   return 'Solid plan, small gaps to plug. Tweak below.';
 }
 
-function ScoreRing({ value, size = 110, stroke = 10, color }) {
+function ScoreRing({ value, size = 110, stroke = 10 }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const [animV, setAnimV] = useState(0);
   useEffect(() => { const t = setTimeout(() => setAnimV(value), 80); return () => clearTimeout(t); }, [value]);
   const animDash = c * (animV / 100);
-  const stroke1 = color || 'var(--accent)';
   return (
-    <div className="ring-wrap" style={{ width: size, height: size }}>
+    <div className="dw-ring-wrap" style={{ width: size, height: size }}>
       <svg width={size} height={size}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="color-mix(in oklab, var(--ink) 8%, transparent)" strokeWidth={stroke}/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={stroke1} strokeWidth={stroke}
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.20)" strokeWidth={stroke}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--text-on-gradient)" strokeWidth={stroke}
           strokeLinecap="round" strokeDasharray={`${animDash} ${c-animDash}`} transform={`rotate(-90 ${size/2} ${size/2})`}
           style={{ transition: 'stroke-dasharray 1.1s cubic-bezier(.2,.8,.2,1)' }}/>
       </svg>
-      <div className="ring-num" style={{ fontSize: size*0.32 }}>{Math.round(animV)}</div>
+      <div className="dw-ring-num" style={{ fontSize: size*0.32 }}>{Math.round(animV)}</div>
     </div>
   );
 }
 
-function Stat({ k, v }) {
-  return <div className="ds"><div className="ds-k mono">{k}</div><div className="ds-v">{v}</div></div>;
+function DStat({ k, v }) {
+  return (
+    <div className="dw-stat">
+      <span className="dw-stat-k mono">{k}</span>
+      <span className="dw-stat-v">{v}</span>
+    </div>
+  );
 }
 
-function Bar({ k, v, c }) {
+function DBar({ k, v }) {
   return (
-    <div className="db">
-      <div className="db-h"><span>{k}</span><span className="mono">{Math.round(v*100)}%</span></div>
-      <div className="db-tr"><div className="db-fl" style={{ width:`${v*100}%`, background: c || 'var(--accent)' }}/></div>
+    <div className="dw-bar">
+      <div className="dw-bar-h"><span>{k}</span><span className="mono">{Math.round(v*100)}%</span></div>
+      <div className="dw-bar-tr"><div className="dw-bar-fl" style={{ width:`${v*100}%` }}/></div>
     </div>
   );
 }
 
 function SmsBar({ k, v }) {
   const pct = Math.round(v * 100);
-  const color = smsColor(pct);
   return (
-    <div className="sms-bar">
-      <div className="sms-bar-h">
-        <span>{k}</span><span className="mono" style={{ color }}>{pct}%</span>
+    <div className="dw-sms-bar">
+      <div className="dw-sms-bar-h">
+        <span>{k}</span><span className="mono">{pct}%</span>
       </div>
-      <div className="sms-bar-tr">
-        <div className="sms-bar-fl" style={{ width: `${pct}%`, background: color }}/>
+      <div className="dw-sms-bar-tr">
+        <div className="dw-sms-bar-fl" style={{ width: `${pct}%`, background: 'var(--text-on-gradient)' }}/>
       </div>
     </div>
   );
 }
 
-function AnimatedInt({ n }) {
-  const v = useAnimatedNumber(n, 600);
-  return <span>{Math.round(v)}</span>;
+function QuickTile({ v, u, k }) {
+  const anim = useAnimatedNumber(v, 600);
+  return (
+    <div className="dw-quick-tile">
+      <div className="dw-quick-v">
+        {Math.round(anim)}
+        {u && <span className="dw-quick-u">{u}</span>}
+      </div>
+      <div className="dw-quick-k">{k}</div>
+    </div>
+  );
 }

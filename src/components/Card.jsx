@@ -14,11 +14,21 @@
 
 import React from 'react';
 
+// Map a 0–100 score to a semantic gradient name. Use as
+//   <Card variant="gradient" gradient={gradFromScore(82)}>
+export function gradFromScore(score) {
+  if (score >= 85) return 'score-great';
+  if (score >= 65) return 'score-good';
+  if (score >= 40) return 'score-mid';
+  return 'score-poor';
+}
+
 export function Card({
   variant = 'surface',
   gradient = 'priority',
   size = 'md',
   interactive = false,
+  glow = false,
   as,
   className = '',
   style,
@@ -39,6 +49,7 @@ export function Card({
       data-grad={variant === 'gradient' ? gradient : undefined}
       data-size={size}
       data-interactive={isInteractive ? 'true' : undefined}
+      data-glow={glow ? 'true' : undefined}
       onClick={onClick}
       style={{ ...buttonReset, ...style }}
       {...rest}

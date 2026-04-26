@@ -15,15 +15,8 @@ import { ExerciseGif } from '../components/ExerciseGif.jsx';
 import { AnatomyBody } from '../components/AnatomyBody.jsx';
 import { Target } from 'lucide-react';
 import { Subheader } from '../components/Subheader.jsx';
-
-// Coverage-status gradient palettes for the muscle coverage list cards.
-const COV_GRAD = {
-  unworked: { '--gw-1':'#666880', '--gw-2':'#444663', '--gw-base':'#1f2238' },
-  under:    { '--gw-1':'#FF8C42', '--gw-2':'#FF4444', '--gw-base':'#5b1e0e' },
-  optimal:  { '--gw-1':'#4ED9C0', '--gw-2':'#00c896', '--gw-base':'#0e3d35' },
-  over:     { '--gw-1':'#FF8A5B', '--gw-2':'#FF6BD6', '--gw-base':'#5b1e2c' },
-  unknown:  { '--gw-1':'#666880', '--gw-2':'#444663', '--gw-base':'#1f2238' },
-};
+import { Card, gradFromScore } from '../components/Card.jsx';
+import { Toggle as SLToggle } from '../components/Toggle.jsx';
 
 function statusFromCoverage(sets, target) {
   if (!target) return 'unknown';
@@ -31,6 +24,19 @@ function statusFromCoverage(sets, target) {
   if (sets < target.min) return 'under';
   if (sets <= target.max) return 'optimal';
   return 'over';
+}
+
+// Map a coverage status to a numeric "score" (0-100), so the coverage card
+// can pick a semantic score gradient via gradFromScore().
+function scoreFromStatus(status) {
+  switch (status) {
+    case 'optimal':  return 92;
+    case 'over':     return 55;
+    case 'under':    return 35;
+    case 'unworked':
+    case 'unknown':
+    default:         return 10;
+  }
 }
 
 export default function BodyTab({ days, onAddExercise, setTab, profile, splitsByType, setSplitsByType, setSplitsActiveType, showToast }) {
@@ -142,16 +148,29 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
   return (
     <div className={`tab-pane body2 ${focus ? 'is-zoomed' : ''}`}>
       <div className="b2-toolbar">
-        <div className="fb-toggle">
-          <div className="fb-pill" style={{ transform: `translateX(${view==='back' ? 100 : 0}%)` }}/>
-          <button className={view==='front'?'on':''} onClick={()=>setView('front')}>Front</button>
-          <button className={view==='back'?'on':''} onClick={()=>setView('back')}>Back</button>
-        </div>
+        <SLToggle
+          value={view}
+          onChange={setView}
+          size="md"
+          options={[{value:'front', label:'Front'},{value:'back', label:'Back'}]}
+        />
       </div>
-      <button className={`weak-spots-btn ${tourActive ? 'active' : ''}`} onClick={startTour} disabled={tourActive}>
-        <Target size={20} strokeWidth={2.4}/>
-        <span>Find My Weak Spots</span>
-      </button>
+      <Card
+        variant="gradient"
+        gradient="priority"
+        size="md"
+        interactive
+        onClick={tourActive ? undefined : startTour}
+        aria-disabled={tourActive}
+        style={{ marginBottom: 8, opacity: tourActive ? 0.7 : 1 }}
+      >
+        <div className="weak-spots-card-inner">
+          <Target size={22} strokeWidth={2.4}/>
+          <span className="weak-spots-card-label">
+            {tourActive ? 'Touring weak spots…' : 'Find My Weak Spots'}
+          </span>
+        </div>
+      </Card>
 
       <div className={`b2-stage stage-svg ${focus ? 'zoomed' : ''}`}>
         {focus && (
@@ -181,18 +200,18 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
               const s = sets[m] || 0;
               const t = TARGETS_V2[m];
               const st = statusFromCoverage(s, t);
-              const colorKey = m === 'biceps' ? 'bis'
-                             : m === 'triceps' ? 'tris'
-                             : (m === 'lats' || m === 'traps' || m === 'rear_delt' || m === 'lower_back') ? 'back'
-                             : (m === 'abs' || m === 'obliques') ? 'core'
-                             : m;
               return (
-                <button key={m} className={`b2-cov-cell gw status-${st}`}
-                  style={{ '--bp': `var(--bp-${colorKey})`, ...(COV_GRAD[st] || COV_GRAD.unknown) }}
-                  onClick={() => setFocus(m)}>
-                  <div className="m">{MUSCLE_LABELS_V2[m] || m}</div>
-                  <div className="s mono">{s} sets</div>
-                </button>
+                <Card
+                  key={m}
+                  variant="gradient"
+                  gradient={gradFromScore(scoreFromStatus(st))}
+                  size="sm"
+                  interactive
+                  onClick={() => setFocus(m)}
+                >
+                  <div className="b2-cov-cell-name">{MUSCLE_LABELS_V2[m] || m}</div>
+                  <div className="b2-cov-cell-sets">{s} sets</div>
+                </Card>
               );
             })}
           </div>

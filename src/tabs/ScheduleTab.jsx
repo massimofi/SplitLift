@@ -7,37 +7,32 @@ import {
   cardioFor, cardioHRZone,
 } from '../data/exercises.js';
 import { Sparkles } from 'lucide-react';
-
-// Per-day-type gradient palettes consumed by .sched-row via inline CSS vars.
-// Same vibe as Dashboard widgets — different hue per category so the week
-// is visually scannable at a glance.
-const SCHED_GRAD = {
-  push:     { '--sg-1':'#FF5C8A', '--sg-2':'#FF4444', '--sg-base':'#5b1322' }, // rose → red
-  pull:     { '--sg-1':'#19B6FF', '--sg-2':'#5B5BFF', '--sg-base':'#0e2e5e' }, // blue → indigo
-  legs:     { '--sg-1':'#9B5BFF', '--sg-2':'#7C5BFF', '--sg-base':'#2c1a5b' }, // purple → violet
-  upper:    { '--sg-1':'#FFD93D', '--sg-2':'#FF8C42', '--sg-base':'#5b3914' }, // amber → orange
-  lower:    { '--sg-1':'#4ED9C0', '--sg-2':'#00c896', '--sg-base':'#0e3d35' }, // teal → green
-  full:     { '--sg-1':'#19B6FF', '--sg-2':'#5BC4FF', '--sg-base':'#0d3a5e' }, // cyan → sky
-  chest:    { '--sg-1':'#FF4444', '--sg-2':'#FF6BD6', '--sg-base':'#5b1322' }, // red → pink
-  back:     { '--sg-1':'#19B6FF', '--sg-2':'#4ED9C0', '--sg-base':'#0e3d52' }, // blue → cyan
-  shoulder: { '--sg-1':'#FF8C42', '--sg-2':'#FFD93D', '--sg-base':'#5b3914' }, // orange → yellow
-  shoul:    { '--sg-1':'#FF8C42', '--sg-2':'#FFD93D', '--sg-base':'#5b3914' },
-  arms:     { '--sg-1':'#9B5BFF', '--sg-2':'#FF6BD6', '--sg-base':'#3d1a5b' }, // purple → fuchsia
-  bis:      { '--sg-1':'#9B5BFF', '--sg-2':'#FF6BD6', '--sg-base':'#3d1a5b' },
-  tris:     { '--sg-1':'#9B5BFF', '--sg-2':'#FF6BD6', '--sg-base':'#3d1a5b' },
-  quads:    { '--sg-1':'#9B5BFF', '--sg-2':'#7C5BFF', '--sg-base':'#2c1a5b' },
-  hams:     { '--sg-1':'#7C5BFF', '--sg-2':'#5B5BFF', '--sg-base':'#1f1a5b' },
-  glutes:   { '--sg-1':'#A86CFF', '--sg-2':'#9B5BFF', '--sg-base':'#3d1a5b' },
-  calves:   { '--sg-1':'#C09BFF', '--sg-2':'#9B5BFF', '--sg-base':'#3d1a5b' },
-  core:     { '--sg-1':'#00c896', '--sg-2':'#7CD96B', '--sg-base':'#0e3d2a' }, // green → lime
-  cardio:   { '--sg-1':'#19B6FF', '--sg-2':'#5B5BFF', '--sg-base':'#0e2e5e' }, // cyan → blue
-  sport:    { '--sg-1':'#00c896', '--sg-2':'#4ED9C0', '--sg-base':'#0e3d2a' }, // green → emerald
-  rest:     { '--sg-1':'transparent', '--sg-2':'transparent', '--sg-base':'#3a3d52' },
-  custom:   { '--sg-1':'#8C8CFF', '--sg-2':'#A0A0FF', '--sg-base':'#2a2c5c' },
-};
 import { SPLIT_TEMPLATES, planForSport, rankTemplatesForSport } from '../data/templates.js';
 import { makeDayForType, splitsByTypeFromDays } from '../lib/splits.js';
 import { IconLock, IconX, IconTrash, IconPlus } from '../components/Icons.jsx';
+import { Card } from '../components/Card.jsx';
+import { Subheader } from '../components/Subheader.jsx';
+import { Chip } from '../components/Chip.jsx';
+
+// Map any day-type id to one of the Card gradient names defined in tokens.css.
+// All exotic per-muscle types fold back into the closest broad category.
+function gradForDayType(t) {
+  switch (t) {
+    case 'push': case 'chest':                                 return 'push';
+    case 'pull': case 'back':                                  return 'pull';
+    case 'legs': case 'quads': case 'hams': case 'glutes': case 'calves': return 'legs';
+    case 'shoul': case 'shoulder':                             return 'shoul';
+    case 'arms': case 'bis': case 'tris':                      return 'personal';
+    case 'core':                                               return 'success';
+    case 'cardio':                                             return 'cardio-day';
+    case 'sport':                                              return 'sport';
+    case 'upper':                                              return 'upper';
+    case 'lower':                                              return 'lower';
+    case 'full':                                               return 'full';
+    case 'rest':                                               return 'rest';
+    default:                                                   return 'custom';
+  }
+}
 
 export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, setLocked, profile, showToast, onJumpToSplits, splitsByType, setSplitsByType }) {
   const [presetsOpen, setPresetsOpen] = useState(false);
@@ -131,39 +126,48 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
   return (
     <div className="tab-pane sched-page">
       <div className="sched-bar">
-        <div className="sched-h1">Your week</div>
+        <Subheader>Your week</Subheader>
         <button className="presets-btn" onClick={()=>setPresetsOpen(true)}>Presets</button>
       </div>
 
       <div className="sched-layout">
         <div className="sched-palette">
-          <div className="sp-h mono">SPLIT</div>
+          <div className="sched-palette-head">SPLIT</div>
           {splitChips.map(p => {
             const dt = DAY_TYPES[p];
             if (!dt) return null;
             return (
-              <button key={p} className="sp-chip"
-                style={{ '--bp': `var(--bp-${p})` }}
+              <Chip
+                key={p}
+                gradient={gradForDayType(p)}
+                size="md"
+                role="button"
+                tabIndex={0}
                 onMouseDown={(e)=>startDrag(e, { kind:'split', id:p })}
                 onTouchStart={(e)=>startDrag(e, { kind:'split', id:p })}
-                onClick={()=>onJumpToSplits && onJumpToSplits(p)}>
+                onClick={()=>onJumpToSplits && onJumpToSplits(p)}
+                style={{ cursor: 'grab', justifyContent: 'center' }}
+              >
                 {dt.label}
-              </button>
+              </Chip>
             );
           })}
-          <div className="sp-h mono">CARDIO</div>
-          {cardioChips.map(c => {
-            const tcol = CARDIO_TYPES[c.type]?.color;
-            return (
-              <button key={c.id} className="sp-chip cardio"
-                style={{ '--bp': tcol || 'var(--ink-3)' }}
-                onMouseDown={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
-                onTouchStart={(e)=>startDrag(e, { kind:'cardio', id:c.id })}>
-                <span className="sp-c-name">{CARDIO_TYPES[c.type]?.label || c.name}</span>
-                <span className="sp-c-meta mono">{c.dur}m</span>
-              </button>
-            );
-          })}
+          <div className="sched-palette-head">CARDIO</div>
+          {cardioChips.map(c => (
+            <Chip
+              key={c.id}
+              gradient="cardio-day"
+              size="md"
+              role="button"
+              tabIndex={0}
+              onMouseDown={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
+              onTouchStart={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
+              style={{ cursor: 'grab', justifyContent: 'space-between', width: '100%' }}
+            >
+              <span>{CARDIO_TYPES[c.type]?.label || c.name}</span>
+              <span className="mono" style={{ opacity: 0.85, fontSize: '0.85em' }}>{c.dur}m</span>
+            </Chip>
+          ))}
         </div>
 
         <div className="sched-rows">
@@ -178,38 +182,46 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
             const isHover = hoverIdx === i;
 
             return (
-              <button key={i} data-sched-day={i}
-                className={`sched-row ${isToday?'today':''} ${isLocked?'locked':''} ${isRest?'is-rest':''} ${isHover?'is-hover':''}`}
-                style={{ '--bp': `var(--bp-${t})`, ...(SCHED_GRAD[t] || SCHED_GRAD.custom) }}
-                onClick={() => setPickFor(i)}>
-                <div className="sr-day">
-                  <div className="sr-d mono">{dn.toUpperCase()}</div>
-                  {isToday && <span className="sr-today-tag mono">TODAY</span>}
+              <Card
+                key={i}
+                variant={isRest ? 'surface' : 'gradient'}
+                gradient={gradForDayType(t)}
+                size="row"
+                interactive
+                glow={isToday}
+                onClick={() => setPickFor(i)}
+                className={isHover ? 'is-drop-hover' : ''}
+                data-sched-day={i}
+              >
+                <div className="sl-card-row">
+                  <div className="sched-row-day">
+                    <div className="sched-row-d mono">{dn.toUpperCase()}</div>
+                    {isToday && <span className="sched-today-tag mono">TODAY</span>}
+                  </div>
+                  <div className="sl-card-row-body sched-row-mid">
+                    <div className="sched-row-type">{dt.label}</div>
+                    {cItems.length > 0 ? (
+                      <div className="sched-row-cardios">
+                        {cItems.slice(0, 3).map((cid, k) => {
+                          const c = cardioFor(cid);
+                          return (
+                            <span key={k} className="sched-row-cardio-pill">
+                              {c?.dur || 0}m
+                            </span>
+                          );
+                        })}
+                        {cItems.length > 3 && <span className="sched-row-cardio-pill">+{cItems.length - 3}</span>}
+                      </div>
+                    ) : (
+                      <div className="sched-row-sub">{dt.sub}</div>
+                    )}
+                  </div>
+                  <div className="sl-card-row-right sched-row-right">
+                    {isLocked && <span className="sched-row-chev"><IconLock/></span>}
+                    <span className="sched-row-chev" aria-hidden="true">›</span>
+                  </div>
                 </div>
-                <div className="sr-mid">
-                  <div className="sr-type">{dt.label}</div>
-                  {cItems.length > 0 ? (
-                    <div className="sr-cardios">
-                      {cItems.slice(0, 3).map((cid, k) => {
-                        const c = cardioFor(cid);
-                        const col = c && CARDIO_TYPES[c.type]?.color;
-                        return (
-                          <span key={k} className="sr-c-pill" style={{ background: col || 'var(--ink-3)' }}>
-                            {c?.dur || 0}m
-                          </span>
-                        );
-                      })}
-                      {cItems.length > 3 && <span className="sr-c-pill more mono">+{cItems.length - 3}</span>}
-                    </div>
-                  ) : (
-                    <div className="sr-sub">{dt.sub}</div>
-                  )}
-                </div>
-                <div className="sr-right">
-                  {isLocked && <span className="sr-lock"><IconLock/></span>}
-                  <span className="sr-chev" aria-hidden="true">›</span>
-                </div>
-              </button>
+              </Card>
             );
           })}
         </div>

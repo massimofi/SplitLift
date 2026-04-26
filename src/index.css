@@ -1239,15 +1239,9 @@
     .ps-sheet { animation: none !important; transition: none !important; }
   }
 
-  /* ============== SCHEDULE TAB ============== */
-  .sched-page { padding: 8px 16px 24px; }
-
-  /* Schedule top bar — title left, Presets button right */
-  .sched-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 4px 0 12px;
-  }
-  .sched-h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.025em; }
+  /* ============== SCHEDULE TAB ==============
+     .sched-page / .sched-bar / .sched-h1 layout lives in styles/screens.css.
+     Day rows are now <Card> — see styles/screens.css for the row helpers. */
   .presets-btn {
     min-height: 44px; padding: 0 16px;
     background: var(--bg-2); border: 1.5px solid var(--hair);
@@ -1273,108 +1267,8 @@
   .tpl-mini { display: flex; gap: 3px; }
   .tpl-cell { width: 14px; height: 14px; border-radius: 4px; }
 
-  /* Schedule — left chip palette + big day boxes. Drag chips, or tap a box. */
-  .sched-layout {
-    display: grid;
-    grid-template-columns: 92px 1fr;
-    gap: 10px;
-  }
-  .sched-palette {
-    display: flex; flex-direction: column; gap: 12px;
-    align-self: start;
-    position: sticky; top: 6px;
-  }
-  .sp-h {
-    font-size: 9px; color: var(--ink-3);
-    letter-spacing: 0.14em; text-align: center;
-    margin: 6px 0 2px;
-  }
-  .sp-h:first-child { margin-top: 0; }
-  .sp-chip {
-    min-height: 56px; padding: 8px 6px;
-    border-radius: 12px;
-    background: color-mix(in oklab, var(--bp) 22%, var(--bg-2));
-    border: 1.5px solid color-mix(in oklab, var(--bp) 45%, transparent);
-    color: var(--ink); font-weight: 700; font-size: 12px;
-    font-family: inherit;
-    cursor: grab; touch-action: none; user-select: none;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-    text-align: center;
-  }
-  .sp-chip:active { cursor: grabbing; transform: scale(0.95); }
-  .sp-chip.cardio { font-size: 11px; min-height: 50px; }
-  .sp-chip .sp-c-name { line-height: 1.1; }
-  .sp-chip .sp-c-meta {
-    font-size: 9px; color: var(--ink-3);
-    background: var(--bg); padding: 1px 5px; border-radius: 999px;
-  }
-
-  /* Schedule day rows — Splits-card pattern: rounded, full-bleed left accent,
-     generous padding, ≥80px touch target, today gets a soft glow ring. */
-  .sched-rows { display: flex; flex-direction: column; gap: 12px; }
-  .sched-row {
-    display: flex; align-items: center; gap: 14px;
-    width: 100%; min-height: 88px;
-    padding: 14px 16px;
-    border-radius: 14px;
-    background: color-mix(in oklab, var(--bp) 14%, var(--bg-2));
-    border: 1px solid color-mix(in oklab, var(--bp) 22%, transparent);
-    border-left: 6px solid var(--bp);
-    text-align: left; cursor: pointer; font-family: inherit; color: var(--ink);
-    transition: transform 140ms ease, border-color 140ms ease, box-shadow 200ms ease;
-  }
-  .sched-row:active { transform: scale(0.99); }
-  .sched-row.today {
-    box-shadow:
-      0 0 0 2px var(--accent),
-      0 8px 24px color-mix(in oklab, var(--accent) 28%, transparent);
-  }
-  .sched-row.is-hover {
-    transform: scale(1.02);
-    box-shadow:
-      0 0 0 2px var(--accent),
-      0 14px 32px color-mix(in oklab, var(--accent) 38%, transparent);
-  }
-  .sched-row.locked { opacity: 0.78; }
-  .sched-row.is-rest {
-    background: var(--bg-2);
-    border-color: var(--hair);
-    border-left-color: var(--ink-4);
-    opacity: 0.78;
-  }
-  .sched-row.is-rest .sr-type { color: var(--ink-3); font-weight: 600; }
-  .sched-row .sr-day {
-    width: 56px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px;
-  }
-  .sched-row .sr-d {
-    font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--ink-2);
-  }
-  .sched-row .sr-today-tag {
-    font-size: 8px; font-weight: 700; letter-spacing: 0.12em;
-    background: var(--accent); color: var(--on-accent);
-    padding: 2px 5px; border-radius: 999px; align-self: flex-start;
-  }
-  .sched-row .sr-mid {
-    flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;
-  }
-  .sched-row .sr-type { font-size: 16px; font-weight: 800; letter-spacing: -0.015em; }
-  .sched-row .sr-sub { font-size: 11px; color: var(--ink-3); }
-  .sched-row .sr-cardios { display: flex; gap: 4px; flex-wrap: wrap; }
-  .sched-row .sr-c-pill {
-    font-family: var(--font-mono);
-    font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
-    padding: 2px 7px; border-radius: 999px;
-    color: white;
-  }
-  .sched-row .sr-c-pill.more {
-    background: var(--bg-3); color: var(--ink-2);
-  }
-  .sched-row .sr-right {
-    display: flex; align-items: center; gap: 6px; color: var(--ink-3);
-    flex-shrink: 0;
-  }
-  .sched-row .sr-lock svg { width: 14px; height: 14px; }
-  .sched-row .sr-chev { font-size: 22px; line-height: 1; color: var(--ink-3); }
+  /* Schedule .sched-layout / .sched-palette / .sched-rows live in screens.css.
+     Day rows are <Card>. Palette is <Chip>. */
   /* DayPickerSheet — re-uses .ps-overlay / .ps-sheet from earlier */
   .dp-grid {
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1608,89 +1502,8 @@
   }
   .gh-sub { font-size: var(--text-sm); color: var(--ink-3); margin-top: 4px; font-family: var(--font-mono); letter-spacing: 0.04em; }
 
-  .gen-section-h {
-    font-size: 11px; color: var(--ink-3); font-family: var(--font-mono);
-    letter-spacing: 0.12em; text-transform: uppercase;
-    margin: 18px 2px 10px;
-  }
-
-  .gen-grid {
-    display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
-    gap: 8px;
-  }
-  .gen-grid.computed { grid-template-columns: repeat(2, minmax(0,1fr)); }
-
-  .gen-tile {
-    background: var(--bg-2); border-radius: 14px;
-    padding: 12px 14px;
-    display: flex; flex-direction: column; gap: 6px;
-    border: 1px solid var(--hair);
-    text-align: left; font-family: inherit; color: var(--ink);
-    cursor: default;
-    min-height: 90px;
-  }
-  .gen-tile.span-2 { grid-column: span 2; }
-  .gen-tile.read { background: color-mix(in oklab, var(--ink) 5%, var(--bg-2)); }
-  .gen-tile.sport { cursor: pointer; }
-  .gen-tile.sport:active { transform: scale(0.99); }
-
-  .gt-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .gt-label {
-    font-size: 9.5px; color: var(--ink-3);
-    letter-spacing: 0.12em;
-  }
-  .gt-value {
-    font-size: 22px; font-weight: 800; letter-spacing: -0.025em;
-    color: var(--ink); line-height: 1.05;
-  }
-  .gt-unit {
-    font-size: 11px; color: var(--ink-3); margin-left: 4px;
-    font-family: var(--font-mono); font-weight: 600;
-    letter-spacing: 0;
-  }
-  .gt-sub { font-size: 10.5px; color: var(--ink-3); }
-  .gt-chev { font-size: 22px; color: var(--ink-3); line-height: 1; }
-
-  .gt-step {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
-    margin-top: auto;
-  }
-  .gt-step-btn {
-    min-height: 44px; border-radius: 10px;
-    border: 1px solid var(--hair); background: var(--bg);
-    font-family: inherit; font-weight: 700; font-size: 18px;
-    color: var(--ink); cursor: pointer;
-  }
-  .gt-step-btn:active { transform: scale(0.94); background: var(--bg-3); }
-
-  .gt-unit-toggle {
-    display: inline-flex; gap: 2px; padding: 2px;
-    background: var(--bg); border-radius: 8px;
-  }
-  .gt-unit-toggle button {
-    min-height: 26px; padding: 4px 10px; border-radius: 6px;
-    background: transparent; border: none; cursor: pointer;
-    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
-    color: var(--ink-3); letter-spacing: 0.06em;
-  }
-  .gt-unit-toggle button.on { background: var(--ink); color: var(--bg); }
-
-  .gt-seg {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
-    margin-top: 6px;
-  }
-  .gt-seg.four { grid-template-columns: repeat(2, 1fr); }
-  .gt-seg.four button { font-size: 11.5px; }
-  .gt-seg button {
-    min-height: 44px; border-radius: 10px;
-    border: 1.5px solid var(--hair); background: var(--bg);
-    font-family: inherit; font-weight: 700; font-size: 12px;
-    color: var(--ink); cursor: pointer;
-  }
-  .gt-seg button.on {
-    background: var(--ink); color: var(--bg); border-color: var(--ink);
-  }
-  .gt-seg button:active { transform: scale(0.97); }
+  /* GeneralTab gen-tile / gt-* classes deleted — replaced by <Card>.
+     Section headers use <Subheader>. Layout helpers in styles/screens.css. */
 
   /* ============== SPLITS TAB (per-day-type editor) ============== */
   .splits-page { padding: 8px 16px 96px; }
@@ -1828,48 +1641,8 @@
     display: grid; place-items: center;
   }
   .w-grip:active { cursor: grabbing; }
-  .dw {
-    background: var(--bg-2); border: 1px solid var(--hair); border-radius: 16px;
-    padding: 16px; transition: box-shadow 160ms ease;
-  }
-  .dw-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-right: 32px; }
-  .dw-t { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
-  .dw-grade {
-    width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
-    font-weight: 800; font-size: 13px;
-  }
-  .dw-grade[data-grade="A"] { background: color-mix(in oklab, var(--accent) 22%, transparent); color: var(--accent); }
-  .dw-grade[data-grade="B"] { background: color-mix(in oklab, #19B6FF 22%, transparent); color: #19B6FF; }
-  .dw-grade[data-grade="C"] { background: color-mix(in oklab, #FFB344 24%, transparent); color: #C77900; }
-  .dw-grade[data-grade="D"], .dw-grade[data-grade="F"] { background: color-mix(in oklab, #FF5C8A 22%, transparent); color: #FF5C8A; }
-  .dw-pill {
-    padding: 6px 10px; border-radius: 8px; background: color-mix(in oklab, var(--ink) 8%, transparent);
-    font-size: 11px; color: var(--ink-2); border: none; cursor: pointer;
-  }
-  .dw-big { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
-  .dw-stats { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-  .ds { display: flex; justify-content: space-between; align-items: baseline; }
-  .ds-k { font-size: 10px; letter-spacing: 0.08em; color: var(--ink-3); }
-  .ds-v { font-size: 13px; font-weight: 600; }
-  .dw-bars { display: flex; flex-direction: column; gap: 6px; }
-  .db-h { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-2); margin-bottom: 2px; }
-  .db-tr { height: 6px; border-radius: 6px; background: color-mix(in oklab, var(--ink) 8%, transparent); overflow: hidden; }
-  .db-fl { height: 100%; border-radius: 6px; transition: width 600ms cubic-bezier(.2,.8,.2,1); }
-
-  .ring-wrap { position: relative; flex-shrink: 0; }
-  .ring-num { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; letter-spacing: -0.02em; }
-
-  .sport-card-body { font-size: 13px; }
-  .sport-meta { color: var(--ink-2); margin-bottom: 10px; }
-  .split-pill {
-    display: inline-flex; align-items: baseline; gap: 8px;
-    padding: 8px 12px; border-radius: 10px;
-    background: color-mix(in oklab, var(--bp) 15%, var(--bg-1));
-    border: 1px solid color-mix(in oklab, var(--bp) 30%, transparent);
-    margin-bottom: 10px;
-  }
-  .split-pill .sp-k { font-size: 9px; color: var(--ink-3); letter-spacing: 0.12em; }
-  .split-pill .sp-v { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; }
+  /* Original .dw / .ds / .ring-* / .sport-meta / .split-pill rules removed —
+     Dashboard widgets are now <Card>; helpers live in styles/screens.css. */
 
   /* Dashboard rotating anatomy figure — small preview, not the centerpiece */
   .dash-anatomy {
@@ -1890,31 +1663,11 @@
     background: rgba(0,0,0,0.35); color: white;
     padding: 4px 8px; border-radius: 999px;
   }
-  .sport-prio { display: flex; flex-wrap: wrap; gap: 6px; }
-  .sp-pill {
-    display: inline-flex; gap: 6px; align-items: center; padding: 6px 10px;
-    border-radius: 8px; background: color-mix(in oklab, var(--bp) 16%, var(--bg-1));
-    border: 1px solid color-mix(in oklab, var(--bp) 30%, transparent);
-    font-size: 12px;
-  }
-  .sp-pill .weight { color: var(--ink-3); font-size: 10px; }
-
+  /* .sport-prio / .sp-pill / .under-row / .ur-* moved into <Card>-based
+     dw-* helpers in styles/screens.css. .empty-pill kept as a generic. */
   .empty-pill {
     padding: 12px; border-radius: 12px; background: color-mix(in oklab, var(--accent) 10%, transparent);
     color: var(--accent); font-size: 13px; text-align: center; font-weight: 600;
-  }
-  .under-list { display: flex; flex-direction: column; gap: 6px; }
-  .under-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 12px; border-radius: 10px;
-    background: color-mix(in oklab, var(--bp) 14%, var(--bg-1));
-    border: 1px solid color-mix(in oklab, var(--bp) 26%, transparent);
-  }
-  .ur-name { font-size: 13px; font-weight: 600; }
-  .ur-meta { font-size: 10px; color: var(--ink-3); margin-top: 2px; }
-  .ur-cta {
-    background: var(--accent); color: var(--on-accent); border: none; border-radius: 8px;
-    padding: 8px 12px; font-weight: 600; font-size: 12px; cursor: pointer;
   }
 
   .bh-row { display: grid; grid-template-columns: auto 1fr; gap: 12px; }
@@ -1928,14 +1681,7 @@
   .bh-s.status-good { color: var(--accent); }
   .bh-s.status-high { color: #FFB344; }
 
-  .time-chart { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; height: 92px; align-items: end; }
-  .tc-col { display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; }
-  .tc-bars { flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; }
-  .tc-cardio { background: #19B6FF; border-radius: 3px 3px 0 0; min-height: 0; }
-  .tc-lift { background: var(--accent); border-radius: 3px 3px 0 0; min-height: 0; }
-  .tc-lbl { font-size: 9px; color: var(--ink-3); }
-  .tc-legend { display: flex; gap: 12px; margin-top: 8px; font-size: 11px; color: var(--ink-2); flex-wrap: wrap; }
-  .tc-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+  /* time-chart helpers moved to dw-time-chart in styles/screens.css */
 
   .streak-row { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; }
   .streak-dot {
@@ -2162,18 +1908,6 @@
   .b2-drawer-card.status-over    { border-top-color: #FF8A5B; }
   .b2-drawer-card.status-unworked{ border-top-color: var(--ink-3); }
   .b2-cov { margin-bottom: 12px; }
-  .b2-cov-h { font-size: 12px; color: var(--ink-3); letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--font-mono); margin-bottom: 8px; }
-  .b2-cov-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-  .b2-cov-cell {
-    padding: 12px; border-radius: 10px; text-align: left; cursor: pointer; min-height: 56px;
-    background: color-mix(in oklab, var(--bp) 14%, var(--bg-2));
-    border: 1px solid color-mix(in oklab, var(--bp) 26%, transparent);
-    color: var(--ink);
-  }
-  .b2-cov-cell .m { font-size: 13px; font-weight: 600; }
-  .b2-cov-cell .s { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
-  .b2-cov-cell.status-low { border-color: #FF5C8A; }
-  .b2-cov-cell.status-high { border-color: #FFB344; }
 
   .b2-drawer { position: absolute; inset: 0; background: rgba(10,12,30,0.55); display: grid; place-items: end stretch; z-index: 50; backdrop-filter: blur(6px); }
   .b2-drawer-card {
@@ -2553,18 +2287,7 @@
   /* Press scale on every interactive button (cheap, browser-native) */
   button { -webkit-tap-highlight-color: transparent; }
 
-  /* ============== P2b — match all tabs to Splits' card pattern ============== */
-  /* General tiles: left accent border, slightly bigger touch target */
-  .gen-tile {
-    border-left: 6px solid color-mix(in oklab, var(--accent) 28%, transparent);
-    min-height: 96px; padding: 14px 16px;
-  }
-  .gen-tile.read {
-    border-left-color: color-mix(in oklab, var(--accent-2) 30%, transparent);
-  }
-  .gen-tile.sport { border-left-color: var(--accent); }
-
-  /* Profile rows: turn into Splits-style cards */
+  /* Profile rows kept as Splits-style cards (Profile is unchanged) */
   .prof2-row {
     background: var(--bg-2);
     border-radius: 12px;
@@ -2576,38 +2299,7 @@
   .prof2-row:active { transform: scale(0.99); }
   .ps-card { background: transparent; padding: 0; }
 
-  /* Dashboard widgets: same left-accent treatment */
-  .widget-wrap .dw {
-    border-left: 5px solid color-mix(in oklab, var(--accent) 28%, transparent);
-  }
-
-  /* ============== Dashboard P4 — Sport Match Score widget ============== */
-  .sms-big {
-    display: flex; align-items: baseline; justify-content: center;
-    gap: 8px; padding: 14px 0 10px;
-  }
-  .sms-num {
-    font-size: 72px; font-weight: 800; letter-spacing: -0.04em;
-    line-height: 1;
-    background: linear-gradient(135deg, currentColor, color-mix(in oklab, currentColor 70%, white));
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    border-bottom: 4px solid currentColor;
-    padding-bottom: 4px;
-  }
-  .sms-units { font-size: 14px; color: var(--ink-3); letter-spacing: 0.1em; }
-
-  .sms-bars { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-  .sms-bar { font-size: 11px; }
-  .sms-bar-h { display: flex; justify-content: space-between; font-weight: 600; color: var(--ink-2); margin-bottom: 3px; }
-  .sms-bar-tr {
-    height: 6px; border-radius: 6px;
-    background: color-mix(in oklab, var(--ink) 8%, transparent); overflow: hidden;
-  }
-  .sms-bar-fl {
-    height: 100%; border-radius: 6px;
-    transition: width 700ms cubic-bezier(0.4, 0, 0.2, 1), background 300ms ease;
-  }
-
+  /* SMS modal explainer copy (still used inside the SMS sheet) */
   .sms-detail { font-size: 14px; line-height: 1.5; color: var(--ink-2); padding: 4px 0 12px; }
   .sms-detail p { margin: 0 0 12px; }
   .sms-detail b { color: var(--ink); }
@@ -2720,129 +2412,13 @@
     color: var(--accent);
   }
 
-  /* ============== P4 — Dashboard polish: type + gradient cards ============== */
-  /* Bigger card padding + min-height + spacing between cards */
-  .widget-grid { gap: 16px !important; }
-  .widget-wrap { min-height: 120px; }
-  .dw {
-    padding: 20px 22px !important;
-    overflow: hidden;
-    position: relative;
-    color: var(--ink);
-  }
-
-  /* Per-widget gradient backgrounds, driven by --gw-1 / --gw-2 / --gw-base
-     CSS vars set inline in the widget JSX. The drift animation gives a subtle
-     "alive" feel. Dark overlay layers on top so text contrast is consistent
-     across all gradient combos. */
-  .dw.gw {
-    background:
-      radial-gradient(circle at 20% 30%, var(--gw-1, transparent), transparent 50%),
-      radial-gradient(circle at 80% 70%, var(--gw-2, transparent), transparent 50%),
-      var(--gw-base, var(--bg-2));
-    background-size: 200% 200%;
-    animation: gw-drift 22s ease-in-out infinite alternate;
-  }
-  .dw.gw::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.32) 100%);
-    border-radius: inherit;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .dw.gw > * { position: relative; z-index: 1; }
+  /* widget-grid layout (gap + min-height) lives in styles/screens.css.
+     The gw-drift keyframes are now defined in styles/card.css under
+     sl-card-drift; legacy sites still using .gw inherit from there. */
   @keyframes gw-drift {
     0%   { background-position: 0% 50%; }
     100% { background-position: 100% 50%; }
   }
-
-  /* Bigger numbers / labels on every widget */
-  .dw-head { margin-bottom: 12px; }
-  .dw-t {
-    font-size: 18px !important; font-weight: 700;
-    color: white; letter-spacing: -0.015em;
-  }
-  .dw-pill {
-    font-size: 11px !important;
-    background: rgba(255,255,255,0.12) !important;
-    color: white !important;
-    border: none !important;
-    padding: 4px 10px;
-  }
-  .dw-grade {
-    background: rgba(255,255,255,0.18) !important;
-    color: white !important;
-  }
-  .dw .ds-k {
-    font-size: 11px; letter-spacing: 0.10em;
-    color: rgba(255,255,255,0.7);
-  }
-  .dw .ds-v {
-    font-size: 22px; font-weight: 800;
-    color: white;
-  }
-  .dw .db-h span:first-child {
-    color: rgba(255,255,255,0.85); font-weight: 600; font-size: 13px;
-  }
-  .dw .db-h span.mono { color: white; }
-  .dw .db-tr { background: rgba(255,255,255,0.15); }
-
-  .quick-tile {
-    background: rgba(255,255,255,0.10) !important;
-    border-left: 3px solid rgba(255,255,255,0.45) !important;
-  }
-  .quick-tile .qt-v {
-    color: white; font-size: 36px;
-  }
-  .quick-tile .qt-u { color: rgba(255,255,255,0.8); font-size: 16px; }
-  .quick-tile .qt-k {
-    font-size: 10px; color: rgba(255,255,255,0.7);
-    letter-spacing: 0.14em;
-  }
-
-  .sms-num { font-size: 76px !important; }
-  .sms-units { color: rgba(255,255,255,0.75) !important; }
-  .sms-bar-h { color: rgba(255,255,255,0.85) !important; }
-  .sms-bar-tr { background: rgba(255,255,255,0.18) !important; }
-  .dw .sport-meta { color: rgba(255,255,255,0.75); }
-  .dw .sp-pill {
-    background: rgba(255,255,255,0.12) !important;
-    border: 1px solid rgba(255,255,255,0.18) !important;
-    color: white;
-  }
-  .dw .sp-pill .lbl { color: white; }
-  .dw .sp-pill .weight { color: rgba(255,255,255,0.7); }
-  .dw .split-pill {
-    background: rgba(255,255,255,0.14) !important;
-    border-color: rgba(255,255,255,0.2) !important;
-  }
-  .dw .split-pill .sp-k { color: rgba(255,255,255,0.7); }
-  .dw .split-pill .sp-v { color: white; }
-  .dw .empty-pill {
-    background: rgba(255,255,255,0.12) !important;
-    color: white !important;
-  }
-  .dw .under-row {
-    background: rgba(255,255,255,0.08);
-    border-left-color: rgba(255,255,255,0.45);
-  }
-  .dw .ur-name { color: white; }
-  .dw .ur-meta { color: rgba(255,255,255,0.75); }
-  .dw .ur-cta {
-    background: white; color: var(--ink);
-    border: none; padding: 8px 14px; border-radius: 999px;
-    font-weight: 700; font-size: 12px; cursor: pointer;
-  }
-  .dw .time-chart .tc-cardio { background: rgba(255,255,255,0.55); }
-  .dw .time-chart .tc-lift { background: white; }
-  .dw .tc-lbl { color: rgba(255,255,255,0.7); }
-  .dw .tc-legend { color: rgba(255,255,255,0.85); }
-  .w-grip { color: rgba(255,255,255,0.5) !important; }
-
-  /* Dashboard hero — bump the headline copy */
-  .dh-h1 { font-size: 26px !important; }
-  .dh-sub { font-size: 14px; line-height: 1.5; color: var(--inv-ink-2); margin-top: 4px; }
 
   /* Tighter spacing when bottom nav is 6 cells (Friends added) */
   .bn-track.six .bn-item { padding: 8px 2px; gap: 3px; }
@@ -2850,13 +2426,7 @@
   .bn-track.six .bn-item svg { width: 20px; height: 20px; }
 
   /* ============== P5 — Friends tab ============== */
-  .fr-page { padding: 8px 16px 24px; }
-  .fr-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 4px 0 12px;
-  }
-  .fr-h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; }
-  .fr-sub { font-size: 10px; color: var(--ink-3); letter-spacing: 0.14em; margin-top: 2px; }
+  /* Layout/typography for .fr-list, .fr-cmp-* lives in styles/screens.css */
   .fr-add {
     min-height: 40px; padding: 8px 14px;
     border-radius: 999px; border: 1.5px solid var(--accent);
@@ -2865,94 +2435,6 @@
     font-family: inherit; cursor: pointer;
   }
   .fr-add:active { transform: scale(0.97); }
-
-  .fr-list { display: flex; flex-direction: column; gap: 10px; }
-  .fr-row {
-    display: flex; align-items: center; gap: 14px;
-    width: 100%; min-height: 76px;
-    padding: 14px 16px;
-    border-radius: 14px;
-    background: var(--bg-2);
-    border: 1px solid var(--hair);
-    border-left: 5px solid var(--accent);
-    text-align: left; cursor: pointer; font-family: inherit; color: var(--ink);
-    transition: transform 140ms ease;
-  }
-  .fr-row:active { transform: scale(0.99); }
-  .fr-avatar {
-    flex-shrink: 0; border-radius: 12px;
-    display: grid; place-items: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  }
-  .fr-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-  .fr-row-top { display: flex; justify-content: space-between; align-items: baseline; }
-  .fr-name { font-size: 16px; font-weight: 700; letter-spacing: -0.015em; }
-  .fr-score { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; }
-  .fr-row-bot { display: flex; gap: 10px; font-size: 12px; color: var(--ink-3); align-items: center; }
-  .fr-sport { display: inline-flex; align-items: center; gap: 4px; }
-  .fr-split { font-weight: 600; color: var(--ink-2); }
-
-  /* Comparison view */
-  .fr-cmp-page { padding: 8px 16px 24px; display: flex; flex-direction: column; gap: 14px; }
-  .fr-cmp-bar { display: flex; align-items: center; gap: 10px; }
-  .fr-back {
-    background: transparent; border: none; cursor: pointer; font-family: inherit;
-    color: var(--ink-2); font-weight: 600; font-size: 13px;
-    padding: 6px 0;
-  }
-  .fr-cmp-title { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; flex: 1; text-align: center; }
-
-  .fr-cmp-stats {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-  }
-  .fr-cmp-col {
-    background: var(--bg-2); border: 1px solid var(--hair);
-    border-radius: 12px; padding: 12px 14px;
-    border-left: 4px solid var(--accent);
-  }
-  .fr-cmp-tag { font-size: 9px; color: var(--ink-3); letter-spacing: 0.14em; font-weight: 700; }
-  .fr-cmp-name { font-size: 14px; font-weight: 700; margin: 4px 0 8px; }
-  .fr-cmp-row {
-    display: flex; justify-content: space-between; align-items: baseline;
-    font-size: 12px; color: var(--ink-3); padding: 3px 0;
-  }
-  .fr-cmp-row b { color: var(--ink); font-size: 14px; font-weight: 700; }
-
-  .fr-cmp-bodies {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-    background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
-    border-radius: 14px; padding: 8px;
-  }
-  .fr-cmp-body {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    padding: 6px 0;
-  }
-  .fr-cmp-body-tag {
-    font-size: 9px; color: var(--ink-3); letter-spacing: 0.14em; font-weight: 700;
-  }
-  .fr-cmp-body .abh-host svg { max-width: 100%; max-height: 240px; }
-
-  .fr-cmp-deltas { display: flex; flex-direction: column; gap: 6px; }
-  .fr-delta-row {
-    display: flex; align-items: center; gap: 12px;
-    background: var(--bg-2); border-radius: 10px;
-    padding: 10px 12px;
-  }
-  .fr-delta-name { font-size: 12px; font-weight: 700; min-width: 80px; }
-  .fr-delta-bars { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-  .fr-delta-bar {
-    position: relative; height: 14px; border-radius: 7px;
-    background: color-mix(in oklab, var(--ink) 5%, transparent);
-    overflow: hidden;
-  }
-  .fr-delta-bar > div { height: 100%; border-radius: 7px; transition: width 600ms cubic-bezier(.2,.8,.2,1); }
-  .fr-delta-bar.you > div { background: var(--accent); }
-  .fr-delta-bar.them > div { background: var(--accent-2); }
-  .fr-delta-bar > span {
-    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-    font-size: 10px; font-weight: 700; color: var(--ink-2);
-    font-family: var(--font-mono);
-  }
 
   /* Invite sheet */
   .invite-copy { font-size: 13px; color: var(--ink-2); margin: 0 0 16px; line-height: 1.5; }
@@ -2974,41 +2456,6 @@
     font-family: inherit;
   }
   .invite-copy-btn:active { transform: scale(0.96); }
-
-  /* ============== v6 ISSUE 1 — Dashboard text contrast on gradients ============== */
-  /* All gradient widgets use white text in both light and dark mode, with a
-     subtle dark text-shadow so they read on any color in the gradient set. */
-  .dw.gw .sms-num,
-  .dw.gw .qt-v,
-  .dw.gw .ds-v,
-  .dw.gw .ring-num {
-    color: #ffffff !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 0 1px rgba(0,0,0,0.55);
-  }
-  .dw.gw .dw-t,
-  .dw.gw .qt-k,
-  .dw.gw .qt-u,
-  .dw.gw .ds-k,
-  .dw.gw .dw-pill,
-  .dw.gw .dh-kicker,
-  .dw.gw .sms-units,
-  .dw.gw .sms-bar-h,
-  .dw.gw .sport-meta,
-  .dw.gw .sp-pill .lbl,
-  .dw.gw .sp-pill .weight,
-  .dw.gw .split-pill .sp-k,
-  .dw.gw .split-pill .sp-v,
-  .dw.gw .ur-name,
-  .dw.gw .ur-meta,
-  .dw.gw .tc-lbl,
-  .dw.gw .tc-legend {
-    color: rgba(255,255,255,0.95) !important;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.30);
-  }
-  /* Bump the dark overlay so text contrast is guaranteed even on yellow/teal */
-  .dw.gw::before {
-    background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.42) 100%) !important;
-  }
 
   /* ============== v6 ISSUE 5 — Subtle gradient mesh behind every tab ============== */
   /* Lives behind .tab-pane via a fixed pseudo-element so it stays during
@@ -3035,290 +2482,6 @@
     0%   { transform: translate(0, 0); }
     50%  { transform: translate(2%, -1%); }
     100% { transform: translate(-1%, 1%); }
-  }
-
-  /* ============== v6 ISSUE 2 — General tab: gradient cards everywhere ============== */
-  /* Reuses the same .gw machinery from Dashboard. Each tile sets its own
-     --gw-1 / --gw-2 / --gw-base via inline style for category-specific color. */
-
-  .gen-tile.gw {
-    background:
-      radial-gradient(circle at 20% 30%, var(--gw-1, transparent), transparent 50%),
-      radial-gradient(circle at 80% 70%, var(--gw-2, transparent), transparent 50%),
-      var(--gw-base, var(--bg-2));
-    background-size: 200% 200%;
-    animation: gw-drift 22s ease-in-out infinite alternate;
-    border: none; border-left: none;
-    overflow: hidden;
-    position: relative;
-    color: white;
-  }
-  .gen-tile.gw::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.42) 100%);
-    border-radius: inherit;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .gen-tile.gw > * { position: relative; z-index: 1; }
-
-  /* White text for everything inside a gradient tile */
-  .gen-tile.gw .gt-label,
-  .gen-tile.gw .gt-value,
-  .gen-tile.gw .gt-unit,
-  .gen-tile.gw .gt-sub,
-  .gen-tile.gw .gt-chev,
-  .gen-tile.gw .bd-k,
-  .gen-tile.gw .bd-v {
-    color: white !important;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.30);
-  }
-  .gen-tile.gw .gt-value {
-    text-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 0 1px rgba(0,0,0,0.55);
-  }
-  .gen-tile.gw .gt-unit { color: rgba(255,255,255,0.85) !important; }
-  .gen-tile.gw .gt-sub  { color: rgba(255,255,255,0.85) !important; }
-
-  /* Stepper buttons get a glassy treatment */
-  .gen-tile.gw .gt-step-btn {
-    background: rgba(255,255,255,0.16);
-    border-color: rgba(255,255,255,0.25);
-    color: white;
-  }
-  .gen-tile.gw .gt-step-btn:active { background: rgba(255,255,255,0.28); }
-
-  /* Unit toggles (cm/ft, kg/lb) inside gradient tiles */
-  .gen-tile.gw .gt-unit-toggle {
-    background: rgba(255,255,255,0.14);
-  }
-  .gen-tile.gw .gt-unit-toggle button { color: rgba(255,255,255,0.80); }
-  .gen-tile.gw .gt-unit-toggle button.on {
-    background: rgba(255,255,255,0.95);
-    color: var(--ink);
-  }
-
-  /* Gender segmented inside gradient tile */
-  .gen-tile.gw .gt-seg button {
-    background: rgba(255,255,255,0.12);
-    border-color: rgba(255,255,255,0.20);
-    color: white;
-  }
-  .gen-tile.gw .gt-seg button.on {
-    background: white;
-    color: var(--ink);
-    border-color: white;
-  }
-
-  /* Birthday derived tile inside gradient parent */
-  .gen-tile.gw .bday-derived {
-    background: rgba(255,255,255,0.14);
-    border-left-color: rgba(255,255,255,0.55);
-  }
-  .gen-tile.gw .bday-input {
-    background: rgba(255,255,255,0.16);
-    color: white;
-  }
-  .gen-tile.gw .bday-input:focus { background: rgba(255,255,255,0.28); }
-
-  /* Weight log button on the gradient weight tile */
-  .gen-tile.gw .weight-log-btn {
-    background: rgba(255,255,255,0.95);
-    border-color: white;
-    color: var(--accent);
-  }
-
-  /* Weight chart background — blend with tile's gradient */
-  .gen-tile.gw .weight-chart-host { background: transparent; }
-  .gen-tile.gw .wc-empty {
-    background: rgba(255,255,255,0.10);
-    border-color: rgba(255,255,255,0.25);
-    color: rgba(255,255,255,0.85);
-  }
-
-  /* ============== v6 ISSUE 3 — Schedule day cards: gradient by type ============== */
-  /* Each .sched-row gets a 2-color gradient via inline --sg-1 / --sg-2 / --sg-base
-     CSS vars. Same drift + dark-overlay treatment as Dashboard so the type pop
-     of color stays readable. */
-  .sched-row {
-    background:
-      radial-gradient(circle at 20% 30%, var(--sg-1, transparent), transparent 50%),
-      radial-gradient(circle at 80% 70%, var(--sg-2, transparent), transparent 50%),
-      var(--sg-base, var(--bg-2)) !important;
-    background-size: 200% 200% !important;
-    animation: gw-drift 22s ease-in-out infinite alternate;
-    border: none !important; border-left: none !important;
-    color: white !important;
-    overflow: hidden;
-    position: relative;
-  }
-  .sched-row::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.40) 100%);
-    border-radius: inherit;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .sched-row > * { position: relative; z-index: 1; }
-
-  .sched-row .sr-d,
-  .sched-row .sr-type,
-  .sched-row .sr-sub,
-  .sched-row .sr-chev {
-    color: white !important;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.30);
-  }
-  .sched-row .sr-type { text-shadow: 0 1px 2px rgba(0,0,0,0.40); }
-  .sched-row .sr-d { color: rgba(255,255,255,0.85) !important; }
-  .sched-row .sr-sub { color: rgba(255,255,255,0.78) !important; }
-  .sched-row .sr-chev { color: rgba(255,255,255,0.70) !important; }
-  .sched-row .sr-today-tag {
-    background: white;
-    color: var(--ink);
-    text-shadow: none;
-  }
-  /* Cardio chips inside the day card become glassy pills */
-  .sched-row .sr-c-pill {
-    background: rgba(255,255,255,0.20) !important;
-    color: white !important;
-    border: 1px solid rgba(255,255,255,0.30);
-    text-shadow: none;
-  }
-  .sched-row .sr-c-pill.more {
-    background: rgba(0,0,0,0.25) !important;
-    color: rgba(255,255,255,0.85) !important;
-  }
-  .sched-row .sr-lock { color: rgba(255,255,255,0.85); }
-
-  /* Today card: extra glow + pulse */
-  .sched-row.today {
-    box-shadow:
-      0 0 0 2px var(--accent),
-      0 0 0 6px color-mix(in oklab, var(--accent) 40%, transparent),
-      0 12px 30px color-mix(in oklab, var(--accent) 35%, transparent) !important;
-    animation: gw-drift 22s ease-in-out infinite alternate, todayPulse 2.6s ease-in-out infinite;
-  }
-  @keyframes todayPulse {
-    0%, 100% { box-shadow: 0 0 0 2px var(--accent), 0 0 0 6px color-mix(in oklab, var(--accent) 40%, transparent), 0 12px 30px color-mix(in oklab, var(--accent) 35%, transparent); }
-    50%      { box-shadow: 0 0 0 2px var(--accent), 0 0 0 12px color-mix(in oklab, var(--accent) 0%, transparent), 0 12px 30px color-mix(in oklab, var(--accent) 35%, transparent); }
-  }
-
-  /* Rest days: de-emphasized */
-  .sched-row.is-rest {
-    opacity: 0.55;
-  }
-  .sched-row.is-rest .sr-type { font-weight: 600; }
-
-  /* Drag-hover keeps its accent glow */
-  .sched-row.is-hover {
-    transform: scale(1.02);
-  }
-
-  /* ============== v6 ISSUE 4 — Body tab visual upgrade ============== */
-  /* 4a — Front/Back pill toggle, mirroring the bottom-nav style */
-  .fb-toggle {
-    position: relative;
-    display: grid; grid-template-columns: 1fr 1fr;
-    background: color-mix(in oklab, var(--ink) 6%, transparent);
-    border-radius: 14px; padding: 4px;
-    overflow: hidden;
-    flex: 1; max-width: 240px;
-  }
-  .fb-pill {
-    position: absolute;
-    top: 4px; bottom: 4px;
-    width: calc(50% - 4px);
-    left: 4px;
-    border-radius: 11px;
-    background:
-      radial-gradient(140% 220% at 0% 0%, rgba(91,91,255,0.95), transparent 60%),
-      radial-gradient(140% 220% at 100% 100%, rgba(155,91,255,0.85), transparent 60%),
-      linear-gradient(135deg, #5B5BFF 0%, #9B5BFF 100%);
-    box-shadow: 0 4px 12px rgba(91,91,255,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
-    transition: transform 420ms cubic-bezier(0.34, 1.4, 0.5, 1);
-    pointer-events: none;
-  }
-  .fb-toggle button {
-    position: relative; z-index: 1;
-    background: transparent; border: none;
-    min-height: 40px;
-    color: var(--ink-2); font-family: inherit;
-    font-weight: 700; font-size: 13px;
-    cursor: pointer;
-    transition: color 320ms ease;
-  }
-  .fb-toggle button.on { color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.30); }
-
-  /* 4b — "Find My Weak Spots" button, gradient + sheen */
-  .weak-spots-btn {
-    width: 100%; min-height: 56px;
-    margin: 4px 0 14px;
-    padding: 14px 18px;
-    border: none; border-radius: 14px;
-    font-family: inherit; font-weight: 700; font-size: 16px;
-    letter-spacing: 0.04em;
-    color: white; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    background:
-      radial-gradient(circle at 20% 30%, #FF6BD6, transparent 50%),
-      radial-gradient(circle at 80% 70%, #9B5BFF, transparent 50%),
-      linear-gradient(135deg, #5B5BFF 0%, #9B5BFF 100%);
-    background-size: 200% 200%;
-    box-shadow: 0 8px 24px rgba(155,91,255,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
-    position: relative; overflow: hidden;
-    transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease;
-    animation: gw-drift 18s ease-in-out infinite alternate;
-  }
-  .weak-spots-btn::after {
-    /* Moving sheen across the surface */
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%);
-    transform: translateX(-100%);
-    animation: weak-sheen 3.6s ease-in-out infinite;
-    pointer-events: none;
-  }
-  @keyframes weak-sheen {
-    0%   { transform: translateX(-100%); }
-    60%  { transform: translateX(120%); }
-    100% { transform: translateX(120%); }
-  }
-  .weak-spots-btn:active:not(:disabled) { transform: scale(0.97); }
-  .weak-spots-btn.active {
-    animation: gw-drift 18s ease-in-out infinite alternate, tourPulse 1.4s ease-in-out infinite;
-  }
-
-  /* 4c — Coverage list cards: gradient by status */
-  .b2-cov-cell.gw {
-    background:
-      radial-gradient(circle at 20% 30%, var(--gw-1, transparent), transparent 50%),
-      radial-gradient(circle at 80% 70%, var(--gw-2, transparent), transparent 50%),
-      var(--gw-base, var(--bg-2)) !important;
-    background-size: 200% 200%;
-    animation: gw-drift 22s ease-in-out infinite alternate;
-    border: none !important;
-    color: white !important;
-    overflow: hidden;
-    position: relative;
-  }
-  .b2-cov-cell.gw::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.42) 100%);
-    border-radius: inherit;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .b2-cov-cell.gw > * { position: relative; z-index: 1; }
-  .b2-cov-cell.gw .m {
-    color: white !important;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.30);
-  }
-  .b2-cov-cell.gw .s {
-    color: rgba(255,255,255,0.85) !important;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.25);
   }
 
   /* ============== v6 ISSUE 6 — Small fixes ============== */

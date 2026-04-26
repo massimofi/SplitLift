@@ -26,9 +26,11 @@
 }
 
 /* sizes (padding + gap) */
-.sl-card[data-size="sm"] { padding: var(--space-3) var(--space-4); gap: var(--space-2); border-radius: var(--r-md); }
-.sl-card[data-size="md"] { padding: var(--space-5); gap: var(--space-3); border-radius: var(--r-lg); }
-.sl-card[data-size="lg"] { padding: var(--space-6); gap: var(--space-4); border-radius: var(--r-xl); }
+.sl-card[data-size="sm"]  { padding: var(--space-3) var(--space-4); gap: var(--space-2); border-radius: var(--r-md); }
+.sl-card[data-size="md"]  { padding: var(--space-5); gap: var(--space-3); border-radius: var(--r-lg); }
+.sl-card[data-size="lg"]  { padding: var(--space-6); gap: var(--space-4); border-radius: var(--r-xl); }
+/* row: list-row layout — uses sl-card-row container instead of stacked body */
+.sl-card[data-size="row"] { padding: var(--space-3) var(--space-4); gap: var(--space-3); border-radius: var(--r-lg); }
 
 /* ---- variant: surface (default) ---- */
 .sl-card[data-variant="surface"] {
@@ -107,6 +109,14 @@
 .sl-card[data-interactive="true"]:hover { transform: translateY(-1px); box-shadow: var(--shadow-lg); }
 .sl-card[data-interactive="true"]:active { transform: translateY(0) scale(0.985); transition-duration: 80ms; }
 
+/* ---- glow (e.g. "today" highlight in Schedule) ---- */
+.sl-card[data-glow="true"] {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 0 6px color-mix(in oklab, var(--accent) 25%, transparent),
+    var(--shadow-grad);
+}
+
 /* ---- text-on-gradient cascade for gradient variant ---- */
 .sl-card[data-variant="gradient"] .sl-card-eyebrow,
 .sl-card[data-variant="gradient"] .sl-card-sub  { color: var(--text-on-gradient-muted); }
@@ -156,6 +166,27 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+}
+
+/* sl-card-row: horizontal list-row layout (icon | body | right action) */
+.sl-card-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+.sl-card-row > .sl-card-row-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sl-card-row > .sl-card-row-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .sl-card-value {

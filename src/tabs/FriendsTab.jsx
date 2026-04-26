@@ -12,6 +12,10 @@ import { AnatomyBody } from '../components/AnatomyBody.jsx';
 import { SportIcon } from '../components/SportIcons.jsx';
 import { useAnimatedNumber } from '../lib/useAnimatedNumber.js';
 import { IconX } from '../components/Icons.jsx';
+import { Card, gradFromScore } from '../components/Card.jsx';
+import { Subheader } from '../components/Subheader.jsx';
+import { Chip } from '../components/Chip.jsx';
+import { Toggle as SLToggle } from '../components/Toggle.jsx';
 
 // Stable hue per friend id, used to color the avatar tile.
 function hueFromId(id) {
@@ -56,10 +60,7 @@ export default function FriendsTab({ profile, days, splitsByType }) {
   return (
     <div className="tab-pane fr-page">
       <div className="fr-bar">
-        <div>
-          <div className="fr-h1">Friends</div>
-          <div className="fr-sub mono">SORTED BY SPORT MATCH</div>
-        </div>
+        <Subheader>Friends</Subheader>
         <button className="fr-add" onClick={()=>setInviteOpen(true)} aria-label="Invite friend">
           + Invite
         </button>
@@ -69,21 +70,25 @@ export default function FriendsTab({ profile, days, splitsByType }) {
         {sorted.map(f => {
           const sport = SPORTS.find(s => s.id === f.sport);
           return (
-            <button key={f.id} className="fr-row" onClick={()=>setFocused(f.id)}>
-              <FriendAvatar friend={f} size={52}/>
-              <div className="fr-body">
-                <div className="fr-row-top">
-                  <div className="fr-name">{f.name}</div>
-                  <div className="fr-score" style={{ color: smsColor(f.sportMatchScore) }}>
-                    {f.sportMatchScore}
+            <Card key={f.id} variant="surface" size="row" interactive onClick={()=>setFocused(f.id)}>
+              <div className="sl-card-row">
+                <FriendAvatar friend={f} size={52}/>
+                <div className="sl-card-row-body">
+                  <div className="fr-row-name">{f.name}</div>
+                  <div className="fr-row-meta">
+                    <SportIcon id={f.sport} size={12}/>
+                    <span>{sport?.label || f.sport}</span>
+                    <span className="dot">·</span>
+                    <span>{f.splitName}</span>
                   </div>
                 </div>
-                <div className="fr-row-bot">
-                  <span className="fr-sport"><SportIcon id={f.sport} size={12}/> {sport?.label || f.sport}</span>
-                  <span className="fr-split">{f.splitName}</span>
+                <div className="sl-card-row-right">
+                  <Chip gradient={gradFromScore(f.sportMatchScore)} size="md">
+                    <span className="fr-sms-num">{f.sportMatchScore}</span>
+                  </Chip>
                 </div>
               </div>
-            </button>
+            </Card>
           );
         })}
       </div>
@@ -119,29 +124,37 @@ function ComparisonView({ friend, profile, days, onBack }) {
   return (
     <div className="tab-pane fr-cmp-page">
       <div className="fr-cmp-bar">
-        <button className="fr-back" onClick={onBack}>← Back</button>
+        <button className="fr-cmp-back" onClick={onBack}>← Back</button>
         <div className="fr-cmp-title">You vs {friend.name}</div>
       </div>
 
       <div className="fr-cmp-stats">
-        <div className="fr-cmp-col">
-          <div className="fr-cmp-tag mono">YOU</div>
-          <div className="fr-cmp-name">{yourSport?.label || profile.sport}</div>
-          <div className="fr-cmp-row"><span>Lift days</span><b>{(days || []).filter(d => !d.rest).length}/wk</b></div>
-          <div className="fr-cmp-row"><span>Cardio</span><b>{profile.cardioMin || 90}m/wk</b></div>
-        </div>
-        <div className="fr-cmp-col">
-          <div className="fr-cmp-tag mono">{friend.name.toUpperCase()}</div>
-          <div className="fr-cmp-name">{theirSport?.label || friend.sport}</div>
-          <div className="fr-cmp-row"><span>Lift days</span><b>{friend.liftDaysPerWeek}/wk</b></div>
-          <div className="fr-cmp-row"><span>Cardio</span><b>{friend.cardioMinPerWeek}m/wk</b></div>
-          <div className="fr-cmp-row"><span>SMS</span><b style={{ color: smsColor(friend.sportMatchScore) }}>{friend.sportMatchScore}</b></div>
-        </div>
+        <Card variant="surface" size="md">
+          <div className="fr-cmp-col-tag">YOU</div>
+          <div className="fr-cmp-col-name">{yourSport?.label || profile.sport}</div>
+          <div className="fr-cmp-line"><span>Lift days</span><b>{(days || []).filter(d => !d.rest).length}/wk</b></div>
+          <div className="fr-cmp-line"><span>Cardio</span><b>{profile.cardioMin || 90}m/wk</b></div>
+        </Card>
+        <Card variant="surface" size="md">
+          <div className="fr-cmp-col-tag">{friend.name.toUpperCase()}</div>
+          <div className="fr-cmp-col-name">{theirSport?.label || friend.sport}</div>
+          <div className="fr-cmp-line"><span>Lift days</span><b>{friend.liftDaysPerWeek}/wk</b></div>
+          <div className="fr-cmp-line"><span>Cardio</span><b>{friend.cardioMinPerWeek}m/wk</b></div>
+          <div className="fr-cmp-line"><span>SMS</span>
+            <Chip gradient={gradFromScore(friend.sportMatchScore)} size="sm">
+              {friend.sportMatchScore}
+            </Chip>
+          </div>
+        </Card>
       </div>
 
-      <div className="b2-segs" style={{ alignSelf: 'center', margin: '4px 0 8px' }}>
-        <button className={view==='front'?'on':''} onClick={()=>setView('front')}>Front</button>
-        <button className={view==='back'?'on':''} onClick={()=>setView('back')}>Back</button>
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
+        <SLToggle
+          value={view}
+          onChange={setView}
+          size="sm"
+          options={[{value:'front', label:'Front'},{value:'back', label:'Back'}]}
+        />
       </div>
 
       <div className="fr-cmp-bodies">
@@ -155,29 +168,27 @@ function ComparisonView({ friend, profile, days, onBack }) {
         </div>
       </div>
 
-      <div className="fr-cmp-deltas">
-        <div className="ps-section">Where you differ</div>
-        {deltas.length === 0 && (
-          <div className="empty-pill" style={{ textAlign: 'center', padding: 14 }}>
-            Your splits hit similar volumes — no significant gaps.
-          </div>
-        )}
-        {deltas.map(d => (
-          <div key={d.k} className="fr-delta-row">
-            <span className="fr-delta-name">{d.label}</span>
-            <div className="fr-delta-bars">
-              <div className="fr-delta-bar you">
-                <div style={{ width: `${Math.min(100, d.you * 4)}%` }}/>
-                <span>{d.you}</span>
-              </div>
-              <div className="fr-delta-bar them">
-                <div style={{ width: `${Math.min(100, d.them * 4)}%` }}/>
-                <span>{d.them}</span>
-              </div>
+      <Subheader>Where you differ</Subheader>
+      {deltas.length === 0 && (
+        <Card variant="subtle" size="md" style={{ textAlign: 'center' }}>
+          Your splits hit similar volumes — no significant gaps.
+        </Card>
+      )}
+      {deltas.map(d => (
+        <div key={d.k} className="fr-delta-row">
+          <span className="fr-delta-name">{d.label}</span>
+          <div className="fr-delta-bars">
+            <div className="fr-delta-bar you">
+              <div style={{ width: `${Math.min(100, d.you * 4)}%` }}/>
+              <span>{d.you}</span>
+            </div>
+            <div className="fr-delta-bar them">
+              <div style={{ width: `${Math.min(100, d.them * 4)}%` }}/>
+              <span>{d.them}</span>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
       <div style={{ height: 24 }}/>
     </div>
