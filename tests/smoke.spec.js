@@ -169,23 +169,28 @@ test.describe('SplitLift smoke', () => {
     });
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    for (const tab of ['Dashboard', 'Splits', 'Schedule', 'Body', 'Friends', 'General']) {
+    for (const tab of ['Dashboard', 'Sport + Cardio', 'Splits', 'Schedule', 'Body', 'Friends']) {
       await page.locator('.bn-item').filter({ hasText: tab }).first().click();
       await page.waitForTimeout(400);
-      await page.screenshot({ path: `tests/screenshots/light-${tab.toLowerCase()}.png`, fullPage: true });
+      const slug = tab.toLowerCase().replace(/[^a-z]/g, '-');
+      await page.screenshot({ path: `tests/screenshots/light-${slug}.png`, fullPage: true });
     }
   });
 
   test('Gender input has visible contrast in dark mode', async ({ page }) => {
-    // App is seeded in dark mode; navigate to General + scroll to gender card.
+    // v11.5: gender lives in Dashboard's About me section. Scroll to bottom.
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.locator('.bn-item').filter({ hasText: 'General' }).first().click();
+    await page.locator('.bn-item').filter({ hasText: 'Dashboard' }).first().click();
     await page.waitForTimeout(400);
+    // Scroll all the way down to find the About-me section
     await page.evaluate(() => {
       const pane = document.querySelector('.screen-body');
-      if (pane) pane.scrollTop = 600;
+      if (pane) pane.scrollTop = 99999;
     });
+    await page.waitForTimeout(300);
+    // Scroll up a bit so the gender card is visible (it's in About me, not at bottom)
+    await page.locator('.gen-seg-four button.on').first().scrollIntoViewIfNeeded();
     await page.waitForTimeout(150);
     // The active option (.on) must have visible contrast: text vs bg
     // luminance gap >= 0.45 (rough WCAG-ish smell test).

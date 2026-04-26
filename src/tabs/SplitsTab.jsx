@@ -76,10 +76,32 @@ export function SplitsTab({ days, setDays, splitsByType, setSplitsByType, active
   if (availableTypes.length === 0) {
     return (
       <div className="tab-pane splits-page">
+        <div className="st-types-row" style={{ justifyContent: 'flex-end' }}>
+          <button
+            className="presets-btn st-presets-btn"
+            onClick={() => setPresetsOpen(true)}
+            data-testid="splits-presets-btn"
+          >
+            Presets
+          </button>
+        </div>
         <div className="empty-pane">
           <div className="emp-t">No lift days yet</div>
-          <div className="emp-s">Open Schedule and drop a Push / Pull / Legs chip onto a day.</div>
+          <div className="emp-s">Apply a preset above, or open Schedule and drop a Push / Pull / Legs chip onto a day.</div>
         </div>
+        {presetsOpen && (
+          <PresetsSheet
+            profile={profile}
+            setProfile={setProfile}
+            locked={locked}
+            days={days}
+            setDays={setDays}
+            splitsByType={splitsByType}
+            setSplitsByType={setSplitsByType}
+            showToast={showToast}
+            onClose={() => setPresetsOpen(false)}
+          />
+        )}
       </div>
     );
   }

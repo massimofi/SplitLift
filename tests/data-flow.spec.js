@@ -129,13 +129,23 @@ test.describe('Data flow audit', () => {
     expect(after, `SMS should rise from ${initialSms}, got ${after}`).toBeGreaterThan(initialSms);
   });
 
-  test('A4 General → BMR/TDEE updates with weight', async ({ page }) => {
+  // v11.5: General was merged into Dashboard. Cards live in the
+  // About-me section at the bottom of Dashboard. Helper scrolls there.
+  const goAboutMe = async (page) => {
+    await goTab(page, 'Dashboard');
+    await page.evaluate(() => {
+      const pane = document.querySelector('.screen-body');
+      if (pane) pane.scrollTop = 99999;
+    });
+    await page.waitForTimeout(300);
+  };
+
+  test('A4 Weight → BMR/TDEE updates (About me on Dashboard)', async ({ page }) => {
     await reseed(page, { profile: { weight: 70, weightLog: [{ date: '2026-04-26', kg: 70 }] } });
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await goTab(page, 'General');
+    await goAboutMe(page);
 
-    // CALORIES tile — find via the eyebrow text
     const calsCard = page.locator('.sl-card-eyebrow', { hasText: /CALORIES/i }).locator('xpath=..');
     const calsValue = calsCard.locator('.sl-card-value').first();
     await expect(calsValue).toBeVisible();
@@ -144,17 +154,16 @@ test.describe('Data flow audit', () => {
     await reseed(page, { profile: { weight: 100, weightLog: [{ date: '2026-04-26', kg: 100 }] } });
     await page.reload();
     await page.waitForLoadState('networkidle');
-    await goTab(page, 'General');
-    const calsAfterCard = page.locator('.sl-card-eyebrow', { hasText: /CALORIES/i }).locator('xpath=..');
-    const after = await intIn(calsAfterCard.locator('.sl-card-value').first());
+    await goAboutMe(page);
+    const after = await intIn(page.locator('.sl-card-eyebrow', { hasText: /CALORIES/i }).locator('xpath=..').locator('.sl-card-value').first());
     expect(after, `TDEE should rise from ${initialCals} after weight 70→100, got ${after}`).toBeGreaterThan(initialCals);
   });
 
-  test('A5 Birthday → Age + Max HR via Tanaka', async ({ page }) => {
+  test('A5 Birthday → Age + Max HR via Tanaka (About me)', async ({ page }) => {
     await reseed(page);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await goTab(page, 'General');
+    await goAboutMe(page);
 
     const ageVal = page.locator('.sl-card-eyebrow', { hasText: /^AGE$/i }).locator('xpath=..').locator('.sl-card-value').first();
     const hrVal  = page.locator('.sl-card-eyebrow', { hasText: /MAX HR/i }).locator('xpath=..').locator('.sl-card-value').first();
@@ -163,11 +172,10 @@ test.describe('Data flow audit', () => {
     const initialAge = await intIn(ageVal);
     const initialHr  = await intIn(hrVal);
 
-    // Bump birthday back to 1980 (~46yo). Tanaka: HR_max ≈ 208 - 0.7*46 ≈ 176
     await reseed(page, { profile: { birthday: '1980-01-01', age: undefined } });
     await page.reload();
     await page.waitForLoadState('networkidle');
-    await goTab(page, 'General');
+    await goAboutMe(page);
     const ageAfter = await intIn(page.locator('.sl-card-eyebrow', { hasText: /^AGE$/i }).locator('xpath=..').locator('.sl-card-value').first());
     const hrAfter  = await intIn(page.locator('.sl-card-eyebrow', { hasText: /MAX HR/i }).locator('xpath=..').locator('.sl-card-value').first());
 
@@ -193,8 +201,9 @@ test.describe('Data flow audit', () => {
     });
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await goTab(page, 'Schedule');
-    await page.getByRole('button', { name: /Presets/i }).click();
+    // v11.5: Presets moved Schedule → Splits (button is data-testid'd).
+    await goTab(page, 'Splits');
+    await page.getByTestId('splits-presets-btn').click();
     await page.waitForTimeout(300);
 
     // Custom preset shows under its own section header
