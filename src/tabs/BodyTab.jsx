@@ -1,8 +1,8 @@
-// Body tab — react-body-highlighter SVG anatomy with click-to-focus drawer.
-// We pivoted off the 3D model: stripped mesh names made per-muscle clicking
-// unreliable, and the lib gives us a fitness-app silhouette out of the box.
+// Body tab — react-body-highlighter SVG with click-to-zoom + weak-spots tour.
+// The body is the centerpiece: 60vh of stage normally, 40vh + bottom-half
+// drawer when zoomed.
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { EXERCISES, SPORTS, DAY_TYPES } from '../data/exercises.js';
 import {
   MUSCLE_LABELS_V2, TARGETS_V2,
@@ -10,8 +10,9 @@ import {
 } from '../components/Anatomy2D.jsx';
 import { bestSplitTypeFor } from '../lib/splits.js';
 import { IconX, IconPlus } from '../components/Icons.jsx';
+import { I } from '../components/Icons.jsx';
 import { ExerciseGif } from '../components/ExerciseGif.jsx';
-import { AnatomyBody, SLUG_BY_KEY } from '../components/AnatomyBody.jsx';
+import { AnatomyBody } from '../components/AnatomyBody.jsx';
 
 function statusFromCoverage(sets, target) {
   if (!target) return 'unknown';
@@ -24,10 +25,11 @@ function statusFromCoverage(sets, target) {
 export default function BodyTab({ days, onAddExercise, setTab, profile, splitsByType, setSplitsByType, setSplitsActiveType, showToast }) {
   const [view, setView] = useState('front');
   const [focus, setFocus] = useState(null);
+  const [tourActive, setTourActive] = useState(false);
+  const tourCancelRef = useRef(false);
 
   const sets = useMemo(() => computeCoverageV2(days), [days]);
 
-  // One-time intro hint
   const [hintShown, setHintShown] = useState(() => {
     try { return !localStorage.getItem('sl-body-hint-seen'); } catch { return false; }
   });
@@ -42,10 +44,17 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
   }
 
   const onMuscleClick = (k) => {
+    if (tourActive) return; // ignore manual clicks during tour
     setFocus(k);
     if (hintShown) dismissHint();
   };
-  const close = () => setFocus(null);
+  const close = () => {
+    if (tourActive) {
+      tourCancelRef.current = true;
+      setTourActive(false);
+    }
+    setFocus(null);
+  };
 
   const sportObj = profile && SPORTS.find(s => s.id === profile.sport);
   const sportPriority = sportObj && sportObj.priority && sportObj.priority[focus];
@@ -87,61 +96,98 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
     close();
   };
 
-  // 12 most-relevant muscles for the coverage grid (granular keys).
-  // hip_flex omitted — no slug in react-body-highlighter, so it can't be
-  // visualized on the model.
+  // ---- Find my weak spots tour ----
+  const startTour = () => {
+    if (tourActive) return;
+    // Compute the 3 worst-covered muscles (lowest sets/target.min ratio).
+    const ranked = Object.keys(MUSCLE_LABELS_V2)
+      .filter(k => TARGETS_V2[k])
+      .map(k => ({ k, ratio: (sets[k] || 0) / Math.max(1, TARGETS_V2[k].min) }))
+      .sort((a, b) => a.ratio - b.ratio)
+      .slice(0, 3);
+    if (ranked.length === 0) return;
+
+    setTourActive(true);
+    tourCancelRef.current = false;
+    if (hintShown) dismissHint();
+
+    let i = 0;
+    const tick = () => {
+      if (tourCancelRef.current) return;
+      if (i >= ranked.length) {
+        setTourActive(false);
+        setFocus(null);
+        return;
+      }
+      setFocus(ranked[i].k);
+      i++;
+      setTimeout(tick, 2200);
+    };
+    tick();
+  };
+
   const COV_KEYS = ['chest','lats','traps','rear_delt','biceps','triceps','shoulder','abs','quads','hams','glutes','calves'];
 
   return (
-    <div className="tab-pane body2">
+    <div className={`tab-pane body2 ${focus ? 'is-zoomed' : ''}`}>
       <div className="b2-toolbar">
         <div className="b2-segs">
           <button className={view==='front'?'on':''} onClick={()=>setView('front')}>Front</button>
           <button className={view==='back'?'on':''} onClick={()=>setView('back')}>Back</button>
         </div>
-        <div className="b2-hint mono">TAP A MUSCLE</div>
+        <button className={`b2-tour ${tourActive ? 'active' : ''}`} onClick={startTour} disabled={tourActive}>
+          <span aria-hidden="true">🔥</span> Find my weak spots
+        </button>
       </div>
 
-      <div className="b2-stage stage-svg">
+      <div className={`b2-stage stage-svg ${focus ? 'zoomed' : ''}`}>
+        {focus && (
+          <button className="b2-back" onClick={close} aria-label="Exit zoom">
+            <I.arrowL/> Back
+          </button>
+        )}
         <AnatomyBody
           coverage={sets}
           targets={TARGETS_V2}
           view={view}
+          focused={focus}
           onMuscleClick={onMuscleClick}
         />
-        {hintShown && (
+        {hintShown && !focus && (
           <div className="b2-intro-hint" onClick={dismissHint}>
             Tap any muscle to see exercises that hit it.
           </div>
         )}
       </div>
 
-      <div className="b2-cov">
-        <div className="b2-cov-h">Weekly coverage</div>
-        <div className="b2-cov-grid">
-          {COV_KEYS.map(m => {
-            const s = sets[m] || 0;
-            const t = TARGETS_V2[m];
-            const st = statusFromCoverage(s, t);
-            const colorKey = m === 'biceps' ? 'bis'
-                           : m === 'triceps' ? 'tris'
-                           : (m === 'lats' || m === 'traps' || m === 'rear_delt' || m === 'lower_back') ? 'back'
-                           : (m === 'abs' || m === 'obliques') ? 'core'
-                           : m;
-            return (
-              <button key={m} className={`b2-cov-cell status-${st}`}
-                style={{ '--bp': `var(--bp-${colorKey})` }}
-                onClick={() => setFocus(m)}>
-                <div className="m">{MUSCLE_LABELS_V2[m] || m}</div>
-                <div className="s mono">{s} sets</div>
-              </button>
-            );
-          })}
+      {!focus && (
+        <div className="b2-cov">
+          <div className="b2-cov-h">Weekly coverage</div>
+          <div className="b2-cov-grid">
+            {COV_KEYS.map(m => {
+              const s = sets[m] || 0;
+              const t = TARGETS_V2[m];
+              const st = statusFromCoverage(s, t);
+              const colorKey = m === 'biceps' ? 'bis'
+                             : m === 'triceps' ? 'tris'
+                             : (m === 'lats' || m === 'traps' || m === 'rear_delt' || m === 'lower_back') ? 'back'
+                             : (m === 'abs' || m === 'obliques') ? 'core'
+                             : m;
+              return (
+                <button key={m} className={`b2-cov-cell status-${st}`}
+                  style={{ '--bp': `var(--bp-${colorKey})` }}
+                  onClick={() => setFocus(m)}>
+                  <div className="m">{MUSCLE_LABELS_V2[m] || m}</div>
+                  <div className="s mono">{s} sets</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {focus && (
-        <div className="b2-drawer" onClick={close}>
+        <div className="b2-drawer-half" onClick={(e)=>{ if (e.target === e.currentTarget) close(); }}>
           <div className={`b2-drawer-card status-${focusedStatus}`} onClick={e=>e.stopPropagation()}>
             <div className="b2-d-h">
               <div>
@@ -163,6 +209,7 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
               {sportPriority && sportPriority > 1 && (
                 <span className="b2-priority-pill">Priority for {sportObj.label} ×{sportPriority.toFixed(1)}</span>
               )}
+              {tourActive && <span className="b2-tour-pill mono">TOUR</span>}
             </div>
 
             {focusedTarget && (
@@ -206,7 +253,7 @@ function CoverageProgress({ sets, target }) {
   const minPct = (min / ceiling) * 100;
   const maxPct = (max / ceiling) * 100;
   const setsPct = Math.min(100, (sets / ceiling) * 100);
-  const barFill = sets >= min && sets <= max ? '#4ED9C0' : sets > max ? '#FF8A5B' : '#6E6EFF';
+  const barFill = sets >= min && sets <= max ? '#00c896' : sets > max ? '#ff8a5b' : '#6E6EFF';
   return (
     <div className="b2-cov-progress">
       <div className="b2-cp-bar">

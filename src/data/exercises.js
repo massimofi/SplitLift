@@ -104,6 +104,31 @@ export const EXERCISES = [
   { id:'wood',     name:'Cable Woodchop',       body:'core',   type:'core', gear:'CBL', sets:'3 × 12', hits:{core:1.0} },
   { id:'abwheel',  name:'Ab Wheel Rollout',     body:'core',   type:'core', gear:'BW',  sets:'3 × 10', hits:{core:1.0} },
 
+  // ===== FOREARMS (added so the forearm slug has real exercises) =====
+  { id:'wristcurl',  name:'Wrist Curl',           body:'forearm', type:'pull', gear:'DB',  sets:'3 × 15',  hits:{forearm:1.0} },
+  { id:'rwristcurl', name:'Reverse Wrist Curl',   body:'forearm', type:'pull', gear:'DB',  sets:'3 × 12',  hits:{forearm:1.0} },
+  { id:'farmer',     name:'Farmer Carry',         body:'forearm', type:'full', gear:'DB',  sets:'3 × 30s', hits:{forearm:1.0, traps:0.4, glutes:0.3} },
+  { id:'pinch',      name:'Plate Pinch Hold',     body:'forearm', type:'pull', gear:'BB',  sets:'3 × 30s', hits:{forearm:1.0} },
+
+  // ===== ADDUCTORS =====
+  { id:'addmach',    name:'Adductor Machine',     body:'glutes',  type:'legs', gear:'MCH', sets:'3 × 12',  hits:{adductors:1.0} },
+  { id:'sumosq',     name:'Sumo Squat',           body:'quads',   type:'legs', gear:'BB',  sets:'4 × 8',   hits:{quads:0.7, adductors:0.6, glutes:0.6} },
+  { id:'copen',      name:'Copenhagen Plank',     body:'core',    type:'core', gear:'BW',  sets:'3 × 30s', hits:{adductors:1.0, obliques:0.4} },
+
+  // ===== ABDUCTORS =====
+  { id:'abdmach',    name:'Abductor Machine',     body:'glutes',  type:'legs', gear:'MCH', sets:'3 × 12',  hits:{abductors:1.0, glutes:0.4} },
+  { id:'sidelyleg',  name:'Side-Lying Leg Raise', body:'glutes',  type:'legs', gear:'BW',  sets:'3 × 15',  hits:{abductors:1.0} },
+  { id:'bandlat',    name:'Banded Lateral Walk',  body:'glutes',  type:'legs', gear:'BW',  sets:'3 × 20',  hits:{abductors:1.0, glutes:0.4} },
+
+  // ===== NECK (covers head + neck slugs in the body highlighter) =====
+  { id:'neckflex',   name:'Neck Flexion',         body:'core',    type:'core', gear:'BW',  sets:'3 × 12',  hits:{neck:1.0} },
+  { id:'neckext',    name:'Neck Extension',       body:'core',    type:'core', gear:'BW',  sets:'3 × 12',  hits:{neck:1.0} },
+  { id:'neckraise',  name:'Lateral Neck Raise',   body:'core',    type:'core', gear:'BW',  sets:'3 × 12',  hits:{neck:1.0} },
+  { id:'chintuck',   name:'Chin Tuck',            body:'core',    type:'core', gear:'BW',  sets:'3 × 15',  hits:{neck:1.0} },
+
+  // ===== CALVES (one more so all three calf-raise variants exist) =====
+  { id:'donkey',     name:'Donkey Calf Raise',    body:'calves',  type:'legs', gear:'BW',  sets:'3 × 15',  hits:{calves:1.0} },
+
   // ===== CARDIO =====
   { id:'z2run',    name:'Zone-2 Run',           body:'cardio', type:'cardio',gear:'RUN', sets:'30 min', hits:{} },
   { id:'hiit',     name:'HIIT Intervals',       body:'cardio', type:'cardio',gear:'BIK', sets:'8 × 1m', hits:{} },

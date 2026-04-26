@@ -28,6 +28,8 @@ export const MUSCLE_LABELS_V2 = {
   calves: 'Calves',
   hip_flex: 'Hip Flexors',
   adductors: 'Adductors',
+  abductors: 'Abductors',
+  neck: 'Neck',
 };
 
 // Map old aggregate keys → new detailed ones for back-compat with EXERCISES.hits
@@ -56,6 +58,8 @@ export const TARGETS_V2 = {
   calves:     { min: 6,  max: 12 },
   hip_flex:   { min: 2,  max: 8 },
   adductors:  { min: 2,  max: 8 },
+  abductors:  { min: 4,  max: 10 },
+  neck:       { min: 2,  max: 8 },
 };
 
 export function expandHits(rawHits) {
