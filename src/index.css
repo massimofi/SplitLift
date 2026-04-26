@@ -1059,20 +1059,10 @@
   .settings-row .sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
   .settings-row .right { color: var(--ink-3); font-size: 13px; font-family: var(--font-mono); }
 
-  .switch {
-    width: 44px; height: 26px; border-radius: 999px;
-    background: var(--bg-3); position: relative;
-    transition: background 240ms ease; flex-shrink: 0;
-    cursor: pointer; border: none;
-  }
-  .switch::after {
-    content: ''; position: absolute; top: 3px; left: 3px;
-    width: 20px; height: 20px; border-radius: 50%;
-    background: white; transition: transform 240ms cubic-bezier(0.32, 0.72, 0, 1);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  }
-  .switch.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
-  .switch.on::after { transform: translateX(18px); }
+  /* WHY: a second .switch block at line ~1789 was clobbering the on-state
+     transform with `left: 21px`, and the two definitions combined for a
+     knob offset of 39px on a 44px pill (15px overflow → visibly clipped).
+     Removed this older block; the surviving block is the source of truth. */
 
   /* Sonner-style toast stack */
   .toast-stack {
@@ -1789,15 +1779,17 @@
   .switch {
     width: 44px; height: 26px; border-radius: 13px; border: none;
     background: color-mix(in oklab, var(--ink) 14%, transparent);
-    position: relative; cursor: pointer; transition: background 200ms ease;
+    position: relative; cursor: pointer; transition: background 220ms ease;
+    flex-shrink: 0;
+    -webkit-appearance: none; appearance: none;
   }
   .switch::after {
     content: ''; position: absolute; top: 3px; left: 3px;
     width: 20px; height: 20px; border-radius: 50%; background: white;
     transition: left 220ms cubic-bezier(.2,.8,.2,1);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
   }
-  .switch.on { background: var(--accent); }
+  .switch.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
   .switch.on::after { left: 21px; }
   .seg {
     display: inline-flex; background: color-mix(in oklab, var(--ink) 6%, transparent);

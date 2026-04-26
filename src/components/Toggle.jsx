@@ -8,11 +8,15 @@ export function Toggle({ value, onChange, options, size = 'md', className = '' }
   const cls = ['sl-toggle', className].filter(Boolean).join(' ');
   return (
     <div className={cls} data-size={size} role="tablist">
+      {/* WHY: previous transform used `idx * 100%` of pill width, but pill
+          width is only 1/N of parent. For 3+ options the pill drifts left
+          and exposes part of the active label (Coach tone bug). Position
+          via left as a % of parent width so it always lines up. */}
       <div
         className="sl-toggle-pill"
         style={{
           width: `calc(${100 / options.length}% - 4px)`,
-          transform: `translateX(calc(${idx * 100}% + 2px))`,
+          left: `calc(${(idx * 100) / options.length}% + 2px)`,
         }}
       />
       {options.map((o) => (
