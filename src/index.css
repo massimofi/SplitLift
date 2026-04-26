@@ -1786,15 +1786,7 @@
 
   .widget-grid { display: flex; flex-direction: column; gap: 12px; }
   .widget-wrap { position: relative; }
-  .widget-wrap.is-dragging { opacity: 0.4; }
-  .widget-wrap.is-hover .dw { box-shadow: 0 0 0 2px var(--accent); }
-  .w-grip {
-    position: absolute; top: 12px; right: 12px; z-index: 2;
-    width: 28px; height: 28px; border-radius: 8px;
-    border: none; background: transparent; color: var(--ink-3); cursor: grab;
-    display: grid; place-items: center;
-  }
-  .w-grip:active { cursor: grabbing; }
+  /* Drag handles + reorder logic removed in v10 Issue 1d */
   /* Original .dw / .ds / .ring-* / .sport-meta / .split-pill rules removed —
      Dashboard widgets are now <Card>; helpers live in styles/screens.css. */
 

@@ -68,40 +68,10 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
   const totalMin = liftMin + cardioMin;
   const trainingKcal = totalLiftKcal(days) + totalCardioKcal(cardioDays);
 
+  // v10 Issue 1d: drag-to-reorder removed. Widgets render in fixed
+  // semantic order. Old sl-dash-order localStorage key is still in
+  // clearState() so old data is purged on reset.
   const allWidgets = ['sportscore','quick','lift','cardio','sport','underworked','time'];
-  const ORDER_KEY = 'sl-dash-order';
-  const [order, setOrder] = useState(() => {
-    try {
-      const raw = localStorage.getItem(ORDER_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          const cleaned = parsed.filter(x => allWidgets.includes(x));
-          for (const w of allWidgets) if (!cleaned.includes(w)) cleaned.push(w);
-          return cleaned;
-        }
-      }
-    } catch (e) {}
-    return allWidgets;
-  });
-  useEffect(() => {
-    try { localStorage.setItem(ORDER_KEY, JSON.stringify(order)); } catch (e) {}
-  }, [order]);
-  const [dragId, setDragId] = useState(null);
-  const [hoverId, setHoverId] = useState(null);
-
-  const onWStart = (id) => setDragId(id);
-  const onWOver = (id, e) => { e.preventDefault(); if (dragId && id !== dragId) setHoverId(id); };
-  const onWDrop = (id) => {
-    if (!dragId || dragId === id) { setDragId(null); setHoverId(null); return; }
-    setOrder(prev => {
-      const next = prev.filter(x => x !== dragId);
-      const idx = next.indexOf(id);
-      next.splice(idx, 0, dragId);
-      return next;
-    });
-    setDragId(null); setHoverId(null);
-  };
 
   const liftDaysPlanned = days.filter(d => !d.rest).length;
 
@@ -277,23 +247,11 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
         <Card.Sub>{coachLine(lift.score, cardio.score, under.length)}</Card.Sub>
       </Card>
 
+      {/* v10 Issue 1d: drag-handle icons + draggable reorder logic removed.
+          Order is fixed (allWidgets) — widgets render in semantic priority. */}
       <div className="widget-grid">
-        {order.map(id => (
-          <div key={id}
-            className={`widget-wrap ${dragId===id?'is-dragging':''} ${hoverId===id?'is-hover':''}`}
-            draggable
-            onDragStart={(e)=>onWStart(id, e)}
-            onDragOver={(e)=>onWOver(id, e)}
-            onDrop={()=>onWDrop(id)}
-            onDragEnd={()=>{setDragId(null); setHoverId(null);}}
-          >
-            <button className="w-grip" title="Drag to reorder" type="button">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-                <circle cx="9" cy="6" r="0.6"/><circle cx="15" cy="6" r="0.6"/>
-                <circle cx="9" cy="12" r="0.6"/><circle cx="15" cy="12" r="0.6"/>
-                <circle cx="9" cy="18" r="0.6"/><circle cx="15" cy="18" r="0.6"/>
-              </svg>
-            </button>
+        {allWidgets.map(id => (
+          <div key={id} className="widget-wrap">
             {widgets[id]()}
           </div>
         ))}
