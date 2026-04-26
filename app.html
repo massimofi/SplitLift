@@ -700,7 +700,7 @@
   .chip-row::-webkit-scrollbar { display: none; }
   .chip {
     --bp: var(--ink-3);
-    padding: 9px 14px; min-height: 38px; border-radius: 999px;
+    padding: 11px 14px; min-height: 44px; border-radius: 999px;
     background: color-mix(in oklab, var(--bp) 14%, var(--bg));
     color: var(--bp);
     font-size: 12.5px; font-weight: 600; border: 1.5px solid transparent;
@@ -1602,9 +1602,9 @@
     margin-top: auto;
   }
   .gt-step-btn {
-    min-height: 36px; border-radius: 10px;
+    min-height: 44px; border-radius: 10px;
     border: 1px solid var(--hair); background: var(--bg);
-    font-family: inherit; font-weight: 700; font-size: 16px;
+    font-family: inherit; font-weight: 700; font-size: 18px;
     color: var(--ink); cursor: pointer;
   }
   .gt-step-btn:active { transform: scale(0.94); background: var(--bg-3); }
@@ -2064,9 +2064,11 @@
   .b2-d-r-n { font-size: 13px; font-weight: 600; }
   .b2-d-r-m { font-size: 10px; color: var(--ink-3); margin-top: 2px; }
   .b2-d-r-add {
-    width: 36px; height: 36px; border-radius: 10px; border: none;
-    background: var(--accent); color: var(--on-accent); font-size: 18px; font-weight: 700; cursor: pointer;
+    width: 44px; height: 44px; border-radius: 10px; border: none;
+    background: var(--accent); color: var(--on-accent); cursor: pointer;
+    display: grid; place-items: center;
   }
+  .b2-d-r-add svg { width: 16px; height: 16px; }
   .b2-d-cta {
     width: 100%; padding: 14px; border-radius: 12px; border: none;
     background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 14px; cursor: pointer;

@@ -61,6 +61,21 @@ Libraries to be credited as they're added in later batches:
 
 ## Changelog
 
+### 2026-04-25 — Schedule v3 + Batches 5–9 (mostly)
+**Schedule rebuilt for tap *and* drag.** Two-column grid: a 92 px sticky left palette of split + cardio chips, and a right column of bigger day boxes (≥86 px) with fatter colored left borders. Drag a chip onto a day OR tap a day to open the picker sheet (lift type chips, cardio adds with HR badges, lock/clear, jump-to-Splits). Day rows have a hover/drop-glow during drag.
+
+**Dashboard body figure shrunk to ~60% width / max 220 px** and moved to the bottom of the default widget order — it's a teaser, not the centre. Will become a 3D model once the asset is in.
+
+**Batch 5 (cardio enhancements within Schedule):** Cardio rows in the day picker now show target HR range (computed from `profile.age` via Tanaka), e.g. "30 m · 4.5 mi · 115–135 bpm". A "Why this much?" expandable explains the weekly target + CDC baseline. New `cardioHRZone(cardio, profile)` helper.
+
+**Batch 6 (Body / 3D):** No new code. The detailed 2D `Anatomy3D` (front+back faux-3D rotation) is the mandated fallback from CLAUDE.md §6 and continues to back the Body tab + Dashboard figure. The Three.js + GLTFLoader integration is parked until an `anatomy.glb` is added to `public/models/`.
+
+**Batch 7 (Profile = settings only):** Dropped Body & Training section (covered by General). Replaced emoji icons throughout with cleaner text. New Danger zone with Reset all data + inline confirm. `Row` component gained an optional sub-line.
+
+**Batch 8 (Onboarding rebuilt):** New 4-step flow — Sport → You (height + weight + age + gender, 4 options M/F/NB/Prefer not to say) → Training (days + cardio target) → Pick template (top-3 sport-fit, best auto-selected). On finish, `initialDays` is computed from the picked template and the user lands on Dashboard. `Root` threads `bootState` ({initialDays, initialTab}) into `MainApp`. Default `locked` array reset to all-false.
+
+**Batch 9 (touch-target sweep + emoji audit):** Bumped `.gt-step-btn` (36→44 px), `.chip` (38→44 px), `.b2-d-r-add` (36→44 px). Replaced the last `＋` typographic plus and `✕` emoji with SVG icons. `c2-i-x` and `b2-d-x` close buttons promoted to 44 px. Added `aria-label` on close/add buttons.
+
 ### 2026-04-25 — Batch 4: Dashboard polish (rotating figure, persisted order, split label)
 - New `DashAnatomy` widget: slow-rotating front/back anatomy SVG (~16s per rotation, ~22°/s) using `requestAnimationFrame`. Tap to pause, tap again to resume. Replaces the static `BodyHeatmap` figure.
 - Widget order is now persisted in `localStorage` under `sl-dash-order`. Initial load merges stored order with any new widget IDs that didn't exist when saved (forwards-compatible).

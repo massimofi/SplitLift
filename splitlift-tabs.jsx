@@ -1630,7 +1630,7 @@ function BodyTabV2({ days, onAddExercise, setTab }) {
                       <div className="b2-d-r-n">{e.name}</div>
                       <div className="b2-d-r-m mono">{e.sets} · {e.gear} · {window.DAY_TYPES[e.body]?.label || e.body}</div>
                     </div>
-                    <button className="b2-d-r-add" onClick={()=>{onAddExercise(e.id); close();}}>＋</button>
+                    <button className="b2-d-r-add" onClick={()=>{onAddExercise(e.id); close();}} aria-label={`Add ${e.name}`}><IconPlus/></button>
                   </div>
                 );
               })}
