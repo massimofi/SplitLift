@@ -2668,3 +2668,20 @@
   .wc-tip-d { font-size: 9px; letter-spacing: 0.1em; opacity: 0.7; }
   .wc-tip-v { font-size: 14px; font-weight: 700; }
   .wc-tip-v span { font-size: 10px; opacity: 0.6; }
+
+  /* P3 — Sport-specific cardio recommendations */
+  .dp-c-name-row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .dp-c-match {
+    font-size: 8.5px; letter-spacing: 0.12em; font-weight: 700;
+    padding: 2px 6px; border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .dp-c-match.primary {
+    background: var(--accent); color: var(--on-accent);
+  }
+  .dp-c-match.secondary {
+    background: color-mix(in oklab, var(--accent) 18%, var(--bg-2));
+    color: var(--accent);
+  }

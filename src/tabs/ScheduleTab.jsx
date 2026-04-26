@@ -6,6 +6,7 @@ import {
   DAY_NAMES, DAY_TYPES, CARDIO_LIBRARY, CARDIO_TYPES, SPORTS,
   cardioFor, cardioHRZone,
 } from '../data/exercises.js';
+import { Sparkles } from 'lucide-react';
 import { SPLIT_TEMPLATES, planForSport, rankTemplatesForSport } from '../data/templates.js';
 import { makeDayForType, splitsByTypeFromDays } from '../lib/splits.js';
 import { IconLock, IconX, IconTrash, IconPlus } from '../components/Icons.jsx';
@@ -240,11 +241,47 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
 
 function DayPickerSheet({ dayIdx, dayType, cardios, isLocked, profile, onClose, onSetType, onAddCardio, onRemoveCardio, onClear, onToggleLock, onEditExercises }) {
   const [whyOpen, setWhyOpen] = useState(false);
+  const [rationaleOpen, setRationaleOpen] = useState(false);
   const splitTypes = ['push','pull','legs','upper','lower','full','rest'];
   const dt = DAY_TYPES[dayType] || DAY_TYPES.custom;
   const canEditExercises = dayType && dayType !== 'rest' && dayType !== 'sport' && dayType !== 'cardio';
   const targetMin = profile?.cardioMin || 90;
   const perDay = Math.round(targetMin / 7);
+
+  // Sport-specific cardio recommendations
+  const sport = SPORTS.find(s => s.id === profile?.sport);
+  const cardioProfile = sport?.cardioProfile;
+  const primaryIds   = new Set(cardioProfile?.primary   || []);
+  const secondaryIds = new Set(cardioProfile?.secondary || []);
+  const recIds = [...primaryIds, ...secondaryIds];
+  const recCardios = recIds.map(id => CARDIO_LIBRARY.find(c => c.id === id)).filter(Boolean);
+  const otherCardios = CARDIO_LIBRARY.filter(c => !primaryIds.has(c.id) && !secondaryIds.has(c.id));
+  const matchPill = (id) => primaryIds.has(id) ? 'primary' : (secondaryIds.has(id) ? 'secondary' : null);
+
+  // Render a cardio chip button (used in both recommended + other lists)
+  const renderCardio = (c) => {
+    const tcol = CARDIO_TYPES[c.type]?.color;
+    const hr = cardioHRZone(c, profile);
+    const match = matchPill(c.id);
+    return (
+      <button key={c.id} className="dp-cardio"
+        style={{ '--bp': tcol || 'var(--ink-3)' }}
+        onClick={() => onAddCardio(c.id)}
+        disabled={isLocked}>
+        <div className="dp-c-body">
+          <div className="dp-c-name-row">
+            <span className="dp-c-name">{c.name}</span>
+            {match && <span className={`dp-c-match ${match}`}>{match === 'primary' ? 'PRIMARY' : 'SECONDARY'}</span>}
+          </div>
+          <div className="dp-c-meta mono">
+            {c.dur}m{c.dist > 0 ? ` · ${c.dist}${c.unit}` : ''}
+            {hr && <span className="dp-c-hr"> · {hr[0]}–{hr[1]}bpm</span>}
+          </div>
+        </div>
+        <span className="dp-c-add"><IconPlus/></span>
+      </button>
+    );
+  };
 
   return (
     <div className="ps-overlay" onClick={onClose}>
@@ -301,26 +338,28 @@ function DayPickerSheet({ dayIdx, dayType, cardios, isLocked, profile, onClose, 
             you can adjust the target on the General tab.
           </div>
         )}
-        <div className="dp-cardio-list">
-          {CARDIO_LIBRARY.map(c => {
-            const tcol = CARDIO_TYPES[c.type]?.color;
-            const hr = cardioHRZone(c, profile);
-            return (
-              <button key={c.id} className="dp-cardio"
-                style={{ '--bp': tcol || 'var(--ink-3)' }}
-                onClick={() => onAddCardio(c.id)}
-                disabled={isLocked}>
-                <div className="dp-c-body">
-                  <div className="dp-c-name">{c.name}</div>
-                  <div className="dp-c-meta mono">
-                    {c.dur}m{c.dist > 0 ? ` · ${c.dist}${c.unit}` : ''}
-                    {hr && <span className="dp-c-hr"> · {hr[0]}–{hr[1]}bpm</span>}
-                  </div>
-                </div>
-                <span className="dp-c-add"><IconPlus/></span>
+        {cardioProfile && recCardios.length > 0 && (
+          <>
+            <div className="ps-section-row">
+              <div className="ps-section">
+                <Sparkles size={12} style={{ verticalAlign: 'middle', marginRight: 4, color: 'var(--accent)' }}/>
+                Recommended for {sport.label}
+              </div>
+              <button className="ps-why" onClick={()=>setRationaleOpen(o => !o)}>
+                {rationaleOpen ? 'Hide why' : 'Why?'}
               </button>
-            );
-          })}
+            </div>
+            {rationaleOpen && (
+              <div className="ps-why-body">{cardioProfile.rationale}</div>
+            )}
+            <div className="dp-cardio-list">
+              {recCardios.map(renderCardio)}
+            </div>
+            <div className="ps-section">All cardio</div>
+          </>
+        )}
+        <div className="dp-cardio-list">
+          {(cardioProfile ? otherCardios : CARDIO_LIBRARY).map(renderCardio)}
         </div>
 
         {cardios.length > 0 && (
