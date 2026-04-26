@@ -30,26 +30,34 @@ export const SLUG_BY_KEY = {
   adductors:  'adductor',
 };
 
-export const KEY_BY_SLUG = Object.fromEntries(
-  Object.entries(SLUG_BY_KEY).map(([k, s]) => [s, k])
-);
+// Reverse lookup. Every drawable slug from the library that we track maps back
+// to a canonical key. The library renders soleus as separate L/R paths — both
+// fold into our `calves` bucket so a tap on either one opens the calves drawer.
+export const KEY_BY_SLUG = {
+  ...Object.fromEntries(Object.entries(SLUG_BY_KEY).map(([k, s]) => [s, k])),
+  'left-soleus':  'calves',
+  'right-soleus': 'calves',
+};
 
-const HIGHLIGHTED_COLORS = ['#6E6EFF', '#4ED9C0', '#FF8A5B']; // under, optimal, over
-const BODY_COLOR = '#BCC0CC'; // neutral gray that reads on light + dark themes
+// 4-step ramp. Index 0 is the same gray as bodyColor so muscles with no work
+// blend into the silhouette but stay clickable.
+const HIGHLIGHTED_COLORS = ['#BCC0CC', '#6E6EFF', '#4ED9C0', '#FF8A5B'];
+const BODY_COLOR = '#BCC0CC';
 
 function buildData(coverage, targets) {
   const data = [];
   for (const [key, slug] of Object.entries(SLUG_BY_KEY)) {
     const s = (coverage && coverage[key]) || 0;
     const t = targets && targets[key];
-    let level = 0;
-    if (!t || s <= 0) level = 0;
-    else if (s < t.min) level = 1;
-    else if (s <= t.max) level = 2;
-    else level = 3;
+    // level: 1 unworked, 2 under, 3 optimal, 4 over.
+    // Always at least 1 entry so EVERY mapped muscle is registered with the
+    // library and therefore receives clicks.
+    let level;
+    if (!t || s <= 0) level = 1;
+    else if (s < t.min) level = 2;
+    else if (s <= t.max) level = 3;
+    else level = 4;
     for (let i = 0; i < level; i++) {
-      // Each entry needs a unique-ish name so the lib's exercise list isn't
-      // collapsed; we don't actually use that list in onClick.
       data.push({ name: `${key}-${i}`, muscles: [slug] });
     }
   }
