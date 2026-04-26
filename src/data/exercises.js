@@ -477,7 +477,11 @@ export function estimateBMR({ weight, wUnit, height, hUnit, age = 28, sex = 'm',
   // Prefer derived age from birthday if available — single source of truth.
   const eff = (birthday && ageFromBirthday(birthday)) || age || 28;
   const wKg = wUnit === 'lb' ? weight * 0.4536 : Number(weight);
-  const hCm = hUnit === 'ft' ? height * 30.48 : Number(height);
+  // v9: 'in' (whole inches) is the new imperial height unit; legacy 'ft'
+  // (decimal feet) still supported for back-compat.
+  const hCm = hUnit === 'in' ? Number(height) * 2.54
+            : hUnit === 'ft' ? Number(height) * 30.48
+            : Number(height);
   const base = 10 * wKg + 6.25 * hCm - 5 * eff;
   // Mifflin–St Jeor: m +5, f −161; non-binary / undisclosed → midpoint (−78).
   if (sex === 'f' || sex === 'female') return Math.round(base - 161);

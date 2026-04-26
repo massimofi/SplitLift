@@ -46,15 +46,12 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
   const setUnit = (kind, unit) => {
     setProfile(p => {
       const n = { ...p };
-      if (kind === 'h') {
-        if (unit === 'cm' && p.hUnit === 'ft') n.height = Math.round(p.height * 30.48);
-        if (unit === 'ft' && p.hUnit === 'cm') n.height = Math.round((p.height / 30.48) * 10) / 10;
-        n.hUnit = unit;
-      } else if (kind === 'w') {
+      if (kind === 'w') {
         if (unit === 'kg' && p.wUnit === 'lb') n.weight = Math.round(p.weight * 0.4536);
         if (unit === 'lb' && p.wUnit === 'kg') n.weight = Math.round(p.weight / 0.4536);
         n.wUnit = unit;
       }
+      // Height handling moved to Profile/Settings tab (v9 Issue 4).
       return n;
     });
   };
@@ -89,16 +86,7 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
           <Card.Sub>{sportObj.sub || 'Tap to change'}</Card.Sub>
         </Card>
 
-        <Card variant="gradient" gradient="info" size="md">
-          <div className="gen-row">
-            <Card.Eyebrow>HEIGHT</Card.Eyebrow>
-            <UnitToggle value={profile.hUnit} onChange={u=>setUnit('h', u)} options={[['cm','CM'],['ft','FT']]}/>
-          </div>
-          <Card.Value unit={profile.hUnit}>{profile.height}</Card.Value>
-          <Stepper onMinus={()=>adjust('height', profile.hUnit==='cm'?-1:-0.1, {min:80, max:240})}
-                   onPlus={()=>adjust('height', profile.hUnit==='cm'?+1:+0.1, {min:80, max:240})}/>
-        </Card>
-
+        {/* Height tile moved to Profile/Settings in v9 (Issue 4). */}
         <Card variant="gradient" gradient="cardio" size="md" className="span-2">
           <div className="gen-row">
             <Card.Eyebrow>WEIGHT</Card.Eyebrow>

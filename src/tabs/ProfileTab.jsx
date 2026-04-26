@@ -13,6 +13,21 @@ import { Toggle as SLToggle } from '../components/Toggle.jsx';
 
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 
+// Convert any stored height to a {cm:Number, in:Number} pair regardless of
+// what unit it's currently stored as. WHY: pre-v9 imperial used decimal
+// feet (e.g. 5.9 ft); v9+ uses whole inches (e.g. 71 in). This bridges
+// both during the migration window.
+function heightInBoth(height, hUnit) {
+  if (hUnit === 'cm') {
+    const cm = Math.round(Number(height) || 0);
+    return { cm, inches: Math.round(cm / 2.54) };
+  }
+  // hUnit could be 'in' (v9+) or 'ft' (legacy decimal feet) — normalize.
+  const raw = Number(height) || 0;
+  const inches = hUnit === 'in' ? Math.round(raw) : Math.round(raw * 12);
+  return { cm: Math.round(inches * 2.54), inches };
+}
+
 export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onResetAll }) {
   const [units, setUnits] = useState(profile.hUnit === 'cm' ? 'metric' : 'imperial');
   const [notif, setNotif] = useState(true);
@@ -23,13 +38,18 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
 
   const setUnitsTo = (u) => {
     setUnits(u);
-    setProfile(p => ({
-      ...p,
-      hUnit: u==='metric'?'cm':'ft',
-      wUnit: u==='metric'?'kg':'lb',
-      height: u==='metric' ? (p.hUnit==='ft' ? Math.round(p.height*30.48) : p.height) : (p.hUnit==='cm' ? Math.round(p.height/30.48*10)/10 : p.height),
-      weight: u==='metric' ? (p.wUnit==='lb' ? Math.round(p.weight*0.4536) : p.weight) : (p.wUnit==='kg' ? Math.round(p.weight/0.4536) : p.weight),
-    }));
+    setProfile(p => {
+      const both = heightInBoth(p.height, p.hUnit);
+      return {
+        ...p,
+        hUnit: u === 'metric' ? 'cm' : 'in',
+        wUnit: u === 'metric' ? 'kg' : 'lb',
+        height: u === 'metric' ? both.cm : both.inches,
+        weight: u === 'metric'
+          ? (p.wUnit === 'lb' ? Math.round(p.weight * 0.4536) : p.weight)
+          : (p.wUnit === 'kg' ? Math.round(p.weight / 0.4536) : p.weight),
+      };
+    });
   };
 
   const doReset = () => {
@@ -43,6 +63,19 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
   const age = ageFromBirthday(birthday) || 22;
   const setBirthday = (bday) => setProfile(p => ({ ...p, birthday: bday, age: ageFromBirthday(bday) || p.age }));
 
+  // Height handling — accepts cm or inches. Always normalize to current
+  // hUnit when writing back to profile.
+  const isMetric = profile.hUnit === 'cm';
+  const heightDisplay = isMetric
+    ? Math.round(Number(profile.height) || 0)
+    // imperial: support legacy 'ft' (decimal feet) by converting to inches
+    : (profile.hUnit === 'ft' ? Math.round((Number(profile.height) || 0) * 12) : Math.round(Number(profile.height) || 0));
+  const heightUnitLabel = isMetric ? 'cm' : 'in';
+  const setHeight = (n) => {
+    const num = Math.max(0, Math.min(300, Number(n) || 0));
+    setProfile(p => ({ ...p, height: num, hUnit: isMetric ? 'cm' : 'in' }));
+  };
+
   return (
     <div className="tab-pane prof2">
       {/* Hero — gradient personal card */}
@@ -51,7 +84,7 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
         <div className="prof-hero-name">Alex Chen</div>
         <div className="prof-hero-handle">@alex · {sportLabel}</div>
         <div className="prof-hero-stats">
-          <ProfStat v={profile.height} u={profile.hUnit} k="HEIGHT"/>
+          <ProfStat v={heightDisplay} u={heightUnitLabel} k="HEIGHT"/>
           <ProfStat v={profile.weight} u={profile.wUnit} k="WEIGHT"/>
           <ProfStat v={profile.days}    u="/wk"          k="TRAINING"/>
         </div>
@@ -75,6 +108,23 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
           label="Age"
           sub="Auto-derived from birthday"
           right={<span className="prof-val">{age} yrs</span>}
+        />
+        <SettingsRow
+          label="Height"
+          sub={isMetric ? 'centimeters' : 'inches'}
+          right={
+            <input
+              className="prof-num-input"
+              type="number"
+              inputMode="numeric"
+              min={isMetric ? 80 : 30}
+              max={isMetric ? 240 : 96}
+              step={1}
+              value={heightDisplay}
+              onChange={(e) => setHeight(e.target.value)}
+              aria-label={`Height in ${heightUnitLabel}`}
+            />
+          }
         />
       </div>
 
