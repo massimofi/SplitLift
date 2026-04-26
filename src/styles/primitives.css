@@ -146,32 +146,37 @@
 .sl-chip.is-active { transform: scale(1.04); }
 
 /* ---------- Toggle (segmented switch) ---------- */
+/* v11 Issue 5: parent padding removed. The pill now spans exactly
+   100/N% of parent so absolute-positioned % math has no offset. */
 .sl-toggle {
   position: relative;
   display: inline-flex;
   background: var(--surface-subtle);
   border: 1px solid var(--hair);
   border-radius: var(--r-full);
-  padding: 2px;
+  padding: 0;
   isolation: isolate;
+  overflow: hidden;
 }
 .sl-toggle-pill {
   position: absolute;
-  top: 2px; bottom: 2px;
+  top: 0; bottom: 0;
   background: var(--bg);
   border-radius: var(--r-full);
   box-shadow: var(--shadow-sm);
-  /* WHY (v10 Issue 1c): only animate `left` — width is fixed at 1/N of
-     parent so animating it would jiggle the pill. Previous transition
-     listed transform+width but the JS uses `left`, so the slide had no
-     transition and the pill snapped, looking off-center mid-snap. */
+  /* Animate left only; width is fixed at 100/N% so no jiggle. */
   transition: left var(--dur-base) var(--ease-out);
   z-index: 0;
 }
 .sl-toggle-btn {
   position: relative;
   z-index: 1;
-  flex: 1 1 auto;
+  /* v11 Issue 5: flex-basis MUST be 0 (not auto) so all buttons get
+     equal width regardless of label length. Otherwise "Gentle"/"Balanced"/
+     "Drill" each take their own content width and the pill (which
+     positions at idx*100/N%) lands off-center on the wider buttons. */
+  flex: 1 1 0;
+  min-width: 0;
   background: transparent;
   border: 0;
   cursor: pointer;
@@ -180,6 +185,7 @@
   color: var(--ink-3);
   -webkit-tap-highlight-color: transparent;
   transition: color var(--dur-base) ease;
+  text-align: center;
 }
 .sl-toggle-btn.is-on { color: var(--ink); }
 .sl-toggle[data-size="sm"] .sl-toggle-btn { padding: 6px 12px; font-size: var(--text-xs); }

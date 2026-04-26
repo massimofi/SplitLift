@@ -237,6 +237,40 @@ test.describe('SplitLift smoke', () => {
     await expect(page.locator('[data-sched-day="1"]')).toContainText(/PUSH/i);
   });
 
+  test('Coach toggle highlight stays centered for N=2, 3, 4', async ({ page }) => {
+    // The Profile tab uses N=2 (Units, Theme), N=3 (Coach tone). N=4 lives
+    // in General's gender selector (which isn't a Toggle but a similar grid).
+    // We test the actual <Toggle> instances.
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'Profile' }).click();
+    await page.waitForTimeout(400);
+
+    // Walk every .sl-toggle on the page; for each option, click it and
+    // assert the highlight pill's bounding rect is centered on the
+    // active button (within 4px).
+    const toggles = await page.locator('.sl-toggle').all();
+    expect(toggles.length, 'expected at least one Toggle on Profile').toBeGreaterThan(0);
+    for (let t = 0; t < toggles.length; t++) {
+      const toggle = toggles[t];
+      const buttons = await toggle.locator('.sl-toggle-btn').all();
+      const N = buttons.length;
+      for (let i = 0; i < N; i++) {
+        await buttons[i].click();
+        await page.waitForTimeout(280);  // wait for slide
+        const btnBox = await buttons[i].boundingBox();
+        const pillBox = await toggle.locator('.sl-toggle-pill').boundingBox();
+        const btnCenter = btnBox.x + btnBox.width / 2;
+        const pillCenter = pillBox.x + pillBox.width / 2;
+        const drift = Math.abs(btnCenter - pillCenter);
+        expect(
+          drift,
+          `Toggle ${t} N=${N} option ${i}: pill center ${pillCenter.toFixed(1)} vs button center ${btnCenter.toFixed(1)}, drift ${drift.toFixed(1)}px`
+        ).toBeLessThan(4);
+      }
+    }
+  });
+
   test('Body drawer can be closed via X button', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
