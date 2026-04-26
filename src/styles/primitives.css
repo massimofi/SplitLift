@@ -1,0 +1,173 @@
+/* ============================================================
+   Primitives — Button, Chip, Toggle
+   Token-driven, dark-aware, gradient-aware. No hardcoded colors.
+   ============================================================ */
+
+/* ---------- Button ---------- */
+.sl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  border: 1px solid transparent;
+  cursor: pointer;
+  border-radius: var(--r-full);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background var(--dur-base) ease,
+    color var(--dur-base) ease,
+    box-shadow var(--dur-base) ease,
+    border-color var(--dur-base) ease;
+  min-height: 44px;        /* touch target */
+}
+.sl-btn:active { transform: translateY(0) scale(0.97); transition-duration: 80ms; }
+.sl-btn[disabled], .sl-btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
+.sl-btn.is-full { width: 100%; }
+
+.sl-btn[data-size="sm"] { padding: 8px 14px; font-size: var(--text-sm); min-height: 36px; }
+.sl-btn[data-size="md"] { padding: 11px 18px; font-size: var(--text-base); }
+.sl-btn[data-size="lg"] { padding: 14px 22px; font-size: var(--text-md); }
+
+/* primary */
+.sl-btn[data-variant="primary"] {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-md);
+}
+.sl-btn[data-variant="primary"]:hover { background: var(--accent-deep); }
+
+/* secondary */
+.sl-btn[data-variant="secondary"] {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+.sl-btn[data-variant="secondary"]:hover { background: var(--accent-tint); }
+
+/* ghost */
+.sl-btn[data-variant="ghost"] {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--hair);
+}
+.sl-btn[data-variant="ghost"]:hover { background: var(--surface-subtle); }
+
+/* gradient */
+.sl-btn[data-variant="gradient"] {
+  background-image: var(--grad-priority);
+  background-size: 200% 200%;
+  color: var(--text-on-gradient);
+  box-shadow: var(--shadow-grad);
+  text-shadow: var(--shadow-on-gradient);
+  animation: sl-card-drift 22s ease-in-out infinite alternate;
+}
+.sl-btn[data-grad="energy"]    { background-image: var(--grad-energy); }
+.sl-btn[data-grad="cardio"]    { background-image: var(--grad-cardio); }
+.sl-btn[data-grad="recovery"]  { background-image: var(--grad-recovery); }
+.sl-btn[data-grad="warning"]   { background-image: var(--grad-warning); }
+.sl-btn[data-grad="danger"]    { background-image: var(--grad-danger); }
+.sl-btn[data-grad="info"]      { background-image: var(--grad-info); }
+.sl-btn[data-grad="personal"]  { background-image: var(--grad-personal); }
+.sl-btn[data-grad="success"]   { background-image: var(--grad-success); }
+
+.sl-btn-ico { display: inline-flex; align-items: center; }
+.sl-btn-label { display: inline-block; }
+
+/* ---------- Chip ---------- */
+.sl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  border-radius: var(--r-full);
+  letter-spacing: 0.01em;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: background var(--dur-base) ease, color var(--dur-base) ease, transform var(--dur-fast) var(--ease-out);
+}
+.sl-chip[data-size="sm"] { padding: 4px 10px; font-size: var(--text-xs); }
+.sl-chip[data-size="md"] { padding: 6px 12px; font-size: var(--text-sm); }
+.sl-chip[data-size="lg"] { padding: 8px 14px; font-size: var(--text-base); }
+
+/* tones */
+.sl-chip[data-tone="neutral"]  { background: var(--surface-subtle); color: var(--ink-2); }
+.sl-chip[data-tone="accent"]   { background: var(--accent-soft);    color: var(--accent-deep); }
+.sl-chip[data-tone="success"]  { background: rgba(0,200,150,0.14);  color: #00855e; }
+.theme-dark .sl-chip[data-tone="success"] { color: #6FECD3; }
+.sl-chip[data-tone="warning"]  { background: rgba(255,140,66,0.16); color: #C95B16; }
+.theme-dark .sl-chip[data-tone="warning"] { color: #FFA15A; }
+.sl-chip[data-tone="danger"]   { background: rgba(255,68,68,0.14);  color: #C9182B; }
+.theme-dark .sl-chip[data-tone="danger"] { color: #FF8A8A; }
+.sl-chip[data-tone="info"]     { background: rgba(25,182,255,0.14); color: #126FAA; }
+.theme-dark .sl-chip[data-tone="info"] { color: #5BC4FF; }
+.sl-chip[data-tone="personal"] { background: rgba(155,91,255,0.14); color: #6033B0; }
+.theme-dark .sl-chip[data-tone="personal"] { color: #C09BFF; }
+
+/* gradient chips (background-image overrides tone background) */
+.sl-chip[data-grad] {
+  color: var(--text-on-gradient);
+  text-shadow: var(--shadow-on-gradient);
+  background-size: 200% 200%;
+}
+.sl-chip[data-grad="priority"]  { background-image: var(--grad-priority); }
+.sl-chip[data-grad="energy"]    { background-image: var(--grad-energy); }
+.sl-chip[data-grad="cardio"]    { background-image: var(--grad-cardio); }
+.sl-chip[data-grad="recovery"]  { background-image: var(--grad-recovery); }
+.sl-chip[data-grad="warning"]   { background-image: var(--grad-warning); }
+.sl-chip[data-grad="danger"]    { background-image: var(--grad-danger); }
+.sl-chip[data-grad="info"]      { background-image: var(--grad-info); }
+.sl-chip[data-grad="personal"]  { background-image: var(--grad-personal); }
+.sl-chip[data-grad="success"]   { background-image: var(--grad-success); }
+.sl-chip[data-grad="push"]      { background-image: var(--grad-push); }
+.sl-chip[data-grad="pull"]      { background-image: var(--grad-pull); }
+.sl-chip[data-grad="legs"]      { background-image: var(--grad-legs); }
+.sl-chip[data-grad="shoul"]     { background-image: var(--grad-shoul); }
+.sl-chip[data-grad="core"]      { background-image: var(--grad-core); }
+.sl-chip[data-grad="upper"]     { background-image: var(--grad-upper); }
+.sl-chip[data-grad="lower"]     { background-image: var(--grad-lower); }
+.sl-chip[data-grad="full"]      { background-image: var(--grad-full); }
+.sl-chip[data-grad="sport"]     { background-image: var(--grad-sport); }
+.sl-chip[data-grad="rest"]      { background-image: var(--grad-rest); }
+.sl-chip.is-active { transform: scale(1.04); }
+
+/* ---------- Toggle (segmented switch) ---------- */
+.sl-toggle {
+  position: relative;
+  display: inline-flex;
+  background: var(--surface-subtle);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-full);
+  padding: 2px;
+  isolation: isolate;
+}
+.sl-toggle-pill {
+  position: absolute;
+  top: 2px; bottom: 2px;
+  background: var(--bg);
+  border-radius: var(--r-full);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-base) var(--ease-out), width var(--dur-base) var(--ease-out);
+  z-index: 0;
+}
+.sl-toggle-btn {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  color: var(--ink-3);
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur-base) ease;
+}
+.sl-toggle-btn.is-on { color: var(--ink); }
+.sl-toggle[data-size="sm"] .sl-toggle-btn { padding: 6px 12px; font-size: var(--text-xs); }
+.sl-toggle[data-size="md"] .sl-toggle-btn { padding: 9px 16px; font-size: var(--text-sm); }
+.sl-toggle[data-size="lg"] .sl-toggle-btn { padding: 12px 20px; font-size: var(--text-base); }

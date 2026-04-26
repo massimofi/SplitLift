@@ -59,7 +59,7 @@ export default function WeightChart({ data, unit = 'kg' }) {
           <XAxis
             dataKey="date"
             tickFormatter={fmtMonth}
-            tick={{ fill: 'var(--ink-3)', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
+            tick={{ fill: 'var(--ink-3)', fontSize: 10, fontFamily: 'var(--font-mono)' }}
             axisLine={false} tickLine={false}
             interval="preserveStartEnd"
             minTickGap={28}

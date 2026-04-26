@@ -175,6 +175,15 @@
 }
 
 /* ============================================================
+   Legacy .gw cascade — set white as the inherited default for
+   any text inside existing .gw gradient tiles. Elements with
+   explicit colors (e.g., colored chips, status pills) keep
+   theirs. This kills the "black text on yellow gradient"
+   contrast bug without rewriting every screen.
+   ============================================================ */
+.gw { color: var(--text-on-gradient); }
+
+/* ============================================================
    Section subheader (used above grids of cards)
    ============================================================ */
 .sl-subheader {

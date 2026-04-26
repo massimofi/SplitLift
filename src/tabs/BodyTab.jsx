@@ -14,6 +14,7 @@ import { I } from '../components/Icons.jsx';
 import { ExerciseGif } from '../components/ExerciseGif.jsx';
 import { AnatomyBody } from '../components/AnatomyBody.jsx';
 import { Target } from 'lucide-react';
+import { Subheader } from '../components/Subheader.jsx';
 
 // Coverage-status gradient palettes for the muscle coverage list cards.
 const COV_GRAD = {
@@ -174,7 +175,7 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
 
       {!focus && (
         <div className="b2-cov">
-          <div className="b2-cov-h">Weekly coverage</div>
+          <Subheader>Weekly coverage</Subheader>
           <div className="b2-cov-grid">
             {COV_KEYS.map(m => {
               const s = sets[m] || 0;

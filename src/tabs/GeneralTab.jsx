@@ -6,6 +6,7 @@ import { SPORTS, tdeeFor, estimateBMR, macrosFor, hrZonesFor, totalCardioMinutes
 import { IconX, IconPlus } from '../components/Icons.jsx';
 import { LogWeightSheet } from '../components/LogWeightSheet.jsx';
 import { useAnimatedNumber } from '../lib/useAnimatedNumber.js';
+import { Subheader } from '../components/Subheader.jsx';
 
 // recharts is ~120 KB gz. Lazy-load so General boots fast and only pays the
 // chart cost when there's actually a multi-point weight log to render.
@@ -89,7 +90,7 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
         <div className="gh-sub">{liftDays} lift / wk · {cardioMin}m cardio planned</div>
       </div>
 
-      <div className="gen-section-h">Inputs</div>
+      <Subheader>Inputs</Subheader>
       <div className="gen-grid">
         <button className="gen-tile gw span-2 sport" style={GRAD.sport} onClick={() => setSportOpen(true)}>
           <div className="gt-label mono">SPORT</div>
@@ -141,7 +142,7 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
         </div>
       </div>
 
-      <div className="gen-section-h">Your numbers</div>
+      <Subheader gradient>Your numbers</Subheader>
       <div className="gen-grid computed">
         <div className="gen-tile gw read" style={GRAD.age}>
           <div className="gt-label mono">AGE</div>
