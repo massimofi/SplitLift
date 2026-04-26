@@ -27,6 +27,7 @@ export function CmdK({ open, onClose, onAddExercise, onSwitchTab }) {
       { kind: 'tab', id: 'splits',   name: 'Go to Splits',   sub: 'Per-day-type exercise editor', ent: '↵' },
       { kind: 'tab', id: 'schedule', name: 'Go to Schedule', sub: 'Plan the week', ent: '↵' },
       { kind: 'tab', id: 'body',     name: 'Go to Body',     sub: 'Coverage map', ent: '↵' },
+      { kind: 'tab', id: 'cardio',   name: 'Go to Cardio',   sub: 'Sport-tailored cardio + week plan', ent: '↵' },
       { kind: 'tab', id: 'friends',  name: 'Go to Friends',  sub: 'Compare splits', ent: '↵' },
       { kind: 'tab', id: 'general',  name: 'Go to General',  sub: 'Profile, stats, calories', ent: '↵' },
       { kind: 'tab', id: 'profile',  name: 'Go to Profile',  sub: 'Settings', ent: '↵' },

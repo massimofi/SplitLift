@@ -20,11 +20,13 @@ import { DashboardTab } from '../tabs/DashboardTab.jsx';
 import { ProfileTab } from '../tabs/ProfileTab.jsx';
 import BodyTab from '../tabs/BodyTab.jsx';
 import FriendsTab from '../tabs/FriendsTab.jsx';
-import { Users as UsersIcon } from 'lucide-react';
+import { CardioTab } from '../tabs/CardioTab.jsx';
+import { Users as UsersIcon, HeartPulse } from 'lucide-react';
 
-// v7 navigation order — Dashboard first, General second-to-last,
-// Profile lives in the header avatar (not bottom nav).
-const NAV_ORDER = ['dashboard','splits','schedule','body','friends','general'];
+// v9 navigation order — Cardio added between Body and Friends.
+// Profile remains in the header avatar (not bottom nav) so we don't
+// blow past 7 nav cells on a 380px screen.
+const NAV_ORDER = ['dashboard','splits','schedule','body','cardio','friends','general'];
 
 export function MainApp({
   profile, setProfile,
@@ -144,6 +146,7 @@ export function MainApp({
               tab === 'schedule'  ? 'Schedule':
               tab === 'friends'   ? 'Friends' :
               tab === 'dashboard' ? 'Dashboard':
+              tab === 'cardio'    ? 'Cardio' :
               tab === 'profile'   ? 'Profile' : 'Body'
             }</div>
             <div className="h-sub mono">{sportLabel.toUpperCase()} · {totalLiftDays} LIFT · {7-totalLiftDays} OFF</div>
@@ -201,6 +204,13 @@ export function MainApp({
             showToast={showToast}
           />
         )}
+        {tab === 'cardio' && (
+          <CardioTab
+            profile={profile}
+            cardioDays={cardioDays}
+            setTab={setTab}
+          />
+        )}
         {tab === 'friends' && (
           <FriendsTab profile={profile} days={days} splitsByType={splitsByType}/>
         )}
@@ -224,7 +234,7 @@ export function MainApp({
       </div>
 
       <div className="bottom-nav">
-        <div className="bn-track six">
+        <div className="bn-track seven">
           <div className="bn-pill" style={{
             transform: `translateX(${Math.max(0, NAV_ORDER.indexOf(tab)) * 100}%)`,
             opacity: NAV_ORDER.indexOf(tab) === -1 ? 0 : 1,
@@ -233,6 +243,7 @@ export function MainApp({
           <button className={`bn-item ${tab==='splits'?'active':''}`} onClick={()=>setTab('splits')}><I.dumbbell/><span className="lbl">Splits</span></button>
           <button className={`bn-item ${tab==='schedule'?'active':''}`} onClick={()=>setTab('schedule')}><I.cal/><span className="lbl">Schedule</span></button>
           <button className={`bn-item ${tab==='body'?'active':''}`} onClick={()=>setTab('body')}><I.cover/><span className="lbl">Body</span></button>
+          <button className={`bn-item ${tab==='cardio'?'active':''}`} onClick={()=>setTab('cardio')}><HeartPulse size={22} strokeWidth={2}/><span className="lbl">Cardio</span></button>
           <button className={`bn-item ${tab==='friends'?'active':''}`} onClick={()=>setTab('friends')}><UsersIcon size={22} strokeWidth={2}/><span className="lbl">Friends</span></button>
           <button className={`bn-item ${tab==='general'?'active':''}`} onClick={()=>setTab('general')}><I.prof/><span className="lbl">General</span></button>
         </div>

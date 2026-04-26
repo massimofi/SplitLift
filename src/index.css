@@ -534,6 +534,8 @@
   }
   .bn-track.six { grid-template-columns: repeat(6, 1fr); }
   .bn-track.six .bn-pill { width: calc(16.6667% - 2px); }
+  .bn-track.seven { grid-template-columns: repeat(7, 1fr); }
+  .bn-track.seven .bn-pill { width: calc(14.2857% - 2px); }
   /* Bottom-nav pill: position by left% so cells line up exactly. */
   .bn-pill {
     position: absolute;
@@ -2515,6 +2517,9 @@
   .bn-track.six .bn-item { padding: 8px 2px; gap: 3px; }
   .bn-track.six .bn-item .lbl { font-size: 8px; letter-spacing: 0.04em; }
   .bn-track.six .bn-item svg { width: 20px; height: 20px; }
+  .bn-track.seven .bn-item { padding: 8px 1px; gap: 2px; }
+  .bn-track.seven .bn-item .lbl { font-size: 7.5px; letter-spacing: 0.02em; }
+  .bn-track.seven .bn-item svg { width: 18px; height: 18px; }
 
   /* ============== P5 — Friends tab ============== */
   /* Layout/typography for .fr-list, .fr-cmp-* lives in styles/screens.css */
@@ -2582,6 +2587,8 @@
   @media (max-width: 380px) {
     .bn-track.six .bn-item .lbl { font-size: 7.5px; letter-spacing: 0.02em; }
     .bn-track.six .bn-item svg { width: 18px; height: 18px; }
+    .bn-track.seven .bn-item .lbl { font-size: 7px; letter-spacing: 0.01em; }
+    .bn-track.seven .bn-item svg { width: 16px; height: 16px; }
   }
 
   /* 6c — Subtle gradient strip on top of every modal/sheet so they don't
