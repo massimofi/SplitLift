@@ -49,31 +49,36 @@ export const KEY_BY_SLUG = {
 // Values tuned per Massi's request — increase scale/y for a tighter framing,
 // decrease for wider context. Limbs use side x-offsets so the muscle isn't
 // cut off after scaling.
+// v11 Issue 4: re-tuned for the 38vh body region (drawer is now 50vh).
+// The previous values were calibrated for the larger ~60vh body — quads
+// were ending up showing the feet, calves were off-screen, etc. Halved
+// most y offsets and reduced scale slightly so the focus muscle lands
+// in the visible body region above the drawer.
 export const MUSCLE_FRAMES = {
   // ---- Anterior (front) ----
-  chest:            { x:   0,  y:  -8,  scale: 1.9 },
-  abs:              { x:   0,  y:   5,  scale: 2.0 },
-  obliques:         { x:   0,  y:   5,  scale: 2.0 },
-  'front-deltoids': { x:   0,  y: -15,  scale: 2.0 },
-  biceps:           { x: -30,  y:  -5,  scale: 2.2 },
-  triceps:          { x: -30,  y:  -5,  scale: 2.2 },
-  forearm:          { x: -35,  y:   5,  scale: 2.3 },
-  quadriceps:       { x:   0,  y:  20,  scale: 1.9 },
-  adductor:         { x:   0,  y:  18,  scale: 2.1 },
-  abductors:        { x: -10,  y:  18,  scale: 2.1 },
-  calves:           { x:   0,  y:  35,  scale: 2.1 },
-  neck:             { x:   0,  y: -22,  scale: 2.5 },
-  head:             { x:   0,  y: -32,  scale: 2.4 },
+  chest:            { x:   0,  y:  -4,  scale: 1.7 },
+  abs:              { x:   0,  y:   3,  scale: 1.8 },
+  obliques:         { x:   0,  y:   3,  scale: 1.8 },
+  'front-deltoids': { x:   0,  y:  -8,  scale: 1.8 },
+  biceps:           { x: -22,  y:  -2,  scale: 2.0 },
+  triceps:          { x: -22,  y:  -2,  scale: 2.0 },
+  forearm:          { x: -26,  y:   3,  scale: 2.1 },
+  quadriceps:       { x:   0,  y:  12,  scale: 2.0 },
+  adductor:         { x:   0,  y:  11,  scale: 2.0 },
+  abductors:        { x:  -8,  y:  11,  scale: 2.0 },
+  calves:           { x:   0,  y:  20,  scale: 2.1 },
+  neck:             { x:   0,  y: -12,  scale: 2.2 },
+  head:             { x:   0,  y: -18,  scale: 2.2 },
 
   // ---- Posterior (back) ----
-  trapezius:        { x:   0,  y: -20,  scale: 2.0 },
-  'upper-back':     { x:   0,  y: -10,  scale: 1.9 },
-  'lower-back':     { x:   0,  y:   8,  scale: 2.0 },
-  'back-deltoids':  { x:   0,  y: -15,  scale: 2.0 },
-  hamstring:        { x:   0,  y:  20,  scale: 1.9 },
-  gluteal:          { x:   0,  y:  12,  scale: 2.0 },
-  'left-soleus':    { x:   0,  y:  35,  scale: 2.1 },
-  'right-soleus':   { x:   0,  y:  35,  scale: 2.1 },
+  trapezius:        { x:   0,  y: -10,  scale: 1.8 },
+  'upper-back':     { x:   0,  y:  -5,  scale: 1.7 },
+  'lower-back':     { x:   0,  y:   4,  scale: 1.8 },
+  'back-deltoids':  { x:   0,  y:  -8,  scale: 1.8 },
+  hamstring:        { x:   0,  y:  12,  scale: 2.0 },
+  gluteal:          { x:   0,  y:   8,  scale: 2.0 },
+  'left-soleus':    { x:   0,  y:  20,  scale: 2.1 },
+  'right-soleus':   { x:   0,  y:  20,  scale: 2.1 },
 };
 
 // v10 heatmap ramp. Pure red → orange → yellow → green only.

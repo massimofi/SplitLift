@@ -271,6 +271,38 @@ test.describe('SplitLift smoke', () => {
     }
   });
 
+  test('Body zoom snapshot — major muscle groups (eyeball)', async ({ page }) => {
+    // v11 Issue 4: snap zoom for the 10 major muscle coverage cells so
+    // Massi can scan the saved PNGs and report any mis-framed muscles.
+    // Cells are sorted by appearance in the COV_KEYS list; we tap each
+    // by its visible label.
+    const MAJOR = [
+      'Chest','Lats','Traps','Rear Delts','Biceps','Triceps',
+      'Front Delts','Abs','Quads','Hamstrings','Glutes','Calves',
+    ];
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.bn-item').filter({ hasText: 'Body' }).first().click();
+    await page.waitForTimeout(500);
+
+    for (const label of MAJOR) {
+      // Open coverage cell
+      const cell = page.locator('.b2-cov .sl-card').filter({ hasText: new RegExp(`^${label}`) }).first();
+      if (await cell.count() === 0) continue;
+      await cell.scrollIntoViewIfNeeded();
+      await cell.click();
+      await page.waitForTimeout(550);  // allow zoom transform to settle
+      await page.screenshot({
+        path: `tests/screenshots/zoom-${label.toLowerCase().replace(/\s+/g,'-')}.png`,
+        fullPage: false,
+      });
+      // Close drawer via the X close button (force-clicked to bypass any
+      // overlay z-index actionability checks).
+      await page.getByTestId('b2-close-btn').click({ force: true, timeout: 5000 });
+      await page.waitForTimeout(300);
+    }
+  });
+
   test('Body drawer can be closed via X button', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
