@@ -1,9 +1,15 @@
 // Profile — settings only (units, theme, privacy, account, reset).
 // Body / training inputs live on General. Reachable via the avatar tap.
+//
+// v8: rows are surface Cards, sections use <Subheader>, Reset is a
+// prominent gradient="danger" card.
 
 import React, { useState } from 'react';
 import { SPORTS, ageFromBirthday, birthdayFromAge } from '../data/exercises.js';
 import { RotateCcw } from 'lucide-react';
+import { Card } from '../components/Card.jsx';
+import { Subheader } from '../components/Subheader.jsx';
+import { Toggle as SLToggle } from '../components/Toggle.jsx';
 
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 
@@ -39,104 +45,141 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
 
   return (
     <div className="tab-pane prof2">
-      <div className="prof2-hero">
-        <div className="avatar-xl">A</div>
-        <div className="prof2-name">Alex Chen</div>
-        <div className="prof2-handle">@alex · {sportLabel}</div>
-        <div className="prof2-stats">
-          <div><span className="v">{profile.height}</span><span className="u">{profile.hUnit}</span><div className="k mono">HEIGHT</div></div>
-          <div><span className="v">{profile.weight}</span><span className="u">{profile.wUnit}</span><div className="k mono">WEIGHT</div></div>
-          <div><span className="v">{profile.days}</span><span className="u">/wk</span><div className="k mono">TRAINING</div></div>
+      {/* Hero — gradient personal card */}
+      <Card variant="gradient" gradient="personal" size="lg" className="prof-hero-card">
+        <div className="prof-avatar-xl">A</div>
+        <div className="prof-hero-name">Alex Chen</div>
+        <div className="prof-hero-handle">@alex · {sportLabel}</div>
+        <div className="prof-hero-stats">
+          <ProfStat v={profile.height} u={profile.hUnit} k="HEIGHT"/>
+          <ProfStat v={profile.weight} u={profile.wUnit} k="WEIGHT"/>
+          <ProfStat v={profile.days}    u="/wk"          k="TRAINING"/>
         </div>
+      </Card>
+
+      <Card variant="subtle" size="sm" className="prof-callout">
+        Edit body & training inputs on the General tab.
+      </Card>
+
+      <Subheader>You</Subheader>
+      <div className="prof-stack">
+        <SettingsRow
+          label="Birthday"
+          right={
+            <input className="bday-input compact" type="date"
+              value={birthday} max={TODAY_STR} min="1900-01-01"
+              onChange={(e)=>setBirthday(e.target.value)}/>
+          }
+        />
+        <SettingsRow
+          label="Age"
+          sub="Auto-derived from birthday"
+          right={<span className="prof-val">{age} yrs</span>}
+        />
       </div>
 
-      <div className="ps-callout">
-        <span>Edit body & training inputs on the General tab.</span>
+      <Subheader>Units &amp; display</Subheader>
+      <div className="prof-stack">
+        <SettingsRow label="Units" right={
+          <SLToggle value={units} onChange={setUnitsTo} size="sm"
+            options={[{value:'metric', label:'Metric'},{value:'imperial', label:'Imperial'}]}/>
+        }/>
+        <SettingsRow label="Theme" right={
+          <SLToggle value={theme} onChange={setTheme} size="sm"
+            options={[{value:'light', label:'Light'},{value:'dark', label:'Dark'}]}/>
+        }/>
+        <SettingsRow label="Coach tone" right={
+          <SLToggle value={coachTone} onChange={setCoachTone} size="sm"
+            options={[{value:'gentle',label:'Gentle'},{value:'balanced',label:'Balanced'},{value:'drill',label:'Drill'}]}/>
+        }/>
       </div>
 
-      <Section title="You">
-        <Row label="Birthday" right={
-          <input className="bday-input compact" type="date"
-            value={birthday} max={TODAY_STR} min="1900-01-01"
-            onChange={(e)=>setBirthday(e.target.value)}/>
-        }/>
-        <Row label="Age" sub="Auto-derived from birthday" right={
-          <span className="prof-val">{age} yrs</span>
-        }/>
-      </Section>
+      <Subheader>Privacy</Subheader>
+      <div className="prof-stack">
+        <SwitchRow label="Share progress publicly" sub="Public profile link." on={share} setOn={setShare}/>
+        <SwitchRow label="Send notifications"     sub="Daily reminders & milestones." on={notif} setOn={setNotif}/>
+        <SwitchRow label="Anonymous usage data"   sub="Help us improve." on={analytics} setOn={setAnalytics}/>
+      </div>
 
-      <Section title="Units & display">
-        <Row label="Units" right={
-          <Seg value={units} onChange={setUnitsTo} options={[['metric','Metric'],['imperial','Imperial']]}/>
-        }/>
-        <Row label="Theme" right={
-          <Seg value={theme} onChange={setTheme} options={[['light','Light'],['dark','Dark']]}/>
-        }/>
-        <Row label="Coach tone" right={
-          <Seg value={coachTone} onChange={setCoachTone} options={[['gentle','Gentle'],['balanced','Balanced'],['drill','Drill']]}/>
-        }/>
-      </Section>
+      <Subheader>Account</Subheader>
+      <div className="prof-stack">
+        <SettingsRow label="Email"       right={<span className="prof-val">alex@splitlift.app</span>}/>
+        <SettingsRow label="Password"    right={<button className="link-btn">Change</button>}/>
+        <SettingsRow label="Export data" right={<button className="link-btn">Download</button>}/>
+        <SettingsRow label="Sign out"    right={<button className="link-btn danger" onClick={onLogout}>Log out</button>}/>
+      </div>
 
-      <Section title="Privacy">
-        <Toggle label="Share progress publicly" sub="Public profile link." on={share} setOn={setShare}/>
-        <Toggle label="Send notifications" sub="Daily reminders & milestones." on={notif} setOn={setNotif}/>
-        <Toggle label="Anonymous usage data" sub="Help us improve." on={analytics} setOn={setAnalytics}/>
-      </Section>
-
-      <Section title="Account">
-        <Row label="Email" right={<span className="prof-val">alex@splitlift.app</span>}/>
-        <Row label="Password" right={<button className="link-btn">Change</button>}/>
-        <Row label="Export data" right={<button className="link-btn">Download</button>}/>
-        <Row label="" right={<button className="danger-btn" onClick={onLogout}>Log out</button>}/>
-      </Section>
-
-      <Section title="Danger zone">
-        {!resetArmed ? (
-          <>
-            <button className="reset-big-btn" onClick={()=>setResetArmed(true)}>
-              <RotateCcw size={20}/>
-              Reset everything &amp; start over
-            </button>
-            <div className="reset-explainer">
-              Wipes your profile, splits, and schedule. Returns to onboarding.
-            </div>
-          </>
-        ) : (
-          <div className="reset-confirm">
-            <div className="rc-t">Reset everything?</div>
-            <div className="rc-s">This clears your saved state and signs you out. Inputs go back to defaults next time you sign in.</div>
-            <div className="rc-actions">
-              <button className="ip-action" onClick={()=>setResetArmed(false)}>Cancel</button>
-              <button className="ip-action danger" onClick={doReset}>Reset everything</button>
-            </div>
+      <Subheader>Danger zone</Subheader>
+      {!resetArmed ? (
+        <Card
+          variant="gradient"
+          gradient="danger"
+          size="lg"
+          interactive
+          onClick={()=>setResetArmed(true)}
+          className="prof-reset-card"
+        >
+          <div className="prof-reset-row">
+            <RotateCcw size={22} strokeWidth={2.4}/>
+            <span>Reset everything &amp; start over</span>
           </div>
-        )}
-      </Section>
+          <Card.Sub className="prof-reset-sub">
+            Wipes your profile, splits, and schedule. Returns to onboarding.
+          </Card.Sub>
+        </Card>
+      ) : (
+        <Card variant="surface" size="lg" className="prof-reset-confirm">
+          <Card.Title>Reset everything?</Card.Title>
+          <Card.Sub>This clears your saved state and signs you out. Inputs go back to defaults next time you sign in.</Card.Sub>
+          <div className="prof-reset-actions">
+            <button className="ip-action" onClick={()=>setResetArmed(false)}>Cancel</button>
+            <button className="ip-action danger" onClick={doReset}>Reset everything</button>
+          </div>
+        </Card>
+      )}
 
-      <div className="prof2-foot mono">SplitLift · v0.5.0</div>
+      <div className="prof2-foot mono">SplitLift · v0.8.0</div>
       <div style={{height: 24}}/>
     </div>
   );
 }
 
-function Section({ title, children }) {
-  return <div className="prof2-sec"><div className="ps-t">{title}</div><div className="ps-card">{children}</div></div>;
-}
-function Row({ icon, label, sub, right }) {
+function ProfStat({ v, u, k }) {
   return (
-    <div className="prof2-row">
-      {icon && <span className="prow-i">{icon}</span>}
-      <div className="prow-text">
-        <span className="prow-l">{label}</span>
-        {sub && <span className="prow-s">{sub}</span>}
-      </div>
-      <span className="prow-r">{right}</span>
+    <div className="prof-hero-stat">
+      <span className="v">{v}</span>
+      <span className="u">{u}</span>
+      <div className="k mono">{k}</div>
     </div>
   );
 }
-function Toggle({ label, sub, on, setOn }) {
-  return <div className="prof2-row toggle"><div><div className="prow-l">{label}</div>{sub && <div className="prow-s">{sub}</div>}</div><button className={`switch ${on?'on':''}`} onClick={()=>setOn(!on)}/></div>;
+
+function SettingsRow({ label, sub, right }) {
+  return (
+    <Card variant="surface" size="row">
+      <div className="sl-card-row">
+        <div className="sl-card-row-body">
+          <span className="settings-row-l">{label}</span>
+          {sub && <span className="settings-row-s">{sub}</span>}
+        </div>
+        <div className="sl-card-row-right">{right}</div>
+      </div>
+    </Card>
+  );
 }
-function Seg({ value, onChange, options }) {
-  return <div className="seg">{options.map(([k,l])=>(<button key={k} className={value===k?'on':''} onClick={()=>onChange(k)}>{l}</button>))}</div>;
+
+function SwitchRow({ label, sub, on, setOn }) {
+  return (
+    <Card variant="surface" size="row">
+      <div className="sl-card-row">
+        <div className="sl-card-row-body">
+          <span className="settings-row-l">{label}</span>
+          {sub && <span className="settings-row-s">{sub}</span>}
+        </div>
+        <div className="sl-card-row-right">
+          <button className={`switch ${on?'on':''}`} onClick={()=>setOn(!on)} aria-pressed={on}/>
+        </div>
+      </div>
+    </Card>
+  );
 }

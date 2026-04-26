@@ -81,6 +81,25 @@ test.describe('SplitLift smoke', () => {
     });
   }
 
+  test('Profile reset card is reachable + visible', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'Profile' }).click();
+    await page.waitForTimeout(500);
+    // Scroll to bottom so the reset card is in viewport for the screenshot
+    await page.evaluate(() => {
+      const pane = document.querySelector('.tab-pane');
+      if (pane && pane.parentElement) pane.parentElement.scrollTop = 99999;
+    });
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: 'tests/screenshots/profile-reset.png', fullPage: true });
+    // Reset card should exist and be a danger gradient
+    const reset = page.locator('.prof-reset-card').first();
+    await expect(reset).toBeVisible();
+    const grad = await reset.getAttribute('data-grad');
+    expect(grad).toBe('danger');
+  });
+
   test('Profile tab renders via avatar', async ({ page }) => {
     const consoleErrors = [];
     page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });

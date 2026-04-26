@@ -7,24 +7,37 @@
 /* ============================================================
    Profile tab
    ============================================================ */
-.prof2 { padding: 8px 16px 24px; }
+.prof2 { padding: 8px 16px 24px; display: flex; flex-direction: column; gap: var(--space-2); }
 
-.prof-hero { text-align: center; }
-.prof-hero-avatar {
+.prof-hero-card { text-align: center; align-items: center; }
+.prof-avatar-xl {
   width: 84px; height: 84px; border-radius: 50%;
   background: rgba(255,255,255,0.18);
   border: 2px solid rgba(255,255,255,0.30);
   color: var(--text-on-gradient);
   display: grid; place-items: center;
   font-size: 32px; font-weight: 900;
-  margin: 0 auto var(--space-3);
+  margin: 0 auto var(--space-2);
   text-shadow: var(--shadow-on-gradient);
 }
-.prof-hero-name { text-align: center; font-size: var(--text-xl); }
-.prof-hero-handle { text-align: center; }
+.prof-hero-name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-on-gradient);
+  text-shadow: var(--shadow-on-gradient);
+}
+.prof-hero-handle {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-on-gradient-muted);
+  margin-top: 2px;
+}
 .prof-hero-stats {
   display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-2); margin-top: var(--space-4);
+  gap: var(--space-2); margin-top: var(--space-3);
+  width: 100%;
 }
 .prof-hero-stat {
   background: rgba(255,255,255,0.14);
@@ -34,19 +47,26 @@
   text-align: center;
   color: var(--text-on-gradient);
 }
-.prof-hero-stat .v { font-size: var(--text-md); font-weight: 800; letter-spacing: var(--tracking-tight); }
+.prof-hero-stat .v {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-on-gradient);
+  text-shadow: var(--shadow-on-gradient);
+}
 .prof-hero-stat .u { font-size: var(--text-xs); color: var(--text-on-gradient-muted); margin-left: 2px; font-family: var(--font-mono); }
-.prof-hero-stat .k { font-size: 9px; color: var(--text-on-gradient-faint); letter-spacing: var(--tracking-wide); margin-top: 2px; text-transform: uppercase; }
+.prof-hero-stat .k { font-size: 9px; color: var(--text-on-gradient-faint); letter-spacing: var(--tracking-wide); margin-top: 2px; text-transform: uppercase; display: block; }
 
 .prof-callout {
   text-align: center;
   font-size: var(--text-sm);
   color: var(--ink-3);
-  margin-top: var(--space-3);
 }
 
 .prof-stack {
   display: flex; flex-direction: column; gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .settings-row-l { font-weight: 600; font-size: var(--text-base); color: var(--ink); }
