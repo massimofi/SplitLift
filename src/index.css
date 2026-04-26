@@ -2977,3 +2977,30 @@
   .dw.gw::before {
     background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.42) 100%) !important;
   }
+
+  /* ============== v6 ISSUE 5 — Subtle gradient mesh behind every tab ============== */
+  /* Lives behind .tab-pane via a fixed pseudo-element so it stays during
+     scroll. Sits at z-index 0; the .tab-pane content (z-index 1) layers on
+     top. Modals/sheets render above the phone shell so this never shows
+     through them. */
+  .tab-pane {
+    position: relative;
+    z-index: 1;
+  }
+  .tab-pane::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.10), transparent 42%),
+      radial-gradient(circle at 85% 75%, rgba(20, 184, 166, 0.10), transparent 42%),
+      radial-gradient(circle at 50% 55%, rgba(244, 114, 182, 0.07), transparent 60%);
+    pointer-events: none;
+    animation: bg-drift 30s ease-in-out infinite alternate;
+  }
+  @keyframes bg-drift {
+    0%   { transform: translate(0, 0); }
+    50%  { transform: translate(2%, -1%); }
+    100% { transform: translate(-1%, 1%); }
+  }
