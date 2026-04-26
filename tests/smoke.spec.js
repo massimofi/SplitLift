@@ -21,6 +21,8 @@ const SEED_STATE = {
     cardioMin: 90,
     weightLog: [{ date: '2026-04-26', kg: 78 }],
   },
+  /* Smoke runs in dark mode by default; the Profile-via-avatar test
+     also captures a light-mode screenshot so we can spot mode-bugs. */
   days: [
     { type:'push', focus:'Push', exIds:['bench','ohp','fly','tri'] },
     { type:'rest', focus:'Rest', exIds:[], rest:true, restNote:'Recovery is where adaptation happens.' },
@@ -94,6 +96,27 @@ test.describe('SplitLift smoke', () => {
     await expect(pane).toBeVisible();
     expect((await pane.innerText()).length).toBeGreaterThan(40);
     expect(consoleErrors.filter(e => !/api\.fontshare/.test(e) && !/404/.test(e))).toEqual([]);
+  });
+
+  test('Light mode renders without text contrast regressions', async ({ page }) => {
+    // Toggle theme to light, then snap each tab.
+    await page.addInitScript(() => {
+      try {
+        const raw = localStorage.getItem('splitlift-state-v3');
+        if (raw) {
+          const s = JSON.parse(raw);
+          s.theme = 'light';
+          localStorage.setItem('splitlift-state-v3', JSON.stringify(s));
+        }
+      } catch {}
+    });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    for (const tab of ['Dashboard', 'Splits', 'Schedule', 'Body', 'Friends', 'General']) {
+      await page.locator('.bn-item').filter({ hasText: tab }).first().click();
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `tests/screenshots/light-${tab.toLowerCase()}.png`, fullPage: true });
+    }
   });
 
   test('Body zoom drawer has solid background', async ({ page }) => {

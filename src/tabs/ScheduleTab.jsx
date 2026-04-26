@@ -192,7 +192,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
             return (
               <Card
                 key={i}
-                variant={isRest ? 'muted' : 'gradient'}
+                variant="gradient"
                 gradient={isRest ? 'muted' : gradForDayType(t)}
                 size={isRest ? 'row' : 'md'}
                 interactive

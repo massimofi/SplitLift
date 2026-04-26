@@ -6,6 +6,27 @@ import { EXERCISES, DAY_TYPES, setsForExercise, exercisesForDayType } from '../d
 import { IconX, IconPlus } from '../components/Icons.jsx';
 import { ExerciseGif } from '../components/ExerciseGif.jsx';
 
+// Map any day-type id to a v7 gradient token (matches Schedule's mapping
+// per the v8 color semantic table).
+function gradVarForDayType(t) {
+  switch (t) {
+    case 'push': case 'chest':                                   return 'var(--grad-strength)';
+    case 'pull': case 'back':                                    return 'var(--grad-info)';
+    case 'legs': case 'quads': case 'hams': case 'glutes': case 'calves':
+                                                                 return 'var(--grad-priority)';
+    case 'shoul': case 'shoulder':                               return 'var(--grad-strength)';
+    case 'arms': case 'bis': case 'tris':                        return 'var(--grad-personal)';
+    case 'core':                                                 return 'var(--grad-success)';
+    case 'cardio':                                               return 'var(--grad-cardio)';
+    case 'sport':                                                return 'var(--grad-recovery)';
+    case 'upper':                                                return 'var(--grad-strength)';
+    case 'lower':                                                return 'var(--grad-recovery)';
+    case 'full':                                                 return 'var(--grad-cardio)';
+    case 'rest':                                                 return 'var(--grad-muted)';
+    default:                                                     return 'var(--grad-priority)';
+  }
+}
+
 export function SplitsTab({ days, splitsByType, setSplitsByType, activeType, setActiveType, profile, showToast }) {
   const [addOpen, setAddOpen] = useState(false);
 
@@ -67,7 +88,7 @@ export function SplitsTab({ days, splitsByType, setSplitsByType, activeType, set
           const dt2 = DAY_TYPES[t] || DAY_TYPES.custom;
           return (
             <button key={t} className={`st-chip ${isActive ? 'on' : ''}`}
-              style={{ '--bp': `var(--bp-${t})` }}
+              style={{ '--st-grad': gradVarForDayType(t) }}
               onClick={() => setActiveType(t)}>
               {dt2.label}
             </button>
@@ -75,7 +96,7 @@ export function SplitsTab({ days, splitsByType, setSplitsByType, activeType, set
         })}
       </div>
 
-      <div className="st-head" style={{ '--bp': `var(--bp-${activeType})` }}>
+      <div className="st-head" style={{ '--st-grad': gradVarForDayType(activeType) }}>
         <div className="st-h-l">
           <div className="st-h-t">{dt.label} day</div>
           <div className="st-h-s mono">{exObjs.length} EX · {totalSets} SETS · {daysCount}× / WK</div>
@@ -90,7 +111,8 @@ export function SplitsTab({ days, splitsByType, setSplitsByType, activeType, set
           </div>
         ) : (
           exObjs.map((ex, i) => (
-            <div key={`${ex.id}-${i}`} className="st-ex" style={{ '--bp': `var(--bp-${ex.body || ex.type})` }}>
+            <div key={`${ex.id}-${i}`} className="st-ex"
+                 style={{ '--st-grad': gradVarForDayType(ex.body || ex.type) }}>
               <ExerciseGif exId={ex.id} size={44}/>
               <div className="st-ex-body">
                 <div className="st-ex-n">{ex.name}</div>
@@ -102,7 +124,8 @@ export function SplitsTab({ days, splitsByType, setSplitsByType, activeType, set
         )}
       </div>
 
-      <button className="st-add" onClick={() => setAddOpen(true)}>
+      <button className="st-add" onClick={() => setAddOpen(true)}
+              style={{ '--st-grad': gradVarForDayType(activeType) }}>
         <IconPlus/> Add to {dt.label}
       </button>
 

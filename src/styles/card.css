@@ -65,6 +65,11 @@
   pointer-events: none;
   z-index: 0;
 }
+/* Light mode: bump the overlay so white text still reads on the brighter
+   gradients (energy/warning/personal). */
+.theme-light .sl-card[data-variant="gradient"]::before {
+  background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.42) 100%);
+}
 .sl-card > * { position: relative; z-index: 1; }
 
 @keyframes sl-card-drift {
