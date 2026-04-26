@@ -80,9 +80,9 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
     <div className="tab-pane prof2">
       {/* Hero — gradient personal card */}
       <Card variant="gradient" gradient="personal" size="lg" className="prof-hero-card">
-        <div className="prof-avatar-xl">A</div>
-        <div className="prof-hero-name">Alex Chen</div>
-        <div className="prof-hero-handle">@alex · {sportLabel}</div>
+        <div className="prof-avatar-xl">M</div>
+        <div className="prof-hero-name">Massimo Arellano</div>
+        <div className="prof-hero-handle">@massimo · {sportLabel}</div>
         <div className="prof-hero-stats">
           <ProfStat v={heightDisplay} u={heightUnitLabel} k="HEIGHT"/>
           <ProfStat v={profile.weight} u={profile.wUnit} k="WEIGHT"/>
@@ -153,7 +153,7 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
 
       <Subheader>Account</Subheader>
       <div className="prof-stack">
-        <SettingsRow label="Email"       right={<span className="prof-val">alex@splitlift.app</span>}/>
+        <SettingsRow label="Email"       right={<span className="prof-val">massimo@splitlift.app</span>}/>
         <SettingsRow label="Password"    right={<button className="link-btn">Change</button>}/>
         <SettingsRow label="Export data" right={<button className="link-btn">Download</button>}/>
         <SettingsRow label="Sign out"    right={<button className="link-btn danger" onClick={onLogout}>Log out</button>}/>

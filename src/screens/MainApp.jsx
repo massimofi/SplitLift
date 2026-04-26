@@ -154,7 +154,7 @@ export function MainApp({
           <button className="icon-btn ghost" onClick={()=>setTheme(theme==='dark'?'light':'dark')} title="Theme" aria-label="Toggle theme">
             {theme === 'dark' ? <I.sun/> : <I.moon/>}
           </button>
-          <button className="avatar-mini" onClick={()=>setTab('profile')} aria-label="Profile">A</button>
+          <button className="avatar-mini" onClick={()=>setTab('profile')} aria-label="Profile">M</button>
         </div>
       </div>
 

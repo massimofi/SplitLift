@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { I } from '../components/Icons.jsx';
 
 export function Login({ mode, onBack, onSubmit }) {
-  const [email, setEmail] = useState('alex@splitlift.app');
+  const [email, setEmail] = useState('massimo@splitlift.app');
   const [pw, setPw] = useState('••••••••');
   const isSignup = mode === 'signup';
   return (
