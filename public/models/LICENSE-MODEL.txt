@@ -1,0 +1,15 @@
+SplitLift uses the "Myology" 3D model from Z-Anatomy.
+
+Source:    https://sketchfab.com/3d-models/myology-31b40fd809b14665b93773936d67c52c
+Author:    Z-Anatomy (Gauthier Kervyn)
+License:   Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+           https://creativecommons.org/licenses/by-sa/4.0/
+
+Modifications applied for SplitLift:
+- Decimated to ~50% triangle count via gltf-transform
+- Geometry compressed with Draco (KHR_draco_mesh_compression)
+- Textures compressed to WebP
+
+Original model is itself a derivative of "BodyParts3D" (Database Center for Life
+Science, Japan), also distributed under CC BY-SA. The CC BY-SA license requires
+that any redistribution credit the original authors and use the same license.

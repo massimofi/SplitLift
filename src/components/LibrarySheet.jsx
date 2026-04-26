@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { EXERCISES, FILTER_CHIPS, DAY_NAMES, TYPE_LABELS, DAY_TYPES } from '../data/exercises.js';
 import { I } from './Icons.jsx';
+import { ExerciseGif } from './ExerciseGif.jsx';
 
 export function LibrarySheet({ open, onClose, onAdd, days, defaultDay }) {
   const [filter, setFilter] = useState('all');
@@ -52,6 +53,7 @@ export function LibrarySheet({ open, onClose, onAdd, days, defaultDay }) {
             const bpLabel = (DAY_TYPES?.[ex.body]?.label) || TYPE_LABELS[ex.type]?.label;
             return (
               <div key={ex.id} className="lib-row" style={{ '--bp': bpColor }} onClick={()=>onAdd(ex.id, targetDay)}>
+                <ExerciseGif exId={ex.id} size={40}/>
                 <div className="body">
                   <div className="name">{ex.name}</div>
                   <div className="meta">

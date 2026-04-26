@@ -8,6 +8,7 @@ import { SPLIT_TEMPLATES, rankTemplatesForSport } from '../data/templates.js';
 import { makeDayForType } from '../lib/splits.js';
 import { StatusBar } from '../lib/StatusBar.jsx';
 import { I } from '../components/Icons.jsx';
+import { SportIcon } from '../components/SportIcons.jsx';
 
 export function Onboarding({ onDone }) {
   const [step, setStep] = useState(0);
@@ -60,6 +61,7 @@ export function Onboarding({ onDone }) {
           <div className="sport-grid">
             {SPORTS.map(s => (
               <button key={s.id} className={`sport-card ${sport===s.id?'active':''}`} onClick={()=>setSport(s.id)}>
+                <span className="sport-card-icon"><SportIcon id={s.id} size={26}/></span>
                 <div className="t">{s.label}</div><div className="s">{s.sub}</div>
               </button>
             ))}

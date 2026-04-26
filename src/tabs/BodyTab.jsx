@@ -10,9 +10,8 @@ import {
 } from '../components/Anatomy2D.jsx';
 import { bestSplitTypeFor } from '../lib/splits.js';
 import { IconX, IconPlus } from '../components/Icons.jsx';
-// Phase 2 will wire in the R3F 3D anatomy. Phase 1 ships 2D-only by hardcoding
-// Anatomy3D = null here; the 3D / 2D toggle is hidden when null.
-const Anatomy3D = null;
+import { ExerciseGif } from '../components/ExerciseGif.jsx';
+import { Anatomy3D } from '../components/Anatomy3D/Anatomy3D.jsx';
 
 function statusFromCoverage(sets, target) {
   if (!target) return 'unknown';
@@ -22,7 +21,7 @@ function statusFromCoverage(sets, target) {
   return 'over';
 }
 
-export function BodyTab({ days, onAddExercise, setTab, profile, splitsByType, setSplitsByType, setSplitsActiveType, showToast }) {
+export default function BodyTab({ days, onAddExercise, setTab, profile, splitsByType, setSplitsByType, setSplitsActiveType, showToast }) {
   const has3D = !!Anatomy3D;
   const [mode, setMode] = useState(has3D ? '3d' : '2d');
   const [view, setView] = useState('front');
@@ -32,6 +31,20 @@ export function BodyTab({ days, onAddExercise, setTab, profile, splitsByType, se
 
   const sets = useMemo(() => computeCoverageV2(days), [days]);
 
+  // One-time intro hint (dismisses after 4s or on first tap).
+  const [hintShown, setHintShown] = useState(() => {
+    try { return !localStorage.getItem('sl-body-hint-seen'); } catch { return false; }
+  });
+  useEffect(() => {
+    if (!hintShown) return;
+    const t = setTimeout(() => dismissHint(), 4000);
+    return () => clearTimeout(t);
+  }, [hintShown]);
+  function dismissHint() {
+    setHintShown(false);
+    try { localStorage.setItem('sl-body-hint-seen', '1'); } catch {}
+  }
+
   useEffect(() => {
     if (mode === '3d' && status3d === 'failed') setMode('2d');
   }, [status3d, mode]);
@@ -39,6 +52,7 @@ export function BodyTab({ days, onAddExercise, setTab, profile, splitsByType, se
   const onRegion = (k) => {
     setRecently(k); setFocus(k);
     setTimeout(() => setRecently(null), 700);
+    if (hintShown) dismissHint();
   };
   const close = () => setFocus(null);
 
@@ -116,6 +130,11 @@ export function BodyTab({ days, onAddExercise, setTab, profile, splitsByType, se
         ) : (
           <AnatomyBack sets={sets} recently={recently} onRegion={onRegion}/>
         )}
+        {hintShown && (
+          <div className="b2-intro-hint" onClick={dismissHint}>
+            Tap any muscle to see exercises that hit it.
+          </div>
+        )}
       </div>
 
       <div className="b2-cov">
@@ -178,6 +197,7 @@ export function BodyTab({ days, onAddExercise, setTab, profile, splitsByType, se
               )}
               {focusedExs.map(({ ex, weight }) => (
                 <div key={ex.id} className="b2-d-row" style={{ '--bp': `var(--bp-${ex.body || ex.type})` }}>
+                  <ExerciseGif exId={ex.id} size={42}/>
                   <div className="b2-d-r-body">
                     <div className="b2-d-r-n">{ex.name}</div>
                     <div className="b2-d-r-m mono">

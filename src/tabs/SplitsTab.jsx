@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { EXERCISES, DAY_TYPES, setsForExercise, exercisesForDayType } from '../data/exercises.js';
 import { IconX, IconPlus } from '../components/Icons.jsx';
+import { ExerciseGif } from '../components/ExerciseGif.jsx';
 
 export function SplitsTab({ days, splitsByType, setSplitsByType, activeType, setActiveType, profile, showToast }) {
   const [addOpen, setAddOpen] = useState(false);
@@ -90,6 +91,7 @@ export function SplitsTab({ days, splitsByType, setSplitsByType, activeType, set
         ) : (
           exObjs.map((ex, i) => (
             <div key={`${ex.id}-${i}`} className="st-ex" style={{ '--bp': `var(--bp-${ex.body || ex.type})` }}>
+              <ExerciseGif exId={ex.id} size={44}/>
               <div className="st-ex-body">
                 <div className="st-ex-n">{ex.name}</div>
                 <div className="st-ex-m mono">{ex.sets} · {ex.gear}</div>
@@ -144,6 +146,7 @@ function SplitExSheet({ dayType, existing, onAdd, onClose }) {
                 style={{ '--bp': `var(--bp-${ex.body || ex.type})` }}
                 onClick={() => !inUse && onAdd(ex.id)}
                 disabled={inUse}>
+                <ExerciseGif exId={ex.id} size={40}/>
                 <div className="sx-body">
                   <div className="sx-n">{ex.name}</div>
                   <div className="sx-m mono">{ex.sets} · {ex.gear}</div>
