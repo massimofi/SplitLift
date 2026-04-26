@@ -217,6 +217,42 @@ test.describe('Data flow audit', () => {
     expect(inputVal).toMatch(/\(copy\)/);
   });
 
+  test('A8 Health Score reflects coverage balance', async ({ page }) => {
+    // Empty week → most muscles untrained → score should be low
+    await reseed(page);
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await goTab(page, 'Dashboard');
+    const emptyEl = page.getByTestId('health-value');
+    await expect(emptyEl).toBeVisible();
+    await page.waitForTimeout(900); // wait for animated number to settle
+    const emptyScore = await intIn(emptyEl);
+    expect(emptyScore, `empty week should be a low health score, got ${emptyScore}`).toBeLessThan(40);
+
+    // Re-seed with a balanced 5-day split → score should rise
+    await reseed(page, {
+      days: [
+        { type:'push', focus:'Push', exIds:['bench','ohp','fly','tri'] },
+        { type:'pull', focus:'Pull', exIds:['pullup','row','face','curlbb'] },
+        { type:'legs', focus:'Legs', exIds:['squat','rdl','curl','calf'] },
+        { type:'push', focus:'Push', exIds:['incline','dbpress','lat','overtri'] },
+        { type:'pull', focus:'Pull', exIds:['tbar','pulldown','hammer','rear'] },
+        { ...REST_DAY }, { ...REST_DAY },
+      ],
+      splitsByType: {
+        push: ['bench','ohp','fly','tri'],
+        pull: ['pullup','row','face','curlbb'],
+        legs: ['squat','rdl','curl','calf'],
+      },
+    });
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await goTab(page, 'Dashboard');
+    await page.waitForTimeout(900);
+    const fullScore = await intIn(page.getByTestId('health-value'));
+    expect(fullScore, `balanced 5-day week should rise from ${emptyScore}, got ${fullScore}`).toBeGreaterThan(emptyScore);
+  });
+
   test('A6 Find My Weak Spots highlights neglected muscles', async ({ page }) => {
     await reseed(page, {
       days: [

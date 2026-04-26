@@ -13,7 +13,7 @@ import {
   totalLiftKcal, totalCardioKcal,
   liftMinutesForDay, cardioFor,
 } from '../data/exercises.js';
-import { computeCoverageV2, TARGETS_V2 } from '../components/Anatomy2D.jsx';
+import { computeCoverageV2, TARGETS_V2, MUSCLE_LABELS_V2 } from '../components/Anatomy2D.jsx';
 import { currentSplitName } from '../lib/splits.js';
 import { useAnimatedNumber } from '../lib/useAnimatedNumber.js';
 import { IconX } from '../components/Icons.jsx';
@@ -23,6 +23,43 @@ import {
   Heart, Target, BarChart3, Dumbbell, Activity, Trophy,
   AlertTriangle, Clock,
 } from 'lucide-react';
+
+// v10 Issue 4 — Coverage Balance Health Score (0-100).
+// Penalty-based: heavy penalty for completely untrained muscles, small
+// penalty for under/over deviation, zero penalty for the sweet spot.
+// Returns the score plus a stats blob the modal renders for breakdown.
+const MAJOR_MUSCLES = ['chest','lats','quads','hams','glutes','shoulder','traps'];
+
+function computeHealthScore(coverageByMuscle) {
+  const muscles = Object.keys(coverageByMuscle || {}).filter(k => TARGETS_V2[k]);
+  if (muscles.length === 0) return { score: 0, untrained: [], over: [], inBand: [] };
+
+  const targetFor = (m) => MAJOR_MUSCLES.includes(m) ? 12 : 8;
+  let totalPenalty = 0;
+  const untrained = [], over = [], inBand = [];
+
+  for (const m of muscles) {
+    const sets = coverageByMuscle[m] || 0;
+    const t = targetFor(m);
+    if (sets === 0) {
+      totalPenalty += 12;
+      untrained.push(m);
+    } else if (sets < t * 0.5) {
+      totalPenalty += 6;
+    } else if (sets > t * 1.5) {
+      totalPenalty += 4;
+      over.push(m);
+    } else if (sets >= t * 0.7 && sets <= t * 1.3) {
+      totalPenalty += 0;
+      inBand.push(m);
+    } else {
+      totalPenalty += 2;
+    }
+  }
+  const avgPenalty = totalPenalty / muscles.length;
+  const score = Math.max(0, Math.min(100, Math.round(100 - avgPenalty * 8)));
+  return { score, untrained, over, inBand };
+}
 
 // Sport Match Score — composite of priority-hit / cardio-match / balance.
 function sportMatchScore(profile, days, cardioDays, sport) {
@@ -75,7 +112,8 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
   // v10 Issue 1d: drag-to-reorder removed. Widgets render in fixed
   // semantic order. Old sl-dash-order localStorage key is still in
   // clearState() so old data is purged on reset.
-  const allWidgets = ['sportscore','quick','lift','cardio','sport','underworked','time'];
+  // v10 Issue 4: Health Score is the new top-of-fold widget.
+  const allWidgets = ['health','sportscore','quick','lift','cardio','sport','underworked','time'];
 
   const liftDaysPlanned = days.filter(d => !d.rest).length;
 
@@ -90,9 +128,40 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
   const animatedSms = useAnimatedNumber(sms.score, 800);
   const [smsOpen, setSmsOpen] = useState(false);
 
+  // v10 Issue 4: Coverage Balance Health Score
+  const coverageV2 = useMemo(() => computeCoverageV2(days), [days]);
+  const health = useMemo(() => computeHealthScore(coverageV2), [coverageV2]);
+  const animatedHealth = useAnimatedNumber(health.score, 800);
+  const [healthOpen, setHealthOpen] = useState(false);
+
+  const healthLine = (() => {
+    if (health.score >= 90) return 'Your weekly coverage is well-balanced.';
+    if (health.score >= 70) return `${health.untrained.length} untrained, mostly on track.`;
+    if (health.score >= 40) {
+      return health.untrained.length > 0
+        ? `${health.untrained.length} muscle${health.untrained.length === 1 ? '' : 's'} untrained — fix biggest gaps first.`
+        : 'A few muscles outside target — minor tuning.';
+    }
+    return health.untrained.length > 0
+      ? `${health.untrained.length} muscle${health.untrained.length === 1 ? '' : 's'} need attention.`
+      : 'Coverage is unbalanced — rebuild your week.';
+  })();
+
   const heroGrade = gradeOf(Math.round(lift.score*0.6 + cardio.score*0.4));
 
   const widgets = {
+    health: () => (
+      <Card variant="gradient" gradient={gradFromScore(health.score)} size="md" interactive icon={Heart} onClick={()=>setHealthOpen(true)} data-testid="health-card">
+        <div className="dw-head-row">
+          <Card.Eyebrow>HEALTH SCORE</Card.Eyebrow>
+        </div>
+        <div className="dw-sms-num-row">
+          <div className="dw-sms-num" data-testid="health-value">{Math.round(animatedHealth)}</div>
+          <div className="dw-sms-units mono">/ 100</div>
+        </div>
+        <Card.Sub>{healthLine}</Card.Sub>
+      </Card>
+    ),
     sportscore: () => (
       <Card variant="gradient" gradient={gradFromScore(sms.score)} size="md" interactive icon={Target} onClick={()=>setSmsOpen(true)}>
         <div className="dw-head-row">
@@ -292,6 +361,46 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
                     .map(k => MUSCLE_LABELS[k] || k)
                     .slice(0, 3)
                     .join(', ') || 'cardio sessions'}.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {healthOpen && (
+        <div className="ps-overlay" onClick={()=>setHealthOpen(false)} style={{ zIndex: 250, position: 'fixed', inset: 0 }}>
+          <div className="ps-sheet" onClick={e=>e.stopPropagation()}>
+            <div className="ps-head">
+              <div>
+                <div className="ps-t">Health Score · {health.score}/100</div>
+                <div className="ps-s mono">COVERAGE BALANCE</div>
+              </div>
+              <button className="ip-x" onClick={()=>setHealthOpen(false)} aria-label="Close" data-testid="health-close-btn"><IconX/></button>
+            </div>
+            <div className="sms-detail">
+              <p>
+                A coverage-balance score: 100 means every tracked muscle is in
+                its target band. Penalties scale by how far each muscle is from
+                its sweet spot.
+              </p>
+              {health.untrained.length > 0 && (
+                <p>
+                  <b>Untrained:</b>{' '}
+                  {health.untrained.map(k => MUSCLE_LABELS_V2[k] || k).join(', ')}.
+                </p>
+              )}
+              {health.over.length > 0 && (
+                <p>
+                  <b>Over the band:</b>{' '}
+                  {health.over.map(k => MUSCLE_LABELS_V2[k] || k).join(', ')}.
+                </p>
+              )}
+              {health.inBand.length > 0 && (
+                <p>
+                  <b>In the sweet spot ({health.inBand.length}):</b>{' '}
+                  {health.inBand.slice(0,8).map(k => MUSCLE_LABELS_V2[k] || k).join(', ')}
+                  {health.inBand.length > 8 ? '…' : ''}.
                 </p>
               )}
             </div>
