@@ -1477,6 +1477,35 @@
     line-height: 1.4;
     color: var(--ink-3);
   }
+  /* v11.6 Issue 6: simplified preset card variant — bigger fonts, more
+     whitespace, no mini-preview, no day-count chip. */
+  .ps-card.v6 {
+    padding: var(--space-5) var(--space-5);
+    gap: 8px;
+    min-height: 110px;
+    justify-content: center;
+  }
+  .ps-card-name.v6 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .ps-card-sub.v6 {
+    font-size: 16px;
+    font-weight: 450;
+    line-height: 1.45;
+    margin-top: 2px;
+  }
+  .ps-card.v6 .ps-card-tag { letter-spacing: 0.16em; }
+
+  /* Duplicate icon button — small, square, no label */
+  .ip-action.ip-icon {
+    min-width: 44px;
+    padding: 8px 0;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+  }
 
   /* Detail view (modal) */
   .ps-detail-sub {

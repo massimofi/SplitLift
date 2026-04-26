@@ -3,8 +3,8 @@
 // Splits tab can also open it.
 
 import React, { useState, useMemo } from 'react';
-import { DAY_TYPES, SPORTS } from '../data/exercises.js';
-import { SPLIT_TEMPLATES, planForSport, rankTemplatesForSport } from '../data/templates.js';
+import { SPORTS } from '../data/exercises.js';
+import { SPLIT_TEMPLATES } from '../data/templates.js';
 import { makeDayForType, splitsByTypeFromDays } from '../lib/splits.js';
 import { IconX } from './Icons.jsx';
 
@@ -12,10 +12,9 @@ export function PresetsSheet({
   profile, setProfile, locked, days, setDays,
   splitsByType, setSplitsByType, showToast, onClose,
 }) {
-  const ranked = useMemo(
-    () => rankTemplatesForSport({ sport: profile.sport, days: profile.days, limit: 3 }),
-    [profile.sport, profile.days]
-  );
+  // v11.6 Issue 6: rankTemplatesForSport / autoBuild removed — the
+  // simplified UI doesn't have a "Suggested for [sport]" or "Auto-build"
+  // affordance any more.
   const sportLabel = SPORTS.find(s => s.id === profile.sport)?.label || 'your sport';
   const customPresets = profile.customPresets || [];
 
@@ -48,16 +47,6 @@ export function PresetsSheet({
     if (setDays) setDays(newDays);
     syncSplits(newDays);
     showToast && showToast(`Applied: ${tpl.name}`);
-    onClose();
-  };
-
-  const autoBuild = () => {
-    const plan = planForSport({ ...profile });
-    const safeLocked = locked || [false,false,false,false,false,false,false];
-    const newDays = plan.map((p, i) => safeLocked[i] ? (days?.[i]) : p);
-    if (setDays) setDays(newDays);
-    syncSplits(newDays);
-    showToast && showToast('Auto-built for your sport');
     onClose();
   };
 
@@ -110,20 +99,15 @@ export function PresetsSheet({
     showToast && showToast('Deleted');
   };
 
+  // v11.6 Issue 6: bare-bones card — title, sport tag, 1-line desc.
+  // No mini-preview, no day-count chip, no menu button.
   const PresetCard = ({ tpl }) => {
     const lifts = liftCountFor(tpl);
     return (
-      <button className="ps-card" onClick={() => setDetail(tpl)}>
-        <div className="ps-card-head">
-          <div className="ps-card-tag mono">{lifts}-DAY</div>
-          <div className="tpl-mini">
-            {tpl.days.map((d, i) => (
-              <span key={i} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
-            ))}
-          </div>
-        </div>
-        <div className="ps-card-name">{tpl.name}</div>
-        <div className="ps-card-sub">{tpl.sub}</div>
+      <button className="ps-card v6" onClick={() => setDetail(tpl)}>
+        <div className="ps-card-tag mono">{lifts} DAYS / WEEK</div>
+        <div className="ps-card-name v6">{tpl.name}</div>
+        <div className="ps-card-sub v6">{tpl.sub}</div>
       </button>
     );
   };
@@ -138,28 +122,6 @@ export function PresetsSheet({
           </div>
           <button className="ip-x" onClick={onClose} aria-label="Close presets"><IconX/></button>
         </div>
-
-        <button className="btn-mesh ps-auto" onClick={autoBuild}>Auto-build for my sport</button>
-
-        {ranked.length > 0 && (
-          <>
-            <div className="ps-section">Suggested for {sportLabel}</div>
-            <div className="tpl-rec-row">
-              {ranked.map(({ tpl, liftDays }, i) => (
-                <button key={tpl.id} className={`tpl-rec ${i===0?'top':''}`} onClick={()=>setDetail(tpl)}>
-                  <div className="rec-rank">{i===0 ? 'BEST FIT' : `#${i+1}`}</div>
-                  <div className="rec-name">{tpl.name}</div>
-                  <div className="rec-meta">{liftDays} lift / {7-liftDays} off</div>
-                  <div className="rec-mini">
-                    {tpl.days.map((d, j) => (
-                      <span key={j} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
-                    ))}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
 
         {customs.length > 0 && (
           <>
@@ -183,26 +145,20 @@ export function PresetsSheet({
               <div>
                 <div className="ps-t">{detail.name}</div>
                 <div className="ps-s mono">
-                  {liftCountFor(detail)} LIFT · {7 - liftCountFor(detail)} OFF
-                  {detail.isCustom ? ' · CUSTOM' : ''}
+                  {liftCountFor(detail)} DAYS / WEEK{detail.isCustom ? ' · CUSTOM' : ''}
                 </div>
               </div>
               <button className="ip-x" onClick={() => setDetail(null)} aria-label="Close"><IconX/></button>
             </div>
             <p className="ps-detail-sub">{detail.sub}</p>
-            <div className="ps-detail-grid">
-              {detail.days.map((d, i) => (
-                <div key={i} className="ps-detail-day">
-                  <div className="ps-detail-dn mono">{['MON','TUE','WED','THU','FRI','SAT','SUN'][i]}</div>
-                  <div className="ps-detail-pill" style={{ background:`var(--bp-${d})` }}>
-                    {(DAY_TYPES[d]?.label || d).toUpperCase()}
-                  </div>
-                </div>
-              ))}
-            </div>
             <div className="ps-detail-actions">
               <button className="ip-action primary" onClick={() => applyTemplate(detail.id)}>Use this</button>
-              <button className="ip-action" onClick={() => openDuplicate(detail)}>Duplicate</button>
+              <button
+                className="ip-action ip-icon"
+                onClick={() => openDuplicate(detail)}
+                aria-label="Duplicate preset"
+                title="Duplicate"
+              >⎘</button>
               {detail.isCustom && (
                 <button className="ip-action danger" onClick={() => deleteCustom(detail.id)}>Delete</button>
               )}
