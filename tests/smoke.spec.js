@@ -37,7 +37,7 @@ const SEED_STATE = {
   splitsByType: {},
 };
 
-const TABS = ['Dashboard', 'Splits', 'Schedule', 'Body', 'Cardio', 'Friends', 'General'];
+const TABS = ['Dashboard', 'Cardio', 'Splits', 'Schedule', 'Body', 'Friends', 'General'];
 
 test.describe('SplitLift smoke', () => {
   test.beforeEach(async ({ page }) => {

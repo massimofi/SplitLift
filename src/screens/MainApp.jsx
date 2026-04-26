@@ -23,10 +23,10 @@ import FriendsTab from '../tabs/FriendsTab.jsx';
 import { CardioTab } from '../tabs/CardioTab.jsx';
 import { Users as UsersIcon, HeartPulse } from 'lucide-react';
 
-// v9 navigation order — Cardio added between Body and Friends.
-// Profile remains in the header avatar (not bottom nav) so we don't
-// blow past 7 nav cells on a 380px screen.
-const NAV_ORDER = ['dashboard','splits','schedule','body','cardio','friends','general'];
+// v11 navigation order — Cardio elevated to the 2nd slot so the user
+// reaches it before the lift-only screens. Profile remains in the
+// header avatar (7 cells max at 380px).
+const NAV_ORDER = ['dashboard','cardio','splits','schedule','body','friends','general'];
 
 export function MainApp({
   profile, setProfile,
@@ -240,10 +240,10 @@ export function MainApp({
             opacity: NAV_ORDER.indexOf(tab) === -1 ? 0 : 1,
           }}/>
           <button className={`bn-item ${tab==='dashboard'?'active':''}`} onClick={()=>setTab('dashboard')}><I.score/><span className="lbl">Dashboard</span></button>
+          <button className={`bn-item ${tab==='cardio'?'active':''}`} onClick={()=>setTab('cardio')}><HeartPulse size={22} strokeWidth={2}/><span className="lbl">Cardio</span></button>
           <button className={`bn-item ${tab==='splits'?'active':''}`} onClick={()=>setTab('splits')}><I.dumbbell/><span className="lbl">Splits</span></button>
           <button className={`bn-item ${tab==='schedule'?'active':''}`} onClick={()=>setTab('schedule')}><I.cal/><span className="lbl">Schedule</span></button>
           <button className={`bn-item ${tab==='body'?'active':''}`} onClick={()=>setTab('body')}><I.cover/><span className="lbl">Body</span></button>
-          <button className={`bn-item ${tab==='cardio'?'active':''}`} onClick={()=>setTab('cardio')}><HeartPulse size={22} strokeWidth={2}/><span className="lbl">Cardio</span></button>
           <button className={`bn-item ${tab==='friends'?'active':''}`} onClick={()=>setTab('friends')}><UsersIcon size={22} strokeWidth={2}/><span className="lbl">Friends</span></button>
           <button className={`bn-item ${tab==='general'?'active':''}`} onClick={()=>setTab('general')}><I.prof/><span className="lbl">General</span></button>
         </div>
