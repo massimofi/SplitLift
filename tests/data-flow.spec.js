@@ -175,18 +175,15 @@ test.describe('Data flow audit', () => {
     expect(hrAfter,  `max HR should fall from ${initialHr}, got ${hrAfter}`).toBeLessThan(initialHr);
   });
 
-  test('A7 Duplicate preset flow — menu + modal renders, custom persists', async ({ page }) => {
-    // Pre-seed a custom preset directly so we verify the rendering path:
-    // CUSTOM eyebrow shows, Delete option is offered. The interactive
-    // duplicate-and-save click is awkward in headless because the bottom
-    // nav and stacked overlays make actionability tricky — that path is
-    // covered by manual verification on phone.
+  test('A7 Preset detail view — Use / Duplicate / Delete (custom only)', async ({ page }) => {
+    // v10 Issue 6: pre-seed a custom preset, then verify the simpler
+    // tap-card → detail-modal flow exposes the right actions.
     await reseed(page, {
       profile: {
         customPresets: [{
           id: 'custom_test1',
           name: 'My Custom PPL',
-          sub: 'Your custom preset',
+          sub: 'A custom 4-day push/pull split',
           sourcePresetId: 'classic_ppl',
           createdAt: Date.now(),
           days: ['push','rest','pull','legs','push','pull','rest'],
@@ -200,21 +197,27 @@ test.describe('Data flow audit', () => {
     await page.getByRole('button', { name: /Presets/i }).click();
     await page.waitForTimeout(300);
 
-    // Custom row is visible with CUSTOM eyebrow at the top of the list
-    await expect(page.locator('.ps-row-n').filter({ hasText: 'My Custom PPL' })).toBeVisible();
-    await expect(page.locator('.ps-row-eyebrow').filter({ hasText: 'CUSTOM' }).first()).toBeVisible();
+    // Custom preset shows under its own section header
+    await expect(page.getByText('Your custom presets')).toBeVisible();
+    await expect(page.locator('.ps-card-name').filter({ hasText: 'My Custom PPL' })).toBeVisible();
 
-    // The "..." menu on a built-in row offers Duplicate but NOT Delete
-    await page.locator('.ps-row-menu').nth(1).click();   // 2nd row (1st builtin)
-    await page.waitForTimeout(150);
+    // Tap the custom card — detail view shows Use / Duplicate / Delete
+    await page.locator('.ps-card-name').filter({ hasText: 'My Custom PPL' }).first().click();
+    await page.waitForTimeout(300);
+    await expect(page.getByRole('button', { name: /^Use this$/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Duplicate$/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Delete$/i })).toBeVisible();
+
+    // Close detail
+    await page.locator('.ps-sheet-narrow .ip-x').click({ force: true });
+    await page.waitForTimeout(200);
+
+    // Tap a built-in card — Delete should NOT appear
+    await page.locator('.ps-card-name').nth(1).click();   // first built-in
+    await page.waitForTimeout(300);
+    await expect(page.getByRole('button', { name: /^Use this$/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /^Duplicate$/i })).toBeVisible();
     expect(await page.getByRole('button', { name: /^Delete$/i }).count()).toBe(0);
-
-    // Duplicate opens the modal with prefilled "(copy)" name
-    await page.getByRole('button', { name: /^Duplicate$/i }).click();
-    await page.waitForTimeout(200);
-    const inputVal = await page.locator('.ps-dup-input').inputValue();
-    expect(inputVal).toMatch(/\(copy\)/);
   });
 
   test('A8 Health Score reflects coverage balance', async ({ page }) => {

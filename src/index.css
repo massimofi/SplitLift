@@ -1432,6 +1432,98 @@
   .tpl-rec .rec-mini { display: flex; gap: 2px; margin-top: 2px; }
   .tpl-rec .rec-mini .tpl-cell { width: 8px; height: 8px; border-radius: 3px; }
 
+  /* v10 Issue 6: simplified preset cards (replaces the old ps-row + "..."
+     menu). Bigger fonts: title 20px / desc 15px / sport tag 13px. */
+  .ps-card-list {
+    display: flex; flex-direction: column; gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+  .ps-card {
+    width: 100%;
+    padding: var(--space-4);
+    background: var(--bg-2);
+    border: 1px solid var(--hair);
+    border-radius: var(--r-lg);
+    text-align: left;
+    cursor: pointer;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: transform var(--dur-fast) var(--ease-out), background var(--dur-base) ease;
+  }
+  .ps-card:hover { background: var(--bg-3); transform: translateY(-1px); }
+  .ps-card:active { transform: scale(0.99); }
+  .ps-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .ps-card-tag {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);             /* 13px sport/day tag */
+    font-weight: 700;
+    letter-spacing: var(--tracking-wide);
+    color: var(--accent);
+  }
+  .ps-card-name {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);             /* 20px title */
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .ps-card-sub {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);           /* 15px description */
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--ink-3);
+  }
+
+  /* Detail view (modal) */
+  .ps-detail-sub {
+    font-size: var(--text-base);
+    color: var(--ink-3);
+    line-height: 1.45;
+    margin: 8px 0 var(--space-4);
+  }
+  .ps-detail-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: var(--space-4);
+  }
+  .ps-detail-day { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ps-detail-dn {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: var(--tracking-mega);
+    color: var(--ink-3);
+  }
+  .ps-detail-pill {
+    width: 100%;
+    padding: 8px 4px;
+    border-radius: var(--r-sm);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: white;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ps-detail-actions {
+    display: flex; gap: var(--space-2); flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .ip-action.danger {
+    border-color: #C9182B;
+    color: #C9182B;
+  }
+  .theme-dark .ip-action.danger { color: #FF8A8A; border-color: #FF8A8A; }
+
+  /* Legacy .ps-list / .ps-row kept for the now-unused detailed-row layout
+     in case the duplicate modal still references it. */
   .ps-list { display: flex; flex-direction: column; gap: 8px; }
   .ps-row {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;

@@ -525,15 +525,29 @@ function PresetsSheet({ profile, setProfile, locked, days, setDays, splitsByType
     onClose();
   };
 
-  // ---- Duplicate flow (v9 Issue 9) ----
-  const [menuFor, setMenuFor] = useState(null);   // template id whose menu is open
-  const [dupOpen, setDupOpen] = useState(null);   // template object being duplicated
+  // v10 Issue 6: simpler — tap a card → detail view → Use / Duplicate /
+  // Delete. No "..." menu cluttering the list.
+  const [detail, setDetail] = useState(null);  // template object being viewed
+  const [dupOpen, setDupOpen] = useState(null);
   const [dupName, setDupName] = useState('');
+
+  // Day-count helper for the new compact sport tag.
+  const liftCountFor = (tpl) => tpl.days.filter(d => d && d !== 'rest').length;
+
+  // Built-ins shown separately from user customs — see render below.
+  const builtIns = SPLIT_TEMPLATES.map(t => ({ ...t, isCustom: false }));
+  const customs = customPresets.map(c => ({
+    id: c.id,
+    name: c.name,
+    sub: c.sub || 'Your custom preset',
+    days: c.days,
+    isCustom: true,
+    sourcePresetId: c.sourcePresetId,
+  }));
 
   const openDuplicate = (tpl) => {
     setDupName(`${tpl.name} (copy)`);
     setDupOpen(tpl);
-    setMenuFor(null);
   };
   const saveCustom = () => {
     if (!dupOpen) return;
@@ -553,14 +567,34 @@ function PresetsSheet({ profile, setProfile, locked, days, setDays, splitsByType
     }));
     showToast(`Saved: ${newPreset.name}`);
     setDupOpen(null);
+    setDetail(null);
   };
   const deleteCustom = (id) => {
     setProfile && setProfile(p => ({
       ...p,
       customPresets: (p.customPresets || []).filter(c => c.id !== id),
     }));
-    setMenuFor(null);
+    setDetail(null);
     showToast('Deleted');
+  };
+
+  // Compact card subcomponent — bigger fonts, fewer fields.
+  const PresetCard = ({ tpl }) => {
+    const lifts = liftCountFor(tpl);
+    return (
+      <button className="ps-card" onClick={() => setDetail(tpl)}>
+        <div className="ps-card-head">
+          <div className="ps-card-tag mono">{lifts}-DAY</div>
+          <div className="tpl-mini">
+            {tpl.days.map((d, i) => (
+              <span key={i} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
+            ))}
+          </div>
+        </div>
+        <div className="ps-card-name">{tpl.name}</div>
+        <div className="ps-card-sub">{tpl.sub}</div>
+      </button>
+    );
   };
 
   return (
@@ -581,7 +615,7 @@ function PresetsSheet({ profile, setProfile, locked, days, setDays, splitsByType
             <div className="ps-section">Suggested for {sportLabel}</div>
             <div className="tpl-rec-row">
               {ranked.map(({ tpl, liftDays }, i) => (
-                <button key={tpl.id} className={`tpl-rec ${i===0?'top':''}`} onClick={()=>applyTemplate(tpl.id)}>
+                <button key={tpl.id} className={`tpl-rec ${i===0?'top':''}`} onClick={()=>setDetail(tpl)}>
                   <div className="rec-rank">{i===0 ? 'BEST FIT' : `#${i+1}`}</div>
                   <div className="rec-name">{tpl.name}</div>
                   <div className="rec-meta">{liftDays} lift / {7-liftDays} off</div>
@@ -596,42 +630,61 @@ function PresetsSheet({ profile, setProfile, locked, days, setDays, splitsByType
           </>
         )}
 
-        <div className="ps-section">All templates</div>
-        <div className="ps-list">
-          {allTemplates.map(t => (
-            <div key={t.id} className="ps-row-wrap">
-              <button className="ps-row" onClick={()=>applyTemplate(t.id)}>
-                <div className="ps-row-body">
-                  {t.isCustom && <div className="ps-row-eyebrow">CUSTOM</div>}
-                  <div className="ps-row-n">{t.name}</div>
-                  <div className="ps-row-s">{t.sub}</div>
-                </div>
-                <div className="tpl-mini">
-                  {t.days.map((d, i) => (
-                    <span key={i} className="tpl-cell" style={{ background:`var(--bp-${d})` }}/>
-                  ))}
-                </div>
-              </button>
-              <button
-                className="ps-row-menu"
-                onClick={(e) => { e.stopPropagation(); setMenuFor(menuFor === t.id ? null : t.id); }}
-                aria-label="Preset options"
-                aria-expanded={menuFor === t.id}
-              >
-                ⋯
-              </button>
-              {menuFor === t.id && (
-                <div className="ps-row-menu-sheet" onClick={e => e.stopPropagation()}>
-                  <button className="ps-menu-item" onClick={() => openDuplicate(t)}>Duplicate</button>
-                  {t.isCustom && (
-                    <button className="ps-menu-item danger" onClick={() => deleteCustom(t.id)}>Delete</button>
-                  )}
-                </div>
-              )}
+        {customs.length > 0 && (
+          <>
+            <div className="ps-section">Your custom presets</div>
+            <div className="ps-card-list">
+              {customs.map(t => <PresetCard key={t.id} tpl={t}/>)}
             </div>
-          ))}
+          </>
+        )}
+
+        <div className="ps-section">All templates</div>
+        <div className="ps-card-list">
+          {builtIns.map(t => <PresetCard key={t.id} tpl={t}/>)}
         </div>
       </div>
+
+      {/* Detail view — opened by tapping any preset card. Use / Duplicate /
+          Delete (delete only for customs). */}
+      {detail && (
+        <div
+          className="ps-overlay"
+          style={{ zIndex: 250, position: 'fixed', inset: 0 }}
+          onClick={() => setDetail(null)}
+        >
+          <div className="ps-sheet ps-sheet-narrow" onClick={e => e.stopPropagation()}>
+            <div className="ps-head">
+              <div>
+                <div className="ps-t">{detail.name}</div>
+                <div className="ps-s mono">
+                  {liftCountFor(detail)} LIFT · {7 - liftCountFor(detail)} OFF
+                  {detail.isCustom ? ' · CUSTOM' : ''}
+                </div>
+              </div>
+              <button className="ip-x" onClick={() => setDetail(null)} aria-label="Close"><IconX/></button>
+            </div>
+            <p className="ps-detail-sub">{detail.sub}</p>
+            <div className="ps-detail-grid">
+              {detail.days.map((d, i) => (
+                <div key={i} className="ps-detail-day">
+                  <div className="ps-detail-dn mono">{['MON','TUE','WED','THU','FRI','SAT','SUN'][i]}</div>
+                  <div className="ps-detail-pill" style={{ background:`var(--bp-${d})` }}>
+                    {(DAY_TYPES[d]?.label || d).toUpperCase()}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="ps-detail-actions">
+              <button className="ip-action primary" onClick={() => applyTemplate(detail.id)}>Use this</button>
+              <button className="ip-action" onClick={() => openDuplicate(detail)}>Duplicate</button>
+              {detail.isCustom && (
+                <button className="ip-action danger" onClick={() => deleteCustom(detail.id)}>Delete</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Duplicate-and-modify modal — uses position:fixed so it sits above
           the bottom nav (the parent .ps-overlay only covers .screen-body
