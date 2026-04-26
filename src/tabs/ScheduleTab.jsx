@@ -7,6 +7,34 @@ import {
   cardioFor, cardioHRZone,
 } from '../data/exercises.js';
 import { Sparkles } from 'lucide-react';
+
+// Per-day-type gradient palettes consumed by .sched-row via inline CSS vars.
+// Same vibe as Dashboard widgets — different hue per category so the week
+// is visually scannable at a glance.
+const SCHED_GRAD = {
+  push:     { '--sg-1':'#FF5C8A', '--sg-2':'#FF4444', '--sg-base':'#5b1322' }, // rose → red
+  pull:     { '--sg-1':'#19B6FF', '--sg-2':'#5B5BFF', '--sg-base':'#0e2e5e' }, // blue → indigo
+  legs:     { '--sg-1':'#9B5BFF', '--sg-2':'#7C5BFF', '--sg-base':'#2c1a5b' }, // purple → violet
+  upper:    { '--sg-1':'#FFD93D', '--sg-2':'#FF8C42', '--sg-base':'#5b3914' }, // amber → orange
+  lower:    { '--sg-1':'#4ED9C0', '--sg-2':'#00c896', '--sg-base':'#0e3d35' }, // teal → green
+  full:     { '--sg-1':'#19B6FF', '--sg-2':'#5BC4FF', '--sg-base':'#0d3a5e' }, // cyan → sky
+  chest:    { '--sg-1':'#FF4444', '--sg-2':'#FF6BD6', '--sg-base':'#5b1322' }, // red → pink
+  back:     { '--sg-1':'#19B6FF', '--sg-2':'#4ED9C0', '--sg-base':'#0e3d52' }, // blue → cyan
+  shoulder: { '--sg-1':'#FF8C42', '--sg-2':'#FFD93D', '--sg-base':'#5b3914' }, // orange → yellow
+  shoul:    { '--sg-1':'#FF8C42', '--sg-2':'#FFD93D', '--sg-base':'#5b3914' },
+  arms:     { '--sg-1':'#9B5BFF', '--sg-2':'#FF6BD6', '--sg-base':'#3d1a5b' }, // purple → fuchsia
+  bis:      { '--sg-1':'#9B5BFF', '--sg-2':'#FF6BD6', '--sg-base':'#3d1a5b' },
+  tris:     { '--sg-1':'#9B5BFF', '--sg-2':'#FF6BD6', '--sg-base':'#3d1a5b' },
+  quads:    { '--sg-1':'#9B5BFF', '--sg-2':'#7C5BFF', '--sg-base':'#2c1a5b' },
+  hams:     { '--sg-1':'#7C5BFF', '--sg-2':'#5B5BFF', '--sg-base':'#1f1a5b' },
+  glutes:   { '--sg-1':'#A86CFF', '--sg-2':'#9B5BFF', '--sg-base':'#3d1a5b' },
+  calves:   { '--sg-1':'#C09BFF', '--sg-2':'#9B5BFF', '--sg-base':'#3d1a5b' },
+  core:     { '--sg-1':'#00c896', '--sg-2':'#7CD96B', '--sg-base':'#0e3d2a' }, // green → lime
+  cardio:   { '--sg-1':'#19B6FF', '--sg-2':'#5B5BFF', '--sg-base':'#0e2e5e' }, // cyan → blue
+  sport:    { '--sg-1':'#00c896', '--sg-2':'#4ED9C0', '--sg-base':'#0e3d2a' }, // green → emerald
+  rest:     { '--sg-1':'transparent', '--sg-2':'transparent', '--sg-base':'#3a3d52' },
+  custom:   { '--sg-1':'#8C8CFF', '--sg-2':'#A0A0FF', '--sg-base':'#2a2c5c' },
+};
 import { SPLIT_TEMPLATES, planForSport, rankTemplatesForSport } from '../data/templates.js';
 import { makeDayForType, splitsByTypeFromDays } from '../lib/splits.js';
 import { IconLock, IconX, IconTrash, IconPlus } from '../components/Icons.jsx';
@@ -152,7 +180,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
             return (
               <button key={i} data-sched-day={i}
                 className={`sched-row ${isToday?'today':''} ${isLocked?'locked':''} ${isRest?'is-rest':''} ${isHover?'is-hover':''}`}
-                style={{ '--bp': `var(--bp-${t})` }}
+                style={{ '--bp': `var(--bp-${t})`, ...(SCHED_GRAD[t] || SCHED_GRAD.custom) }}
                 onClick={() => setPickFor(i)}>
                 <div className="sr-day">
                   <div className="sr-d mono">{dn.toUpperCase()}</div>
