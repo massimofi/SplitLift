@@ -39,8 +39,11 @@ export function Card({
   const Tag = as || (interactive || onClick ? 'button' : 'div');
   const isInteractive = interactive || !!onClick;
   const cls = ['sl-card', className].filter(Boolean).join(' ');
+  // For <button>, reset only the bits that would clobber Card styling.
+  // CRITICAL: never set `background: 'none'` here — it kills the gradient
+  // background-image set by .sl-card[data-grad=...] in card.css.
   const buttonReset = Tag === 'button'
-    ? { background: 'none', border: 0, font: 'inherit', textAlign: 'left', width: '100%', color: 'inherit', cursor: isInteractive ? 'pointer' : 'default' }
+    ? { border: 0, font: 'inherit', textAlign: 'left', width: '100%', color: 'inherit', cursor: isInteractive ? 'pointer' : 'default' }
     : null;
   return (
     <Tag

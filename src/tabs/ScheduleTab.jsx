@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  DAY_NAMES, DAY_TYPES, CARDIO_LIBRARY, CARDIO_TYPES, SPORTS,
+  DAY_NAMES, DAY_TYPES, CARDIO_LIBRARY, CARDIO_TYPES, SPORTS, EXERCISES,
   cardioFor, cardioHRZone,
 } from '../data/exercises.js';
 import { Sparkles } from 'lucide-react';
@@ -181,46 +181,63 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
             const isRest = t === 'rest';
             const isHover = hoverIdx === i;
 
+            // Exercise preview — first 4 names, e.g. "Bench · DB Press · OHP · Tris"
+            const exIds = (day.exIds && day.exIds.length) ? day.exIds : ((splitsByType && splitsByType[t]) || []);
+            const exNames = exIds
+              .slice(0, 4)
+              .map(id => EXERCISES.find(e => e.id === id)?.name)
+              .filter(Boolean);
+            const exTrail = exIds.length > 4 ? ` +${exIds.length - 4}` : '';
+
             return (
               <Card
                 key={i}
-                variant={isRest ? 'surface' : 'gradient'}
-                gradient={gradForDayType(t)}
-                size="row"
+                variant={isRest ? 'muted' : 'gradient'}
+                gradient={isRest ? 'muted' : gradForDayType(t)}
+                size={isRest ? 'row' : 'md'}
                 interactive
                 glow={isToday}
                 onClick={() => setPickFor(i)}
-                className={isHover ? 'is-drop-hover' : ''}
+                className={`sched-day-card ${isHover ? 'is-drop-hover' : ''} ${isLocked ? 'is-locked' : ''}`}
                 data-sched-day={i}
               >
-                <div className="sl-card-row">
-                  <div className="sched-row-day">
-                    <div className="sched-row-d mono">{dn.toUpperCase()}</div>
+                <div className="sched-day-head">
+                  <div className="sched-day-l">
+                    <div className="sched-day-name mono">{dn.toUpperCase()}</div>
                     {isToday && <span className="sched-today-tag mono">TODAY</span>}
                   </div>
-                  <div className="sl-card-row-body sched-row-mid">
-                    <div className="sched-row-type">{dt.label}</div>
-                    {cItems.length > 0 ? (
-                      <div className="sched-row-cardios">
-                        {cItems.slice(0, 3).map((cid, k) => {
+                  <div className="sched-day-r">
+                    {isLocked && <span className="sched-day-lock"><IconLock/></span>}
+                    <span className="sched-day-type-pill">{dt.label}</span>
+                  </div>
+                </div>
+                {!isRest ? (
+                  <>
+                    {exNames.length > 0 ? (
+                      <div className="sched-day-preview">
+                        {exNames.join(' · ')}{exTrail}
+                      </div>
+                    ) : (
+                      <div className="sched-day-preview is-empty">No exercises yet</div>
+                    )}
+                    {cItems.length > 0 && (
+                      <div className="sched-day-cardios">
+                        {cItems.slice(0, 4).map((cid, k) => {
                           const c = cardioFor(cid);
+                          if (!c) return null;
                           return (
-                            <span key={k} className="sched-row-cardio-pill">
-                              {c?.dur || 0}m
+                            <span key={k} className="sched-day-cardio-pill">
+                              {CARDIO_TYPES[c.type]?.label || c.name} · {c.dur}m
                             </span>
                           );
                         })}
-                        {cItems.length > 3 && <span className="sched-row-cardio-pill">+{cItems.length - 3}</span>}
+                        {cItems.length > 4 && <span className="sched-day-cardio-pill">+{cItems.length - 4}</span>}
                       </div>
-                    ) : (
-                      <div className="sched-row-sub">{dt.sub}</div>
                     )}
-                  </div>
-                  <div className="sl-card-row-right sched-row-right">
-                    {isLocked && <span className="sched-row-chev"><IconLock/></span>}
-                    <span className="sched-row-chev" aria-hidden="true">›</span>
-                  </div>
-                </div>
+                  </>
+                ) : (
+                  <div className="sched-day-rest-line">{day.restNote || 'Recover.'}</div>
+                )}
               </Card>
             );
           })}

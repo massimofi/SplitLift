@@ -414,11 +414,13 @@
 
 .sched-layout {
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: var(--space-2);
+  grid-template-columns: 84px 1fr;
+  gap: var(--space-3);
+  align-items: start;
 }
 .sched-palette {
-  display: flex; flex-direction: column; gap: var(--space-2);
+  display: flex; flex-direction: column; gap: 6px;
+  position: sticky; top: 0;
 }
 .sched-palette-head {
   font-family: var(--font-mono);
@@ -427,64 +429,125 @@
   color: var(--ink-3);
   text-transform: uppercase;
   margin-top: var(--space-2);
+  text-align: center;
 }
-.sched-rows { display: flex; flex-direction: column; gap: var(--space-2); }
+.sched-palette-head:first-child { margin-top: 0; }
+.sched-palette .sl-chip {
+  width: 100%;
+  min-height: 36px;
+  text-align: center;
+}
+.sched-rows { display: flex; flex-direction: column; gap: var(--space-3); }
 
-.sched-row-day {
-  display: flex; flex-direction: column; gap: 2px;
-  flex-shrink: 0;
-  width: 56px;
+/* Full-width day card — Splits-style. Day name + type pill row up top,
+   exercise preview line, optional cardio chips. */
+.sched-day-card {
+  width: 100%;
+  min-height: 120px;
 }
-.sched-row-d { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-wide); color: var(--text-on-gradient); font-weight: 700; }
+.sched-day-card[data-size="row"] { min-height: 64px; gap: var(--space-2); }
+
+/* Schedule day card: keep gradient vivid (no drift, lighter overlay) */
+.sched-day-card[data-variant="gradient"] {
+  background-size: 100% 100%;
+  animation: none;
+}
+.sched-day-card[data-variant="gradient"]::before {
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.20) 100%) !important;
+}
+
+.sched-day-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3);
+}
+.sched-day-l { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.sched-day-r { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
+
+.sched-day-name {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-mega);
+  color: var(--text-on-gradient-muted);
+}
 .sched-today-tag {
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: var(--tracking-wide);
   color: var(--text-on-gradient);
-  background: rgba(255,255,255,0.22);
-  padding: 2px 6px;
+  background: rgba(255,255,255,0.24);
+  padding: 2px 7px;
   border-radius: var(--r-full);
-  align-self: flex-start;
+  font-weight: 700;
 }
-.sched-row-mid { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.sched-row-type {
-  font-family: var(--font-display);
+.sched-day-type-pill {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   font-weight: 800;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-on-gradient);
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.22);
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  text-shadow: var(--shadow-on-gradient);
+}
+.sched-day-lock {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  color: var(--text-on-gradient-muted);
+}
+.sched-day-lock svg { width: 14px; height: 14px; }
+
+.sched-day-preview {
+  font-family: var(--font-display);
   font-size: var(--text-md);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
   color: var(--text-on-gradient);
   text-shadow: var(--shadow-on-gradient);
-  letter-spacing: var(--tracking-tight);
 }
-.sched-row-sub { font-size: var(--text-xs); color: var(--text-on-gradient-muted); }
-.sched-row-cardios { display: flex; flex-wrap: wrap; gap: 4px; }
-.sched-row-cardio-pill {
+.sched-day-preview.is-empty {
+  font-weight: 500;
+  font-style: italic;
+  color: var(--text-on-gradient-muted);
+  text-shadow: none;
+}
+
+.sched-day-cardios {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.sched-day-cardio-pill {
   background: rgba(255,255,255,0.18);
   color: var(--text-on-gradient);
   border-radius: var(--r-full);
-  padding: 2px 8px;
+  padding: 4px 10px;
   font-size: var(--text-xs);
   font-family: var(--font-mono);
   font-weight: 700;
-}
-.sched-row-right { display: flex; align-items: center; gap: 6px; color: var(--text-on-gradient); }
-.sched-row-chev { font-size: 18px; color: var(--text-on-gradient-muted); }
-
-/* When the row is a rest day (variant=surface), text is var(--ink) */
-.sl-card[data-variant="surface"] .sched-row-d,
-.sl-card[data-variant="surface"] .sched-row-type { color: var(--ink); text-shadow: none; }
-.sl-card[data-variant="surface"] .sched-row-sub,
-.sl-card[data-variant="surface"] .sched-row-chev,
-.sl-card[data-variant="surface"] .sched-row-right { color: var(--ink-3); }
-.sl-card[data-variant="surface"] .sched-today-tag {
-  background: var(--accent-soft);
-  color: var(--accent-deep);
+  border: 1px solid rgba(255,255,255,0.18);
 }
 
-/* Drag-hover ring on a sched row */
+/* Rest-day variant uses --grad-muted (slate) — text stays white but softer */
+.sched-day-card[data-grad="muted"] .sched-day-preview,
+.sched-day-card[data-grad="muted"] .sched-day-rest-line { color: var(--text-on-gradient-muted); text-shadow: none; }
+.sched-day-rest-line {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+.sched-day-card.is-locked { opacity: 0.78; }
+
+/* Drag-hover ring */
 .sl-card.is-drop-hover {
   box-shadow:
     0 0 0 3px var(--accent),
     var(--shadow-grad);
+  transform: translateY(-1px) scale(1.01);
 }
 
 /* ============================================================
