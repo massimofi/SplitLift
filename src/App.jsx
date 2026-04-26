@@ -28,7 +28,7 @@ export default function App() {
   const [profile, setProfile] = useState(saved?.profile || DEFAULT_PROFILE);
   const [bootState, setBootState] = useState({
     initialDays: saved?.days || null,
-    initialTab: saved?.onboarded ? 'general' : 'general',
+    initialTab: 'dashboard',
     initialCardioDays: saved?.cardioDays || null,
     initialLocked: saved?.locked || null,
     initialSplitsByType: saved?.splitsByType || null,
@@ -66,7 +66,7 @@ export default function App() {
   const onResetAll = () => {
     clearState();
     setProfile(DEFAULT_PROFILE);
-    setBootState({ initialDays: null, initialTab: 'general' });
+    setBootState({ initialDays: null, initialTab: 'dashboard' });
     latestRef.current = { profile: DEFAULT_PROFILE, theme, onboarded: false };
     setScreen('landing');
   };

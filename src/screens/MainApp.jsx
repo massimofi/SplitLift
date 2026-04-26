@@ -22,6 +22,10 @@ import BodyTab from '../tabs/BodyTab.jsx';
 import FriendsTab from '../tabs/FriendsTab.jsx';
 import { Users as UsersIcon } from 'lucide-react';
 
+// v7 navigation order — Dashboard first, General second-to-last,
+// Profile lives in the header avatar (not bottom nav).
+const NAV_ORDER = ['dashboard','splits','schedule','body','friends','general'];
+
 export function MainApp({
   profile, setProfile,
   theme, setTheme,
@@ -36,7 +40,7 @@ export function MainApp({
   const [days, setDays] = useState(baseDays);
   const [cardioDays, setCardioDays] = useState(initialCardioDays || INITIAL_CARDIO_DAYS);
   const [locked, setLocked] = useState(initialLocked || [false,false,false,false,false,false,false]);
-  const [tab, setTab] = useState(initialTab || 'general');
+  const [tab, setTab] = useState(initialTab || 'dashboard');
   const [splitsByType, setSplitsByType] = useState(() =>
     initialSplitsByType || splitsByTypeFromDays(baseDays)
   );
@@ -222,15 +226,15 @@ export function MainApp({
       <div className="bottom-nav">
         <div className="bn-track six">
           <div className="bn-pill" style={{
-            transform: `translateX(${Math.max(0, ['general','splits','schedule','body','friends','dashboard'].indexOf(tab)) * 100}%)`,
-            opacity: ['general','splits','schedule','body','friends','dashboard'].indexOf(tab) === -1 ? 0 : 1,
+            transform: `translateX(${Math.max(0, NAV_ORDER.indexOf(tab)) * 100}%)`,
+            opacity: NAV_ORDER.indexOf(tab) === -1 ? 0 : 1,
           }}/>
-          <button className={`bn-item ${tab==='general'?'active':''}`} onClick={()=>setTab('general')}><I.prof/><span className="lbl">General</span></button>
+          <button className={`bn-item ${tab==='dashboard'?'active':''}`} onClick={()=>setTab('dashboard')}><I.score/><span className="lbl">Dashboard</span></button>
           <button className={`bn-item ${tab==='splits'?'active':''}`} onClick={()=>setTab('splits')}><I.dumbbell/><span className="lbl">Splits</span></button>
           <button className={`bn-item ${tab==='schedule'?'active':''}`} onClick={()=>setTab('schedule')}><I.cal/><span className="lbl">Schedule</span></button>
           <button className={`bn-item ${tab==='body'?'active':''}`} onClick={()=>setTab('body')}><I.cover/><span className="lbl">Body</span></button>
           <button className={`bn-item ${tab==='friends'?'active':''}`} onClick={()=>setTab('friends')}><UsersIcon size={22} strokeWidth={2}/><span className="lbl">Friends</span></button>
-          <button className={`bn-item ${tab==='dashboard'?'active':''}`} onClick={()=>setTab('dashboard')}><I.score/><span className="lbl">Dashboard</span></button>
+          <button className={`bn-item ${tab==='general'?'active':''}`} onClick={()=>setTab('general')}><I.prof/><span className="lbl">General</span></button>
         </div>
       </div>
 
