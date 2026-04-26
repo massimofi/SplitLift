@@ -87,6 +87,12 @@
   --surface-2: var(--bg-2);
   --surface-3: var(--bg-3);
   --surface-subtle: rgba(91,91,255,0.06);
+  --bg-elevated: var(--bg);
+
+  /* Legacy alias — old CSS used --bg-1, but the actual token is --bg.
+     Without this alias, ~9 surfaces silently fall back to transparent
+     (caught by the v8 Body zoom drawer Playwright test). */
+  --bg-1: var(--bg);
 
   /* ============================================================
      SEMANTIC GRADIENTS — referenced via Card gradient="..." prop.
