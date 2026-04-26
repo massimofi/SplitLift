@@ -215,7 +215,7 @@ export function MainApp({
           <FriendsTab profile={profile} days={days} splitsByType={splitsByType}/>
         )}
         {tab === 'dashboard' && (
-          <DashboardTab days={days} cardioDays={cardioDays} profile={profile} setTab={setTab}/>
+          <DashboardTab days={days} cardioDays={cardioDays} profile={profile} setProfile={setProfile} showToast={showToast} setTab={setTab}/>
         )}
         {tab === 'profile' && (
           <ProfileTab

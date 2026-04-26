@@ -4,39 +4,14 @@
 // Sport=priority, Birthday/sex=personal, Height=info, Weight=cardio,
 // BMR/TDEE=energy, Macros=recovery, HR=danger.
 
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState } from 'react';
 import { SPORTS, tdeeFor, estimateBMR, macrosFor, hrZonesFor, totalCardioMinutes, ageFromBirthday } from '../data/exercises.js';
 import { IconX, IconPlus } from '../components/Icons.jsx';
-import { LogWeightSheet } from '../components/LogWeightSheet.jsx';
-import { useAnimatedNumber } from '../lib/useAnimatedNumber.js';
 import { Subheader } from '../components/Subheader.jsx';
 import { Card } from '../components/Card.jsx';
 
-const WeightChart = lazy(() => import('../components/WeightChart.jsx'));
-
-const TODAY_ISO = () => new Date().toISOString().slice(0, 10);
-const KG_TO_LB = 2.20462;
-
 export function GeneralTab({ profile, setProfile, days, cardioDays, showToast }) {
   const [sportOpen, setSportOpen] = useState(false);
-  const [logOpen, setLogOpen] = useState(false);
-  const weightLog = profile.weightLog || [];
-
-  const logWeight = ({ date, kg, unit }) => {
-    setProfile(p => {
-      const existing = (p.weightLog || []).filter(w => w.date !== date);
-      const next = [...existing, { date, kg }].sort((a, b) => a.date.localeCompare(b.date));
-      const latest = next[next.length - 1];
-      const displayWeight = (p.wUnit === 'lb')
-        ? Math.round(latest.kg * KG_TO_LB)
-        : Math.round(latest.kg * 10) / 10;
-      return { ...p, weightLog: next, weight: displayWeight, wUnit: unit || p.wUnit };
-    });
-    setLogOpen(false);
-    showToast && showToast(`Logged ${kg} kg`);
-  };
-
-  const animWeight = useAnimatedNumber(Number(profile.weight) || 0, 600);
 
   const adjust = (key, delta, opts = {}) => {
     const min = opts.min ?? 0;
@@ -86,24 +61,8 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
           <Card.Sub>{sportObj.sub || 'Tap to change'}</Card.Sub>
         </Card>
 
-        {/* Height tile moved to Profile/Settings in v9 (Issue 4). */}
-        <Card variant="gradient" gradient="cardio" size="md" className="span-2">
-          <div className="gen-row">
-            <Card.Eyebrow>WEIGHT</Card.Eyebrow>
-            <UnitToggle value={profile.wUnit} onChange={u=>setUnit('w', u)} options={[['kg','KG'],['lb','LB']]}/>
-          </div>
-          <div className="gen-weight-card-row">
-            <Card.Value unit={profile.wUnit}>{animWeight.toFixed(profile.wUnit === 'kg' ? 1 : 0)}</Card.Value>
-            <button className="gen-weight-log-btn" onClick={()=>setLogOpen(true)} type="button">
-              <IconPlus/> Log weigh-in
-            </button>
-          </div>
-          <div className="gen-weight-chart-host">
-            <Suspense fallback={<div style={{padding:8,opacity:0.7}}>Loading chart…</div>}>
-              <WeightChart data={weightLog} unit={profile.wUnit}/>
-            </Suspense>
-          </div>
-        </Card>
+        {/* Height tile moved to Profile/Settings in v9.
+            Weight tile moved to Dashboard in v11. */}
 
         <Card variant="gradient" gradient="personal" size="md" className="span-2">
           <Card.Eyebrow>GENDER (FOR BMR)</Card.Eyebrow>
@@ -159,15 +118,6 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
           current={profile.sport}
           onPick={(id) => { setProfile(p => ({ ...p, sport: id })); setSportOpen(false); showToast(`Sport: ${SPORTS.find(s=>s.id===id)?.label}`); }}
           onClose={() => setSportOpen(false)}
-        />
-      )}
-
-      {logOpen && (
-        <LogWeightSheet
-          defaultUnit={profile.wUnit}
-          defaultWeight={profile.weight}
-          onSubmit={logWeight}
-          onClose={() => setLogOpen(false)}
         />
       )}
 

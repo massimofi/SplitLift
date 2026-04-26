@@ -23,6 +23,7 @@ import {
   Heart, Target, BarChart3, Dumbbell, Activity, Trophy,
   AlertTriangle, Clock,
 } from 'lucide-react';
+import { WeightTrackingCard } from '../components/WeightTrackingCard.jsx';
 
 // v10 Issue 4 — Coverage Balance Health Score (0-100).
 // Penalty-based: heavy penalty for completely untrained muscles, small
@@ -96,7 +97,7 @@ function sportMatchScore(profile, days, cardioDays, sport) {
   return { score, priorityHit, cardioMatch, balance, prioKeys, hitMuscles };
 }
 
-export function DashboardTab({ days, cardioDays, profile, setTab }) {
+export function DashboardTab({ days, cardioDays, profile, setProfile, showToast, setTab }) {
   const lift = useMemo(() => liftingScore(days, profile), [days, profile]);
   const cardio = useMemo(() => cardioScoreFor(cardioDays), [cardioDays]);
   const under = useMemo(() => underworkedMuscles(days), [days]);
@@ -109,11 +110,20 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
   const totalMin = liftMin + cardioMin;
   const trainingKcal = totalLiftKcal(days) + totalCardioKcal(cardioDays);
 
-  // v10 Issue 1d: drag-to-reorder removed. Widgets render in fixed
-  // semantic order. Old sl-dash-order localStorage key is still in
-  // clearState() so old data is purged on reset.
-  // v10 Issue 4: Health Score is the new top-of-fold widget.
-  const allWidgets = ['health','sportscore','quick','lift','cardio','sport','underworked','time'];
+  // v11 Issue 2: widget order reorganized — Sport Match is now the hero
+  // (top), Weight tracking moved here from General (bottom), all score
+  // cards standardized on the simple gradient + big number template.
+  const allWidgets = [
+    'sportscore',     // Sport Match — hero
+    'health',         // Health Score
+    'quick',          // 3-up quick stats
+    'underworked',    // Warning card
+    'lift',           // Lifting summary (simplified)
+    'cardio',         // Cardio summary (simplified)
+    'sport',          // Sport context
+    'time',           // Weekly time chart
+    'weight',         // Weight tracking + chart (newly here)
+  ];
 
   const liftDaysPlanned = days.filter(d => !d.rest).length;
 
@@ -164,19 +174,17 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
     ),
     sportscore: () => (
       <Card variant="gradient" gradient={gradFromScore(sms.score)} size="md" interactive icon={Target} onClick={()=>setSmsOpen(true)}>
-        <div className="dw-head-row">
-          <Card.Title>Sport match · {sp.label}</Card.Title>
-          <span className="dw-pill-grade">TAP FOR DETAIL</span>
-        </div>
+        <Card.Eyebrow>SPORT MATCH · {sp.label.toUpperCase()}</Card.Eyebrow>
         <div className="dw-sms-num-row">
           <div className="dw-sms-num">{Math.round(animatedSms)}</div>
           <div className="dw-sms-units mono">/ 100</div>
         </div>
-        <div className="dw-sms-bars">
-          <SmsBar k="Priority" v={sms.priorityHit}/>
-          <SmsBar k="Cardio"   v={sms.cardioMatch}/>
-          <SmsBar k="Balance"  v={sms.balance}/>
-        </div>
+        <Card.Sub>
+          {sms.score >= 85 ? 'Locked-in for your sport.'
+           : sms.score >= 65 ? 'On track — minor tuning to peak.'
+           : sms.score >= 40 ? `Hitting ${sms.hitMuscles.length}/${sms.prioKeys.length} priority muscles.`
+           : 'Plan needs more work for this sport.'}
+        </Card.Sub>
       </Card>
     ),
     quick: () => (
@@ -192,45 +200,27 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </Card>
     ),
     lift: () => (
-      <Card variant="gradient" gradient="strength" size="md" icon={Dumbbell}>
-        <div className="dw-head-row">
-          <Card.Title>Lifting</Card.Title>
-          <span className="dw-pill-grade">{gradeOf(lift.score)}</span>
+      <Card variant="gradient" gradient={gradFromScore(lift.score)} size="md" icon={Dumbbell}>
+        <Card.Eyebrow>LIFTING SCORE</Card.Eyebrow>
+        <div className="dw-sms-num-row">
+          <div className="dw-sms-num">{Math.round(lift.score)}</div>
+          <div className="dw-sms-units mono">/ 100</div>
         </div>
-        <div className="dw-big-row">
-          <ScoreRing value={lift.score} size={84} stroke={9}/>
-          <div className="dw-stats">
-            <DStat k="Days planned" v={`${days.filter(d=>!d.rest).length}/${profile.days||4}`}/>
-            <DStat k="Sets in band" v={`${lift.inBand}/${lift.total}`}/>
-            <DStat k="Lift hours" v={`${(liftMin/60).toFixed(1)}h`}/>
-          </div>
-        </div>
-        <div className="dw-bars">
-          <DBar k="Adherence" v={lift.adherence}/>
-          <DBar k="Coverage"  v={lift.balance}/>
-          <DBar k="Volume"    v={lift.timeScore}/>
-        </div>
+        <Card.Sub>
+          {`${days.filter(d=>!d.rest).length}/${profile.days||4} days planned · ${lift.inBand}/${lift.total} sets in band · ${(liftMin/60).toFixed(1)}h volume`}
+        </Card.Sub>
       </Card>
     ),
     cardio: () => (
-      <Card variant="gradient" gradient="cardio" size="md" icon={Activity}>
-        <div className="dw-head-row">
-          <Card.Title>Cardio</Card.Title>
-          <span className="dw-pill-grade">{gradeOf(cardio.score)}</span>
+      <Card variant="gradient" gradient={gradFromScore(cardio.score)} size="md" icon={Activity}>
+        <Card.Eyebrow>CARDIO SCORE</Card.Eyebrow>
+        <div className="dw-sms-num-row">
+          <div className="dw-sms-num">{Math.round(cardio.score)}</div>
+          <div className="dw-sms-units mono">/ 100</div>
         </div>
-        <div className="dw-big-row">
-          <ScoreRing value={cardio.score} size={84} stroke={9}/>
-          <div className="dw-stats">
-            <DStat k="Sessions" v={`${cardio.sessions}/3`}/>
-            <DStat k="Minutes"  v={`${cardio.minutes}m`}/>
-            <DStat k="Variety"  v={`${cardio.types} types`}/>
-          </div>
-        </div>
-        <div className="dw-bars">
-          <DBar k="Volume"    v={cardio.minScore}/>
-          <DBar k="Frequency" v={cardio.sessionScore}/>
-          <DBar k="Variety"   v={cardio.varietyScore}/>
-        </div>
+        <Card.Sub>
+          {`${cardio.sessions} sessions · ${cardio.minutes}m total · ${cardio.types} ${cardio.types === 1 ? 'modality' : 'modalities'}`}
+        </Card.Sub>
       </Card>
     ),
     sport: () => (
@@ -305,6 +295,9 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
           <span>{trainingKcal} kcal</span>
         </div>
       </Card>
+    ),
+    weight: () => (
+      <WeightTrackingCard profile={profile} setProfile={setProfile} showToast={showToast}/>
     ),
   };
 
