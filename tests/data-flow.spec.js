@@ -267,6 +267,38 @@ test.describe('Data flow audit', () => {
     expect(fullScore, `balanced 5-day week should rise from ${emptyScore}, got ${fullScore}`).toBeGreaterThan(emptyScore);
   });
 
+  test('A9 Cardio-only day renders as Cardio (not Rest)', async ({ page }) => {
+    // Day index 1 is rest (no type) but has a cardio session.
+    // effectiveType should derive 'cardio' and the card should reflect it.
+    await reseed(page, {
+      days: [
+        { ...REST_DAY },
+        { ...REST_DAY },          // Tue: rest type, but cardio scheduled below
+        { ...REST_DAY },
+        { ...REST_DAY },
+        { ...REST_DAY },
+        { ...REST_DAY },
+        { ...REST_DAY },
+      ],
+      cardioDays: [
+        { items: [] },
+        { items: ['c-z2-30'] },   // Tuesday gets a Zone 2 Run
+        { items: [] }, { items: [] }, { items: [] }, { items: [] }, { items: [] },
+      ],
+    });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await goTab(page, 'Schedule');
+    const tueCard = page.locator('[data-sched-day="1"]').first();
+    await expect(tueCard).toBeVisible();
+    const eff = await tueCard.getAttribute('data-effective-type');
+    expect(eff, 'Tuesday with only cardio should derive effective-type = cardio').toBe('cardio');
+    // Pill text should say "Cardio" (matches DAY_TYPES.cardio.label)
+    await expect(tueCard.locator('.sched-day-type-pill')).toContainText(/cardio/i);
+    // The cardio name should be in the card body
+    await expect(tueCard).toContainText(/Zone 2 Run/i);
+  });
+
   test('A6 Find My Weak Spots highlights neglected muscles', async ({ page }) => {
     await reseed(page, {
       days: [

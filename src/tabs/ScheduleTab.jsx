@@ -248,39 +248,52 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
           {DAY_NAMES.map((dn, i) => {
             const day = days[i] || { type: 'rest', rest: true };
             const t = day.type || 'rest';
-            const dt = DAY_TYPES[t] || DAY_TYPES.custom;
             const cItems = (cardioDays && cardioDays[i] && cardioDays[i].items) || [];
             const isToday = todayIdx === i;
             const isLocked = locked[i];
-            const isRest = t === 'rest';
             const isHover = hoverIdx === i;
 
-            // v11.5 Issue 3: vertical exercise list with muscle color dots.
-            // Pull live from splitsByType[t] so edits in Splits propagate.
-            const exIds = (splitsByType && splitsByType[t]) ? splitsByType[t]
-                          : (day.exIds || []);
+            // v11.7 Issue 2: a day with no lift type but ≥1 cardio session
+            // becomes a "Cardio" day (gradient + pill + cardio list, no
+            // empty exercise hint). Lift type still wins if both are set.
+            const hasLift = t && t !== 'rest';
+            const effectiveType = hasLift ? t : (cItems.length > 0 ? 'cardio' : 'rest');
+            const isCardioOnly = !hasLift && cItems.length > 0;
+            const isRest = effectiveType === 'rest';
+            const dt = DAY_TYPES[effectiveType] || DAY_TYPES.custom;
+
+            // Vertical exercise list — only for lift days.
+            const exIds = hasLift && splitsByType && splitsByType[t] ? splitsByType[t]
+                        : (hasLift ? (day.exIds || []) : []);
             const exObjsList = exIds
               .slice(0, 6)
               .map(id => EXERCISES.find(e => e.id === id))
               .filter(Boolean);
             const exTrailCount = exIds.length > 6 ? exIds.length - 6 : 0;
 
+            // Cardio session list (used by both lift days w/ cardio AND
+            // cardio-only days).
+            const cardioList = cItems
+              .slice(0, 6)
+              .map(id => cardioFor(id))
+              .filter(Boolean);
+            const cardioTrail = cItems.length > 6 ? cItems.length - 6 : 0;
+
             return (
               <Card
                 key={i}
                 variant="gradient"
-                gradient={isRest ? 'muted' : gradForDayType(t)}
+                gradient={isRest ? 'muted' : gradForDayType(effectiveType)}
                 size={isRest ? 'row' : 'md'}
                 interactive
                 glow={isToday || (selected && !locked[i])}
                 onClick={() => {
-                  // v10 Issue 2: if a chip is selected, applying it to the
-                  // day takes priority over opening the picker.
                   if (applySelection(i)) return;
                   setPickFor(i);
                 }}
                 className={`sched-day-card ${isHover ? 'is-drop-hover' : ''} ${isLocked ? 'is-locked' : ''}`}
                 data-sched-day={i}
+                data-effective-type={effectiveType}
               >
                 <div className="sched-day-head">
                   <div className="sched-day-l">
@@ -292,7 +305,34 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
                     <span className="sched-day-type-pill">{dt.label}</span>
                   </div>
                 </div>
-                {!isRest ? (
+
+                {isRest && (
+                  <div className="sched-day-rest-line">+ Drop a split or cardio</div>
+                )}
+
+                {isCardioOnly && (
+                  // v11.7 Issue 2: cardio-only day uses the same vertical
+                  // list pattern as lift exercises but shows cardio sessions.
+                  <ul className="sched-day-exlist" aria-label="Cardio sessions">
+                    {cardioList.map((c, k) => (
+                      <li key={k} className="sched-day-exline">
+                        <span
+                          className="sched-day-exdot"
+                          style={{ background: 'var(--bp-cardio)' }}
+                          aria-hidden="true"
+                        />
+                        <span className="sched-day-exname">
+                          {c.name} · {c.dur}m
+                        </span>
+                      </li>
+                    ))}
+                    {cardioTrail > 0 && (
+                      <li className="sched-day-exline is-more">+{cardioTrail} more</li>
+                    )}
+                  </ul>
+                )}
+
+                {hasLift && (
                   <>
                     {exObjsList.length > 0 ? (
                       <ul className="sched-day-exlist" aria-label="Exercises">
@@ -307,9 +347,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
                           </li>
                         ))}
                         {exTrailCount > 0 && (
-                          <li className="sched-day-exline is-more">
-                            +{exTrailCount} more
-                          </li>
+                          <li className="sched-day-exline is-more">+{exTrailCount} more</li>
                         )}
                       </ul>
                     ) : (
@@ -330,8 +368,6 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
                       </div>
                     )}
                   </>
-                ) : (
-                  <div className="sched-day-rest-line">+ Drop a split or cardio</div>
                 )}
               </Card>
             );
