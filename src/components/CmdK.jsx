@@ -23,14 +23,13 @@ export function CmdK({ open, onClose, onAddExercise, onSwitchTab }) {
       };
     }).filter(Boolean);
     const tabs = [
-      { kind: 'tab', id: 'dashboard',name: 'Go to Dashboard',sub: 'Scores, weekly stats, weight log', ent: '↵' },
-      { kind: 'tab', id: 'cardio',   name: 'Go to Cardio',   sub: 'Sport-tailored cardio + week plan', ent: '↵' },
-      { kind: 'tab', id: 'splits',   name: 'Go to Splits',   sub: 'Per-day-type exercise editor', ent: '↵' },
-      { kind: 'tab', id: 'schedule', name: 'Go to Schedule', sub: 'Plan the week', ent: '↵' },
-      { kind: 'tab', id: 'body',     name: 'Go to Body',     sub: 'Coverage map', ent: '↵' },
-      { kind: 'tab', id: 'friends',  name: 'Go to Friends',  sub: 'Compare splits', ent: '↵' },
-      { kind: 'tab', id: 'general',  name: 'Go to General',  sub: 'Sport, body inputs, calories', ent: '↵' },
-      { kind: 'tab', id: 'profile',  name: 'Go to Profile',  sub: 'Settings', ent: '↵' },
+      { kind: 'tab', id: 'dashboard',name: 'Go to Dashboard',     sub: 'Scores, About me, weight log', ent: '↵' },
+      { kind: 'tab', id: 'cardio',   name: 'Go to Sport + Cardio',sub: 'Athletic profile + recommended cardio', ent: '↵' },
+      { kind: 'tab', id: 'splits',   name: 'Go to Splits',        sub: 'Per-day-type exercise editor', ent: '↵' },
+      { kind: 'tab', id: 'schedule', name: 'Go to Schedule',      sub: 'Plan the week', ent: '↵' },
+      { kind: 'tab', id: 'body',     name: 'Go to Body',          sub: 'Coverage map', ent: '↵' },
+      { kind: 'tab', id: 'friends',  name: 'Go to Friends',       sub: 'Compare splits', ent: '↵' },
+      { kind: 'tab', id: 'profile',  name: 'Go to Profile',       sub: 'Settings', ent: '↵' },
     ];
     return { tabs, exs };
   }, []);

@@ -24,6 +24,7 @@ import {
   AlertTriangle, Clock,
 } from 'lucide-react';
 import { WeightTrackingCard } from '../components/WeightTrackingCard.jsx';
+import { AboutMeSection } from '../components/AboutMeSection.jsx';
 
 // v10 Issue 4 — Coverage Balance Health Score (0-100).
 // Penalty-based: heavy penalty for completely untrained muscles, small
@@ -110,19 +111,11 @@ export function DashboardTab({ days, cardioDays, profile, setProfile, showToast,
   const totalMin = liftMin + cardioMin;
   const trainingKcal = totalLiftKcal(days) + totalCardioKcal(cardioDays);
 
-  // v11 Issue 2: widget order reorganized — Sport Match is now the hero
-  // (top), Weight tracking moved here from General (bottom), all score
-  // cards standardized on the simple gradient + big number template.
-  const allWidgets = [
-    'sportscore',     // Sport Match — hero
-    'health',         // Health Score
-    'quick',          // 3-up quick stats
-    'underworked',    // Warning card
-    'lift',           // Lifting summary (simplified)
-    'cardio',         // Cardio summary (simplified)
-    'sport',          // Sport context
-    'time',           // Weekly time chart
-    'weight',         // Weight tracking + chart (newly here)
+  // v11.5: widgets grouped into Performance / Tracking sections;
+  // About me (sport, gender, BMR/TDEE/macros/HR) is its own component.
+  const performanceWidgets = [
+    'sportscore', 'health', 'quick', 'underworked',
+    'lift', 'cardio', 'sport', 'time',
   ];
 
   const liftDaysPlanned = days.filter(d => !d.rest).length;
@@ -313,15 +306,26 @@ export function DashboardTab({ days, cardioDays, profile, setProfile, showToast,
         <Card.Sub>{coachLine(lift.score, cardio.score, under.length)}</Card.Sub>
       </Card>
 
-      {/* v10 Issue 1d: drag-handle icons + draggable reorder logic removed.
-          Order is fixed (allWidgets) — widgets render in semantic priority. */}
+      {/* Performance — scores + summaries */}
+      <Subheader>Performance</Subheader>
       <div className="widget-grid">
-        {allWidgets.map(id => (
+        {performanceWidgets.map(id => (
           <div key={id} className="widget-wrap">
             {widgets[id]()}
           </div>
         ))}
       </div>
+
+      {/* Tracking — weight chart */}
+      <Subheader>Tracking</Subheader>
+      <div className="widget-grid">
+        <div className="widget-wrap">
+          {widgets.weight()}
+        </div>
+      </div>
+
+      {/* About me — sport, gender, BMR/TDEE/macros/HR (was General tab) */}
+      <AboutMeSection profile={profile} setProfile={setProfile} showToast={showToast}/>
 
       <div style={{ height: 32 }}/>
 

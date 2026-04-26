@@ -37,7 +37,8 @@ const SEED_STATE = {
   splitsByType: {},
 };
 
-const TABS = ['Dashboard', 'Cardio', 'Splits', 'Schedule', 'Body', 'Friends', 'General'];
+// v11.5: General merged into Dashboard. Cardio renamed to "Sport + Cardio".
+const TABS = ['Dashboard', 'Sport + Cardio', 'Splits', 'Schedule', 'Body', 'Friends'];
 
 test.describe('SplitLift smoke', () => {
   test.beforeEach(async ({ page }) => {
