@@ -61,6 +61,22 @@ function smsColor(score) {
   return '#ff4444';
 }
 
+// Gradient palette per widget. Returns inline CSS vars consumed by .dw.gw.
+// Each widget's color leans into its data — score-driven for SMS, fixed
+// hue per category for the rest. Keeps dashboard visually distinct.
+function gwScore(score) {
+  if (score >= 90) return { '--gw-1': '#00c896', '--gw-2': '#4ED9C0', '--gw-base': '#0d4a3a' };
+  if (score >= 70) return { '--gw-1': '#4ED9C0', '--gw-2': '#19B6FF', '--gw-base': '#0d3a52' };
+  if (score >= 40) return { '--gw-1': '#ffd93d', '--gw-2': '#ff8c42', '--gw-base': '#5b3a0e' };
+  return { '--gw-1': '#ff4444', '--gw-2': '#ff8c42', '--gw-base': '#5b1313' };
+}
+const GW_QUICK   = { '--gw-1': '#5B5BFF', '--gw-2': '#9B5BFF', '--gw-base': '#1a1c5e' };
+const GW_LIFT    = { '--gw-1': '#FF8C42', '--gw-2': '#FFD93D', '--gw-base': '#5b3914' };
+const GW_CARDIO  = { '--gw-1': '#19B6FF', '--gw-2': '#5B5BFF', '--gw-base': '#0d3a5e' };
+const GW_SPORT   = { '--gw-1': '#9B5BFF', '--gw-2': '#FF6BD6', '--gw-base': '#3d1a5b' };
+const GW_UNDER   = { '--gw-1': '#FF5C8A', '--gw-2': '#7C2235', '--gw-base': '#3d0e1d' };
+const GW_TIME    = { '--gw-1': '#4ED9C0', '--gw-2': '#00c896', '--gw-base': '#0e3d35' };
+
 export function DashboardTab({ days, cardioDays, profile, setTab }) {
   const lift = useMemo(() => liftingScore(days, profile), [days, profile]);
   const cardio = useMemo(() => cardioScoreFor(cardioDays), [cardioDays]);
@@ -132,7 +148,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
 
   const widgets = {
     sportscore: () => (
-      <div className="dw" onClick={()=>setSmsOpen(true)} style={{ cursor: 'pointer' }}>
+      <div className="dw gw" onClick={()=>setSmsOpen(true)} style={{ cursor: 'pointer', ...gwScore(sms.score) }}>
         <div className="dw-head">
           <div className="dw-t">Sport match · {sp.label}</div>
           <div className="dw-pill mono">TAP FOR DETAIL</div>
@@ -151,7 +167,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </div>
     ),
     quick: () => (
-      <div className="dw">
+      <div className="dw gw" style={GW_QUICK}>
         <div className="dw-head"><div className="dw-t">This week</div></div>
         <div className="quick-row">
           <div className="quick-tile">
@@ -170,7 +186,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </div>
     ),
     lift: () => (
-      <div className="dw">
+      <div className="dw gw" style={GW_LIFT}>
         <div className="dw-head"><div className="dw-t">Lifting</div><div className="dw-grade" data-grade={gradeOf(lift.score)}>{gradeOf(lift.score)}</div></div>
         <div className="dw-big">
           <ScoreRing value={lift.score} size={84} stroke={9} color="var(--accent)"/>
@@ -188,7 +204,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </div>
     ),
     cardio: () => (
-      <div className="dw">
+      <div className="dw gw" style={GW_CARDIO}>
         <div className="dw-head"><div className="dw-t">Cardio</div><div className="dw-grade" data-grade={gradeOf(cardio.score)}>{gradeOf(cardio.score)}</div></div>
         <div className="dw-big">
           <ScoreRing value={cardio.score} size={84} stroke={9} color="#19B6FF"/>
@@ -206,7 +222,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </div>
     ),
     sport: () => (
-      <div className="dw">
+      <div className="dw gw" style={GW_SPORT}>
         <div className="dw-head"><div className="dw-t">Sport · {sp.label}</div><div className="dw-pill mono">{sp.daysHint}d/wk</div></div>
         <div className="sport-card-body">
           <div className="split-pill" style={{ '--bp': 'var(--accent)' }}>
@@ -227,7 +243,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </div>
     ),
     underworked: () => (
-      <div className="dw">
+      <div className="dw gw" style={GW_UNDER}>
         <div className="dw-head"><div className="dw-t">Under-worked</div><div className="dw-pill mono">{under.length}</div></div>
         {under.length === 0 ? (
           <div className="empty-pill">All muscle groups in target band</div>
@@ -247,7 +263,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </div>
     ),
     time: () => (
-      <div className="dw">
+      <div className="dw gw" style={GW_TIME}>
         <div className="dw-head"><div className="dw-t">Weekly time</div><div className="dw-pill mono">{Math.round(totalMin)}m</div></div>
         <div className="time-chart">
           {dayTimes.map((d, i) => {
