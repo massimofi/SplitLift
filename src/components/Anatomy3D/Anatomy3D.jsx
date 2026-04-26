@@ -3,7 +3,7 @@
 
 import React, { Suspense, useState, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, AdaptiveDpr, AdaptiveEvents, Bounds, useProgress } from '@react-three/drei';
+import { OrbitControls, AdaptiveDpr, AdaptiveEvents, useProgress } from '@react-three/drei';
 import { AnatomyModel } from './AnatomyModel.jsx';
 
 function LoadingOverlay() {
@@ -52,7 +52,7 @@ export function Anatomy3D({ sets, targets, focused, onSelect, onFallback }) {
   return (
     <div className="anatomy-3d-host">
       <Canvas
-        camera={{ position: [0, 1.4, 4.2], fov: 35 }}
+        camera={{ position: [0, 1.0, 3.4], fov: 38, near: 0.1, far: 100 }}
         dpr={[1, 1.5]}                 // cap pixel ratio on phones
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
@@ -72,15 +72,13 @@ export function Anatomy3D({ sets, targets, focused, onSelect, onFallback }) {
 
         <GLTFErrorBoundary onFallback={onFallback}>
           <Suspense fallback={null}>
-            <Bounds fit clip observe margin={1.2}>
-              <AnatomyModel
-                sets={sets}
-                focused={focused}
-                onSelect={onSelect}
-                targets={targets}
-                controlsRef={controlsRef}
-              />
-            </Bounds>
+            <AnatomyModel
+              sets={sets}
+              focused={focused}
+              onSelect={onSelect}
+              targets={targets}
+              controlsRef={controlsRef}
+            />
           </Suspense>
         </GLTFErrorBoundary>
 
@@ -89,9 +87,9 @@ export function Anatomy3D({ sets, targets, focused, onSelect, onFallback }) {
           enableDamping
           dampingFactor={0.08}
           enablePan={false}
-          minDistance={1.4}
-          maxDistance={8}
-          target={[0, 1.0, 0]}
+          minDistance={1.0}
+          maxDistance={6}
+          target={[0, 0.85, 0]}
         />
       </Canvas>
       <LoadingOverlay/>

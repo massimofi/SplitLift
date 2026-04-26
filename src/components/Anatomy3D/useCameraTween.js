@@ -8,8 +8,8 @@ import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const DEFAULT_TARGET = new THREE.Vector3(0, 1.0, 0);
-const DEFAULT_DISTANCE = 4.2;
+const DEFAULT_TARGET = new THREE.Vector3(0, 0.85, 0);
+const DEFAULT_DISTANCE = 3.4;
 const TWEEN_MS = 700;
 
 export function useCameraTween({ focused, muscleMeshes, controlsRef }) {

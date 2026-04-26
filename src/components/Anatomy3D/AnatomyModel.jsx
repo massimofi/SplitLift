@@ -1,26 +1,28 @@
-// The actual <primitive>: loads the .glb, builds a muscle-key→meshes map,
-// hides everything that isn't a muscle (no eyeballs / teeth / bones), and
+// The actual <primitive>: loads the .glb via R3F's useLoader + an explicit
+// DRACOLoader so we never depend on drei's caching or default decoder paths.
+// Builds a muscle-key→meshes map, hides everything that isn't a muscle, and
 // recolors meshes by coverage status on every change.
 
-import React, { useMemo, useRef } from 'react';
-import { useGLTF } from '@react-three/drei';
+import React, { useMemo } from 'react';
+import { useLoader } from '@react-three/fiber';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import * as THREE from 'three';
 import { mapMeshNameToMuscle } from './mapMeshNameToMuscle.js';
 import { useCameraTween } from './useCameraTween.js';
 
-// Decoder for Draco-compressed glTF. Files are copied from three's bundle to
-// public/draco/gltf/ at install (see scripts/copy-draco.js) so we don't depend
-// on the gstatic CDN — works on LAN demos too.
-const DRACO_PATH = '/draco/gltf/';
-
-useGLTF.preload('/models/anatomy.glb', DRACO_PATH);
+// One DRACOLoader instance reused across loads. Decoder files are copied to
+// public/draco/gltf/ at install time (see scripts/copy-draco.js).
+const draco = new DRACOLoader();
+draco.setDecoderPath('/draco/gltf/');
 
 // Switch this to change the look. Default = 'clean' (recommended).
 //
 // 'clean'   — muscles only, head/face/skeleton hidden. Fitness-app look.
 // 'no_head' — same as clean, but also hide everything above the neck.
-//             Body+arms+legs only. Most stylized.
-// 'full'    — show everything (not recommended; for debugging mesh names).
+// 'full'    — show everything. Useful if 'clean' hides too much; flip here
+//             temporarily to see the raw model.
 const VISUAL_STYLE = 'clean';
 
 // Fraction of model height above which a mesh is treated as "head" for the
@@ -58,7 +60,6 @@ function shouldHide(name) {
   return HIDE_PATTERNS.some(p => n.includes(p));
 }
 
-// Coverage-status colors. Returns a numeric Three.js-friendly color int.
 function colorForCoverage(sets, target, isFocused) {
   if (isFocused) return 0xFFFFFF;
   if (!target) return 0x4a4a66;
@@ -69,40 +70,63 @@ function colorForCoverage(sets, target, isFocused) {
 }
 
 export function AnatomyModel({ sets, focused, onSelect, targets, controlsRef }) {
-  const { scene } = useGLTF('/models/anatomy.glb', DRACO_PATH);
-  const inventoryLoggedRef = useRef(false);
+  // Direct useLoader call gives us full control over the loader. We attach
+  // both DRACOLoader (KHR_draco_mesh_compression) and MeshoptDecoder
+  // (EXT_meshopt_compression) so the .glb decodes whatever it was authored with.
+  const gltf = useLoader(GLTFLoader, '/models/anatomy.glb', (loader) => {
+    loader.setDRACOLoader(draco);
+    loader.setMeshoptDecoder(MeshoptDecoder);
+  });
+  const scene = gltf.scene;
 
-  // Build the muscle-key → [meshes] map ONCE per loaded scene. While we're
-  // traversing, hide gore by name pattern, give every kept mesh a fresh
-  // MeshStandardMaterial we can recolor without leaking, and (if 'no_head')
-  // hide anything above the head threshold.
   const muscleMeshes = useMemo(() => {
     const map = new Map();
 
-    // First pass: gather all meshes + global Y range so 'no_head' has a threshold.
-    let minY = Infinity, maxY = -Infinity;
-    const allMeshes = [];
-    scene.traverse(child => {
-      if (!child.isMesh) return;
-      allMeshes.push(child);
-      const box = new THREE.Box3().setFromObject(child);
-      minY = Math.min(minY, box.min.y);
-      maxY = Math.max(maxY, box.max.y);
+    // Pass 0: census + center/scale so the model fits in our scene.
+    // Drei's <Bounds> can mis-fit when a hidden bone hangs out at world
+    // coordinates far from the body — easier to just normalise here.
+    let meshN = 0, pointsN = 0, skinnedN = 0, totalN = 0;
+    scene.traverse(c => {
+      if (c.isPoints) pointsN++;
+      else if (c.isSkinnedMesh) { skinnedN++; meshN++; }
+      else if (c.isMesh) meshN++;
+      if (c.isMesh || c.isPoints || c.isSkinnedMesh) totalN++;
     });
+
+    // Compute bbox AFTER first hiding any THREE.Points (Draco-corrupted
+    // geometry would render as Points; we don't want those to balloon the
+    // bounding box and miniaturise everything else).
+    scene.traverse(c => { if (c.isPoints) c.visible = false; });
+
+    const box = new THREE.Box3().setFromObject(scene);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    if (size.y > 0.01) {
+      const scale = 1.6 / size.y;
+      scene.scale.setScalar(scale);
+      scene.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+    }
+    // Recompute Y bounds on the scaled model for the no_head threshold.
+    const scaledBox = new THREE.Box3().setFromObject(scene);
+    const minY = scaledBox.min.y;
+    const maxY = scaledBox.max.y;
     const headCutoff = minY + (maxY - minY) * NO_HEAD_THRESHOLD;
 
-    // Second pass: classify + style.
-    allMeshes.forEach(child => {
-      // Step 1: hide anatomical "gore" by name pattern
+    // Pass 1: classify + style every mesh.
+    let mapped = 0, hiddenGore = 0, hiddenUnmapped = 0;
+    const sample = []; // first 8 unmapped names — handy for debugging
+    scene.traverse(child => {
+      if (child.isPoints) { child.visible = false; return; }
+      if (!child.isMesh && !child.isSkinnedMesh) return;
+
       if (VISUAL_STYLE !== 'full' && shouldHide(child.name)) {
         child.visible = false;
+        hiddenGore++;
         return;
       }
 
-      // Step 2: try to map to one of our 17 canonical muscle keys
       const key = mapMeshNameToMuscle(child.name);
       if (key) {
-        // 'no_head' bonus: even if mapped, hide if center is above the cutoff
         if (VISUAL_STYLE === 'no_head') {
           const c = new THREE.Box3().setFromObject(child).getCenter(new THREE.Vector3());
           if (c.y > headCutoff) {
@@ -114,40 +138,27 @@ export function AnatomyModel({ sets, focused, onSelect, targets, controlsRef }) 
         if (!map.has(key)) map.set(key, []);
         map.get(key).push(child);
         child.material = new THREE.MeshStandardMaterial({
-          color: 0x4a4a66,
-          roughness: 0.55,
-          metalness: 0.05,
+          color: 0x4a4a66, roughness: 0.55, metalness: 0.05,
         });
+        mapped++;
       } else {
-        // Step 3: unmapped + not on the gore list — hide. Tightening the hide
-        // patterns is preferred over loosening the mapper, but anything weird
-        // that slips through gets caught here.
-        if (VISUAL_STYLE !== 'full') child.visible = false;
+        if (VISUAL_STYLE !== 'full') {
+          child.visible = false;
+        }
+        if (sample.length < 8 && child.name) sample.push(child.name);
+        hiddenUnmapped++;
       }
     });
 
-    // Dev-only mesh inventory log so Massi can see what got mapped vs hidden.
-    if (import.meta.env.DEV && !inventoryLoggedRef.current) {
-      inventoryLoggedRef.current = true;
-      console.group('[Anatomy3D] Mesh inventory');
-      let mapped = 0, hiddenGore = 0, hiddenUnmapped = 0;
-      allMeshes.forEach(c => {
-        const k = mapMeshNameToMuscle(c.name);
-        if (shouldHide(c.name) && VISUAL_STYLE !== 'full') {
-          console.log(c.name, '→ HIDDEN (gore)');
-          hiddenGore++;
-        } else if (k) {
-          console.log(c.name, '→ MUSCLE (', k, ')');
-          mapped++;
-        } else {
-          console.log(c.name, '→ HIDDEN (unmapped)');
-          hiddenUnmapped++;
-        }
-      });
-      console.log(`Total: ${allMeshes.length} mesh${allMeshes.length===1?'':'es'} — ${mapped} mapped, ${hiddenGore} hidden as gore, ${hiddenUnmapped} hidden as unmapped`);
-      console.log('Style:', VISUAL_STYLE);
-      console.groupEnd();
-    }
+    // Always log so anyone debugging on a phone can see what happened.
+    console.group('[Anatomy3D] Model loaded');
+    console.log(`Children: ${totalN} total — ${meshN} mesh, ${skinnedN} skinned, ${pointsN} points`);
+    console.log(`Bounds (raw): ${size.x.toFixed(2)} × ${size.y.toFixed(2)} × ${size.z.toFixed(2)}`);
+    console.log(`Style: ${VISUAL_STYLE}`);
+    console.log(`Mapped: ${mapped} muscles → ${[...map.keys()].sort().join(', ') || '(none)'}`);
+    console.log(`Hidden as gore: ${hiddenGore}`);
+    console.log(`Hidden as unmapped: ${hiddenUnmapped}` + (sample.length ? ` — examples: ${sample.join(', ')}` : ''));
+    console.groupEnd();
 
     return map;
   }, [scene]);
@@ -167,7 +178,6 @@ export function AnatomyModel({ sets, focused, onSelect, targets, controlsRef }) 
     });
   }, [sets, focused, muscleMeshes, targets]);
 
-  // Camera tween whenever focused changes.
   useCameraTween({ focused, muscleMeshes, controlsRef });
 
   return (
