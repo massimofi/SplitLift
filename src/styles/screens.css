@@ -452,32 +452,67 @@
   letter-spacing: var(--tracking-tight);
 }
 
-.sched-layout {
-  display: grid;
-  grid-template-columns: 84px 1fr;
-  gap: var(--space-3);
-  align-items: start;
-}
-.sched-palette {
-  display: flex; flex-direction: column; gap: 6px;
-  position: sticky; top: 0;
-}
-.sched-palette-head {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: var(--tracking-mega);
-  color: var(--ink-3);
-  text-transform: uppercase;
-  margin-top: var(--space-2);
-  text-align: center;
-}
-.sched-palette-head:first-child { margin-top: 0; }
-.sched-palette .sl-chip {
-  width: 100%;
-  min-height: 36px;
-  text-align: center;
+/* v10 Issue 2: single-column layout — no left palette. The floating chip
+   bar (.sched-chip-bar) lives below the day list and above the navbar. */
+.sched-rows-only {
+  /* Reserve space at the bottom so the last day card isn't covered by the
+     floating chip bar (~70px tall with padding). */
+  padding-bottom: 96px;
 }
 .sched-rows { display: flex; flex-direction: column; gap: var(--space-3); }
+
+/* Floating chip bar — fixed above the bottom navbar. Glassy backdrop. */
+.sched-chip-bar {
+  position: fixed;
+  left: 0; right: 0;
+  /* bottom-nav is 90-100px tall (10 top pad + ~60 content + 20-30 bottom
+     pad including safe-area). Sit 8px above it; total clearance ≥ 100. */
+  bottom: calc(94px + env(safe-area-inset-bottom));
+  z-index: 80;
+  padding: 10px 12px;
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.18);
+  pointer-events: auto;
+}
+.sched-chip-bar-inner {
+  display: flex; gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  align-items: center;
+}
+.sched-chip-bar-inner::-webkit-scrollbar { display: none; }
+.sched-chip-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--hair);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* Selected chip glows with an accent ring. */
+.sched-chip {
+  flex-shrink: 0;
+  min-height: 38px;
+  padding-left: 14px; padding-right: 14px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-base) ease;
+}
+.sched-chip.is-selected {
+  box-shadow:
+    0 0 0 3px var(--accent),
+    0 0 0 6px color-mix(in oklab, var(--accent) 35%, transparent),
+    var(--shadow-md);
+  transform: translateY(-1px) scale(1.04);
+}
+.sched-chip:active { transform: scale(0.96); }
 
 /* Full-width day card — Splits-style. Day name + type pill row up top,
    exercise preview line, optional cardio chips. */

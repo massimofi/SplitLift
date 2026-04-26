@@ -39,6 +39,9 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
   const [pickFor, setPickFor] = useState(null);
   const [drag, setDrag] = useState(null);
   const [hoverIdx, setHoverIdx] = useState(null);
+  // v10 Issue 2: tap-to-select fallback for the floating chip bar.
+  // selected = { kind: 'split'|'cardio'|'rest', id } or null.
+  const [selected, setSelected] = useState(null);
 
   const startDrag = (e, payload) => {
     const isTouch = e.touches !== undefined;
@@ -53,6 +56,31 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
     setDays(prev => prev.map((d, i) => i === idx ? makeDayForType(typeId, profile, splitsByType) : d));
     showToast(`${DAY_NAMES[idx]}: ${DAY_TYPES[typeId]?.label}`);
   };
+
+  // Apply the currently-selected chip (tap-to-select fallback) to a day.
+  // Returns true if the day was modified (so the click handler skips its
+  // default behavior of opening the picker sheet).
+  const applySelection = (idx) => {
+    if (!selected) return false;
+    if (selected.kind === 'split' || selected.kind === 'rest') {
+      setDayType(idx, selected.id);
+    } else if (selected.kind === 'cardio') {
+      addCardioToDay(idx, selected.id);
+    }
+    setSelected(null);
+    return true;
+  };
+
+  // Dismiss the selected-chip glow when tapping anywhere not a chip/day.
+  useEffect(() => {
+    if (!selected) return;
+    const onDoc = (e) => {
+      if (e.target.closest('.sched-chip-bar') || e.target.closest('.sched-day-card')) return;
+      setSelected(null);
+    };
+    document.addEventListener('click', onDoc);
+    return () => document.removeEventListener('click', onDoc);
+  }, [selected]);
 
   const addCardioToDay = (idx, cid) => {
     if (locked[idx]) { showToast('Locked — unlock first'); return; }
@@ -80,7 +108,7 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
     };
     const up = () => {
       if (drag && hoverIdx !== null) {
-        if (drag.kind === 'split') setDayType(hoverIdx, drag.id);
+        if (drag.kind === 'split' || drag.kind === 'rest') setDayType(hoverIdx, drag.id);
         else if (drag.kind === 'cardio') addCardioToDay(hoverIdx, drag.id);
       }
       setDrag(null); setHoverIdx(null);
@@ -151,53 +179,25 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
     return CARDIO_LIBRARY.slice(0, 6);
   }, [cardioProfile]);
 
+  // Helpers for the floating chip bar (v10 Issue 2).
+  const isSelected = (kind, id) =>
+    selected && selected.kind === kind && selected.id === id;
+  const toggleSelect = (kind, id) => {
+    setSelected(s => (s && s.kind === kind && s.id === id) ? null : { kind, id });
+  };
+  // Splits visible in the chip bar — user splits + 'rest' always last, never
+  // 'rest' duplicated. The list comes from userSplitTypes which includes 'rest'.
+  const splitChipIds = userSplitTypes;
+
   return (
     <div className="tab-pane sched-page">
       <div className="sched-bar">
-        <Subheader subtitle="Drag a split or cardio onto a day. Tap a day to edit it in detail.">Your week</Subheader>
+        <Subheader subtitle="Tap a chip then a day, or drag a chip onto a day. Tap a day card for full edit.">Your week</Subheader>
         <button className="presets-btn" onClick={()=>setPresetsOpen(true)}>Presets</button>
       </div>
 
-      <div className="sched-layout">
-        <div className="sched-palette">
-          <div className="sched-palette-head">SPLIT</div>
-          {userSplitTypes.map(p => {
-            const dt = DAY_TYPES[p];
-            if (!dt) return null;
-            return (
-              <Chip
-                key={p}
-                gradient={gradForDayType(p)}
-                size="md"
-                role="button"
-                tabIndex={0}
-                onMouseDown={(e)=>startDrag(e, { kind:'split', id:p })}
-                onTouchStart={(e)=>startDrag(e, { kind:'split', id:p })}
-                onClick={()=>onJumpToSplits && onJumpToSplits(p)}
-                style={{ cursor: 'grab', justifyContent: 'center' }}
-              >
-                {dt.label}
-              </Chip>
-            );
-          })}
-          <div className="sched-palette-head">CARDIO</div>
-          {cardioChips.map(c => (
-            <Chip
-              key={c.id}
-              gradient="cardio-day"
-              size="md"
-              role="button"
-              tabIndex={0}
-              onMouseDown={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
-              onTouchStart={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
-              style={{ cursor: 'grab', justifyContent: 'space-between', width: '100%' }}
-            >
-              <span>{CARDIO_TYPES[c.type]?.label || c.name}</span>
-              <span className="mono" style={{ opacity: 0.85, fontSize: '0.85em' }}>{c.dur}m</span>
-            </Chip>
-          ))}
-        </div>
-
+      {/* v10 Issue 2: single column of full-width day cards (no left palette). */}
+      <div className="sched-rows-only">
         <div className="sched-rows">
           {DAY_NAMES.map((dn, i) => {
             const day = days[i] || { type: 'rest', rest: true };
@@ -224,8 +224,13 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
                 gradient={isRest ? 'muted' : gradForDayType(t)}
                 size={isRest ? 'row' : 'md'}
                 interactive
-                glow={isToday}
-                onClick={() => setPickFor(i)}
+                glow={isToday || (selected && !locked[i])}
+                onClick={() => {
+                  // v10 Issue 2: if a chip is selected, applying it to the
+                  // day takes priority over opening the picker.
+                  if (applySelection(i)) return;
+                  setPickFor(i);
+                }}
                 className={`sched-day-card ${isHover ? 'is-drop-hover' : ''} ${isLocked ? 'is-locked' : ''}`}
                 data-sched-day={i}
               >
@@ -267,6 +272,55 @@ export function ScheduleTab({ days, setDays, cardioDays, setCardioDays, locked, 
                   <div className="sched-day-rest-line">+ Drop a split or cardio</div>
                 )}
               </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* v10 Issue 2: floating chip bar — fixed above bottom nav.
+          Tap a chip to "select" it (glowing border), then tap a day to
+          apply. Long-press / mouse-down also starts a drag (legacy path). */}
+      <div className="sched-chip-bar" onClick={(e)=>e.stopPropagation()}>
+        <div className="sched-chip-bar-inner">
+          {splitChipIds.map(p => {
+            const dt = DAY_TYPES[p];
+            if (!dt) return null;
+            const sel = isSelected(p === 'rest' ? 'rest' : 'split', p);
+            return (
+              <Chip
+                key={`s-${p}`}
+                gradient={gradForDayType(p)}
+                size="md"
+                role="button"
+                tabIndex={0}
+                className={`sched-chip ${sel ? 'is-selected' : ''}`}
+                onMouseDown={(e)=>startDrag(e, { kind: p === 'rest' ? 'rest' : 'split', id:p })}
+                onTouchStart={(e)=>startDrag(e, { kind: p === 'rest' ? 'rest' : 'split', id:p })}
+                onClick={()=>toggleSelect(p === 'rest' ? 'rest' : 'split', p)}
+                style={{ cursor: 'pointer' }}
+              >
+                {dt.label}
+              </Chip>
+            );
+          })}
+          <span className="sched-chip-divider" aria-hidden="true"/>
+          {cardioChips.map(c => {
+            const sel = isSelected('cardio', c.id);
+            return (
+              <Chip
+                key={`c-${c.id}`}
+                gradient="cardio-day"
+                size="md"
+                role="button"
+                tabIndex={0}
+                className={`sched-chip ${sel ? 'is-selected' : ''}`}
+                onMouseDown={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
+                onTouchStart={(e)=>startDrag(e, { kind:'cardio', id:c.id })}
+                onClick={()=>toggleSelect('cardio', c.id)}
+                style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+              >
+                {CARDIO_TYPES[c.type]?.label || c.name} · {c.dur}m
+              </Chip>
             );
           })}
         </div>

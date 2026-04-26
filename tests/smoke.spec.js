@@ -205,6 +205,38 @@ test.describe('SplitLift smoke', () => {
     expect(diff, `active gender button text/bg contrast too low: fg=${fg} bg=${bg}`).toBeGreaterThan(0.45);
   });
 
+  test('Schedule floating chip bar visible + tap-to-apply works', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.bn-item').filter({ hasText: 'Schedule' }).first().click();
+    await page.waitForTimeout(500);
+
+    // Floating chip bar visible
+    const bar = page.locator('.sched-chip-bar');
+    await expect(bar).toBeVisible();
+    // Bar sits above the bottom navbar (its bottom edge is above viewport bottom)
+    const barBox = await bar.boundingBox();
+    const navBox = await page.locator('.bottom-nav').boundingBox();
+    expect(barBox.y + barBox.height, 'chip bar should sit above the bottom nav').toBeLessThan(navBox.y + 4);
+
+    // At least one chip with "Push" in it (built-in seed has push days)
+    const pushChip = page.locator('.sched-chip').filter({ hasText: /^Push$/i }).first();
+    await expect(pushChip).toBeVisible();
+
+    // Tap-to-select gives the chip an is-selected class
+    await pushChip.click();
+    await page.waitForTimeout(150);
+    await expect(pushChip).toHaveClass(/is-selected/);
+
+    // Tap a Tuesday day (rest in seed) → it should change type
+    const day1 = page.locator('[data-sched-day="1"]').first();
+    await expect(day1).toContainText(/REST/i);
+    await day1.click();
+    await page.waitForTimeout(400);
+    // After tap-apply, day 1 should now show PUSH
+    await expect(page.locator('[data-sched-day="1"]')).toContainText(/PUSH/i);
+  });
+
   test('Body drawer can be closed via X button', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
