@@ -93,6 +93,11 @@
 .sl-card[data-grad="score-mid"]   { background-image: var(--grad-score-mid); }
 .sl-card[data-grad="score-good"]  { background-image: var(--grad-score-good); }
 .sl-card[data-grad="score-great"] { background-image: var(--grad-score-great); }
+.sl-card[data-grad="cov-zero"]    { background-image: var(--grad-cov-zero); }
+.sl-card[data-grad="cov-low"]     { background-image: var(--grad-cov-low); }
+.sl-card[data-grad="cov-mid"]     { background-image: var(--grad-cov-mid); }
+.sl-card[data-grad="cov-optimal"] { background-image: var(--grad-cov-optimal); }
+.sl-card[data-grad="cov-over"]    { background-image: var(--grad-cov-over); }
 .sl-card[data-grad="push"]   { background-image: var(--grad-push); }
 .sl-card[data-grad="pull"]   { background-image: var(--grad-pull); }
 .sl-card[data-grad="legs"]   { background-image: var(--grad-legs); }

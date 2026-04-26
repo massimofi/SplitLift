@@ -60,6 +60,15 @@ test.describe('SplitLift smoke', () => {
       await page.waitForTimeout(500);
 
       await page.screenshot({ path: `tests/screenshots/${tab.toLowerCase()}.png`, fullPage: true });
+      // Body tab also gets a scrolled snap so we can see coverage cells.
+      if (tab === 'Body') {
+        await page.evaluate(() => {
+          const pane = document.querySelector('.screen-body');
+          if (pane) pane.scrollTop = 600;
+        });
+        await page.waitForTimeout(150);
+        await page.screenshot({ path: 'tests/screenshots/body-coverage.png', fullPage: true });
+      }
 
       const bodyText = await page.locator('#root').innerText();
       expect(bodyText.length).toBeGreaterThan(50);

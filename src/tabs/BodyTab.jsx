@@ -15,7 +15,7 @@ import { ExerciseGif } from '../components/ExerciseGif.jsx';
 import { AnatomyBody } from '../components/AnatomyBody.jsx';
 import { Target } from 'lucide-react';
 import { Subheader } from '../components/Subheader.jsx';
-import { Card, gradFromScore } from '../components/Card.jsx';
+import { Card } from '../components/Card.jsx';
 import { Toggle as SLToggle } from '../components/Toggle.jsx';
 
 function statusFromCoverage(sets, target) {
@@ -26,17 +26,23 @@ function statusFromCoverage(sets, target) {
   return 'over';
 }
 
-// Map a coverage status to a numeric "score" (0-100), so the coverage card
-// can pick a semantic score gradient via gradFromScore().
-function scoreFromStatus(status) {
-  switch (status) {
-    case 'optimal':  return 92;
-    case 'over':     return 55;
-    case 'under':    return 35;
-    case 'unworked':
-    case 'unknown':
-    default:         return 10;
-  }
+// Pick a v9 coverage gradient name from sets + target. Different from the
+// score-* gradients used by SMS pills: "I'm not training this muscle"
+// should scream RED, not slate.
+//   0 sets             → cov-zero    (bright red)
+//   1-30% of target.mid → cov-low     (orange)
+//   30-70%              → cov-mid     (amber)
+//   70-110% (in band)   → cov-optimal (green)
+//   >110%               → cov-over    (indigo→pink)
+function covGradFor(sets, target) {
+  if (!target) return 'cov-zero';
+  if (sets <= 0) return 'cov-zero';
+  if (sets > target.max) return 'cov-over';
+  const mid = (target.min + target.max) / 2 || 1;
+  const pct = sets / mid;
+  if (pct < 0.30) return 'cov-low';
+  if (pct < 0.70) return 'cov-mid';
+  return 'cov-optimal';
 }
 
 export default function BodyTab({ days, onAddExercise, setTab, profile, splitsByType, setSplitsByType, setSplitsActiveType, showToast }) {
@@ -204,7 +210,7 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
                 <Card
                   key={m}
                   variant="gradient"
-                  gradient={gradFromScore(scoreFromStatus(st))}
+                  gradient={covGradFor(s, t)}
                   size="sm"
                   interactive
                   onClick={() => setFocus(m)}
