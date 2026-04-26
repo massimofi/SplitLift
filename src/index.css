@@ -2478,24 +2478,25 @@
     color: var(--ink);
     border-top: 4px solid var(--accent);
     border-radius: 22px 22px 0 0;
-    padding: 16px 18px calc(24px + env(safe-area-inset-bottom));
-    /* v11 Issue 4: drawer occupies bottom 50vh so the zoomed muscle
-       above it stays visible. */
-    max-height: 50vh;
+    padding: 0 18px calc(24px + env(safe-area-inset-bottom));
+    /* v11.6 Issue 4: height comes from inline style (drag-controlled) */
     overflow-y: auto;
     box-shadow: 0 -20px 40px rgba(0,0,0,0.55);
     animation: drawerSpring 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: height 220ms cubic-bezier(0.32, 0.72, 0, 1), max-height 220ms cubic-bezier(0.32, 0.72, 0, 1);
+    display: flex;
+    flex-direction: column;
   }
   /* Sticky drag handle + close row — always visible while scrolling. */
   .b2-drawer-half .b2-d-h {
     position: sticky;
     top: 0;
     background: var(--bg);
-    padding-top: 4px;
     margin: 0 -18px 12px;
-    padding: 8px 18px 12px;
+    padding: 4px 18px 12px;
     z-index: 102;
     border-bottom: 1px solid var(--hair);
+    flex-shrink: 0;
   }
   .b2-drawer-half .b2-d-x {
     width: 44px;
@@ -2513,14 +2514,28 @@
   .b2-drawer-half .b2-d-x:hover { background: var(--bg-3); }
   .b2-drawer-half .b2-d-x:active { transform: scale(0.94); }
   .b2-drawer-half .b2-d-x svg { width: 20px; height: 20px; }
-  /* Visual drag handle at the very top of the drawer (iOS-style). */
+  /* v11.6 Issue 4: drag handle is now a real touch target (24px tall
+     hit-area) with a centered visual pill. cursor: ns-resize on desktop. */
   .b2-drawer-half .b2-d-grab {
-    width: 44px; height: 4px;
+    position: sticky; top: 0; z-index: 103;
+    height: 24px;
+    margin: 0 -18px;
+    background: var(--bg);
+    cursor: ns-resize;
+    touch-action: none;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .b2-drawer-half .b2-d-grab::before {
+    content: '';
+    width: 44px; height: 5px;
     background: var(--ink-4);
     border-radius: 999px;
-    margin: 4px auto 8px;
     opacity: 0.5;
   }
+  .b2-drawer-half .b2-d-grab:hover::before { opacity: 0.85; }
+  /* The header row sits below the grab handle but should also be sticky. */
+  .b2-drawer-half .b2-d-h { top: 24px; }
 
   /* Status accent on the drawer's top border — v10 red→green scale only */
   .b2-drawer-half .b2-drawer-card.status-optimal  { border-top-color: #2E7D32; }

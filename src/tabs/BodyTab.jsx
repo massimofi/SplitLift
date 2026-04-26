@@ -50,6 +50,11 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
   const [focus, setFocus] = useState(null);
   const [tourActive, setTourActive] = useState(false);
   const tourCancelRef = useRef(false);
+  // v11.6 Issue 4: drawer height in vh, snap targets {50, 95}, dismiss < 30.
+  const [drawerVh, setDrawerVh] = useState(50);
+  const dragRef = useRef(null);
+  // Reset drawer to default size whenever a new muscle is focused.
+  useEffect(() => { if (focus) setDrawerVh(50); }, [focus]);
 
   const sets = useMemo(() => computeCoverageV2(days), [days]);
 
@@ -226,8 +231,39 @@ export default function BodyTab({ days, onAddExercise, setTab, profile, splitsBy
 
       {focus && (
         <div className="b2-drawer-half" onClick={(e)=>{ if (e.target === e.currentTarget) close(); }}>
-          <div className={`b2-drawer-card status-${focusedStatus}`} onClick={e=>e.stopPropagation()}>
-            <div className="b2-d-grab" aria-hidden="true"/>
+          <div
+            className={`b2-drawer-card status-${focusedStatus}`}
+            onClick={e=>e.stopPropagation()}
+            style={{ maxHeight: `${drawerVh}vh`, height: `${drawerVh}vh` }}
+          >
+            {/* v11.6 Issue 4: grab handle is draggable. Snap targets 50 / 95 vh.
+                Drag below ~30vh closes the drawer. */}
+            <div
+              className="b2-d-grab"
+              onPointerDown={(e) => {
+                e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId);
+                dragRef.current = { startY: e.clientY, startVh: drawerVh };
+              }}
+              onPointerMove={(e) => {
+                if (!dragRef.current) return;
+                const deltaY = dragRef.current.startY - e.clientY; // up = positive
+                const deltaVh = (deltaY / window.innerHeight) * 100;
+                const next = Math.max(15, Math.min(95, dragRef.current.startVh + deltaVh));
+                setDrawerVh(next);
+              }}
+              onPointerUp={() => {
+                if (!dragRef.current) return;
+                dragRef.current = null;
+                setDrawerVh(v => {
+                  if (v < 30) { close(); return 50; }   // close on tiny height
+                  return v < 70 ? 50 : 95;              // snap to nearest
+                });
+              }}
+              onPointerCancel={() => { dragRef.current = null; }}
+              aria-label="Drag to resize drawer"
+              role="slider"
+              aria-valuemin={15} aria-valuemax={95} aria-valuenow={Math.round(drawerVh)}
+            />
             <div className="b2-d-h">
               <div>
                 <div className="b2-d-n">{MUSCLE_LABELS_V2[focus] || focus}</div>
