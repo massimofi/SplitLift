@@ -2743,9 +2743,15 @@
   .bn-track.six .bn-item { padding: 8px 2px; gap: 3px; }
   .bn-track.six .bn-item .lbl { font-size: 8px; letter-spacing: 0.04em; }
   .bn-track.six .bn-item svg { width: 20px; height: 20px; }
-  .bn-track.seven .bn-item { padding: 8px 1px; gap: 2px; }
-  .bn-track.seven .bn-item .lbl { font-size: 7.5px; letter-spacing: 0.02em; }
-  .bn-track.seven .bn-item svg { width: 18px; height: 18px; }
+  /* v10 Issue 7: navbar labels were 7.5px — way too small. Bumped to 11px
+     /weight 700/spacing 0.04em per spec. Icons also up to 20px to balance. */
+  .bn-track.seven .bn-item { padding: 8px 0; gap: 4px; }
+  .bn-track.seven .bn-item .lbl {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .bn-track.seven .bn-item svg { width: 20px; height: 20px; }
 
   /* ============== P5 — Friends tab ============== */
   /* Layout/typography for .fr-list, .fr-cmp-* lives in styles/screens.css */
@@ -2813,8 +2819,8 @@
   @media (max-width: 380px) {
     .bn-track.six .bn-item .lbl { font-size: 7.5px; letter-spacing: 0.02em; }
     .bn-track.six .bn-item svg { width: 18px; height: 18px; }
-    .bn-track.seven .bn-item .lbl { font-size: 7px; letter-spacing: 0.01em; }
-    .bn-track.seven .bn-item svg { width: 16px; height: 16px; }
+    .bn-track.seven .bn-item .lbl { font-size: 10px; letter-spacing: 0.02em; }
+    .bn-track.seven .bn-item svg { width: 18px; height: 18px; }
   }
 
   /* 6c — Subtle gradient strip on top of every modal/sheet so they don't

@@ -271,11 +271,11 @@
 .sl-subheader-block > .sl-subheader { margin: 0; }
 .sl-subheader-sub {
   font-family: var(--font-sans);
-  font-size: var(--text-base);          /* 15px per v9 Issue 5 */
-  font-weight: 500;                      /* 500 — readable, not eyebrow-thin */
+  font-size: 16px;                       /* v10 Issue 8: bump 15 → 16 */
+  font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.4;
-  color: var(--ink-3);                   /* secondary text */
+  color: var(--ink-3);
   margin: 4px 0 0;
   max-width: 56ch;
 }
