@@ -2,7 +2,10 @@
 // Body / training inputs live on General. Reachable via the avatar tap.
 
 import React, { useState } from 'react';
-import { SPORTS } from '../data/exercises.js';
+import { SPORTS, ageFromBirthday, birthdayFromAge } from '../data/exercises.js';
+import { RotateCcw } from 'lucide-react';
+
+const TODAY_STR = new Date().toISOString().slice(0, 10);
 
 export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onResetAll }) {
   const [units, setUnits] = useState(profile.hUnit === 'cm' ? 'metric' : 'imperial');
@@ -30,6 +33,10 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
   };
 
   const sportLabel = SPORTS.find(s=>s.id===profile.sport)?.label || '';
+  // Make sure we always have a birthday — synthesise from legacy `age` once.
+  const birthday = profile.birthday || birthdayFromAge(profile.age || 22);
+  const age = ageFromBirthday(birthday) || 22;
+  const setBirthday = (bday) => setProfile(p => ({ ...p, birthday: bday, age: ageFromBirthday(bday) || p.age }));
 
   return (
     <div className="tab-pane prof2">
@@ -47,6 +54,17 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
       <div className="ps-callout">
         <span>Edit body & training inputs on the General tab.</span>
       </div>
+
+      <Section title="You">
+        <Row label="Birthday" right={
+          <input className="bday-input compact" type="date"
+            value={birthday} max={TODAY_STR} min="1900-01-01"
+            onChange={(e)=>setBirthday(e.target.value)}/>
+        }/>
+        <Row label="Age" sub="Auto-derived from birthday" right={
+          <span className="prof-val">{age} yrs</span>
+        }/>
+      </Section>
 
       <Section title="Units & display">
         <Row label="Units" right={
@@ -75,9 +93,15 @@ export function ProfileTab({ profile, setProfile, theme, setTheme, onLogout, onR
 
       <Section title="Danger zone">
         {!resetArmed ? (
-          <Row label="Reset all data" sub="Wipes layout + signs you out." right={
-            <button className="link-btn danger" onClick={()=>setResetArmed(true)}>Reset…</button>
-          }/>
+          <>
+            <button className="reset-big-btn" onClick={()=>setResetArmed(true)}>
+              <RotateCcw size={20}/>
+              Reset everything &amp; start over
+            </button>
+            <div className="reset-explainer">
+              Wipes your profile, splits, and schedule. Returns to onboarding.
+            </div>
+          </>
         ) : (
           <div className="reset-confirm">
             <div className="rc-t">Reset everything?</div>

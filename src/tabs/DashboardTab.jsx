@@ -9,7 +9,7 @@ import {
   totalLiftKcal, totalCardioKcal,
   liftMinutesForDay, cardioFor,
 } from '../data/exercises.js';
-import { computeCoverageV2, AnatomyFront, AnatomyBack, TARGETS_V2 } from '../components/Anatomy2D.jsx';
+import { computeCoverageV2, TARGETS_V2 } from '../components/Anatomy2D.jsx';
 import { currentSplitName } from '../lib/splits.js';
 import { useAnimatedNumber } from '../lib/useAnimatedNumber.js';
 import { IconX } from '../components/Icons.jsx';
@@ -67,7 +67,6 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
   const under = useMemo(() => underworkedMuscles(days), [days]);
   const sp = SPORTS.find(s => s.id === profile.sport) || SPORTS[0];
   const cov = useMemo(() => computeCoverage(days), [days]);
-  const covV2 = useMemo(() => computeCoverageV2(days), [days]);
   const splitName = useMemo(() => currentSplitName(days), [days]);
 
   const liftMin = totalLiftMinutes(days);
@@ -75,17 +74,22 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
   const totalMin = liftMin + cardioMin;
   const trainingKcal = totalLiftKcal(days) + totalCardioKcal(cardioDays);
 
-  const allWidgets = ['sportscore','quick','lift','cardio','sport','underworked','time','streak','figure'];
+  // Widget order. `figure` (rotating anatomy) and `streak` (faked streak) were
+  // dropped — Body tab and Dashboard's other cards already cover that ground.
+  const allWidgets = ['sportscore','quick','lift','cardio','sport','underworked','time'];
   const ORDER_KEY = 'sl-dash-order';
   const [order, setOrder] = useState(() => {
     try {
       const raw = localStorage.getItem(ORDER_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.every(x => allWidgets.includes(x))) {
-          const merged = [...parsed];
-          for (const w of allWidgets) if (!merged.includes(w)) merged.push(w);
-          return merged;
+        if (Array.isArray(parsed)) {
+          // Filter out any IDs that no longer exist (e.g. dropped 'figure' /
+          // 'streak') so old saved orders don't crash render.
+          const cleaned = parsed.filter(x => allWidgets.includes(x));
+          // Append any new widgets that weren't in the saved order.
+          for (const w of allWidgets) if (!cleaned.includes(w)) cleaned.push(w);
+          return cleaned;
         }
       }
     } catch (e) {}
@@ -110,7 +114,9 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
     setDragId(null); setHoverId(null);
   };
 
-  const streak = days.filter(d => !d.rest).length * 2 + 1;
+  // Lift days planned this week. Used in the Dashboard hero ("You've got
+  // <N> lift days planned"). Replaces the old fake streak.
+  const liftDaysPlanned = days.filter(d => !d.rest).length;
 
   const dayTimes = DAY_NAMES.map((_, i) => ({
     name: DAY_NAMES[i],
@@ -240,12 +246,6 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
         )}
       </div>
     ),
-    figure: () => (
-      <div className="dw">
-        <div className="dw-head"><div className="dw-t">Body coverage</div><button className="dw-pill" onClick={()=>setTab('body')}>Open ›</button></div>
-        <DashAnatomy sets={covV2}/>
-      </div>
-    ),
     time: () => (
       <div className="dw">
         <div className="dw-head"><div className="dw-t">Weekly time</div><div className="dw-pill mono">{Math.round(totalMin)}m</div></div>
@@ -271,18 +271,6 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
         </div>
       </div>
     ),
-    streak: () => (
-      <div className="dw">
-        <div className="dw-head"><div className="dw-t">Streak</div><div className="dw-pill mono">{streak} days</div></div>
-        <div className="streak-row">
-          {Array.from({length: 14}).map((_, i) => {
-            const on = i >= 14 - streak;
-            return <div key={i} className={`streak-dot ${on?'on':''}`}/>;
-          })}
-        </div>
-        <div className="streak-meta">2 weeks back · longest run: {streak + 4} days</div>
-      </div>
-    ),
   };
 
   return (
@@ -294,7 +282,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
             {gradeOf(Math.round(lift.score*0.6 + cardio.score*0.4))}
           </div>
         </div>
-        <div className="dh-h1">You're <b>{streak} days</b> in.</div>
+        <div className="dh-h1"><b>{liftDaysPlanned}</b> lift {liftDaysPlanned === 1 ? 'day' : 'days'} planned.</div>
         <div className="dh-sub">{coachLine(lift.score, cardio.score, under.length)}</div>
       </div>
 
@@ -351,37 +339,6 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function DashAnatomy({ sets }) {
-  const [paused, setPaused] = useState(false);
-  const [angle, setAngle] = useState(0);
-
-  useEffect(() => {
-    if (paused) return;
-    let raf;
-    let last = performance.now();
-    const tick = (now) => {
-      const dt = now - last; last = now;
-      setAngle(a => (a + (dt / 1000) * 22) % 360);
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [paused]);
-
-  return (
-    <div className="dash-anatomy" onClick={() => setPaused(p => !p)}>
-      <div className="anatomy-3d" style={{
-        transform: `rotateY(${angle}deg)`,
-        transformStyle: 'preserve-3d',
-      }}>
-        <div className="body-face front"><AnatomyFront sets={sets}/></div>
-        <div className="body-face back"><AnatomyBack sets={sets}/></div>
-      </div>
-      {paused && <div className="da-hint mono">PAUSED · TAP TO RESUME</div>}
     </div>
   );
 }

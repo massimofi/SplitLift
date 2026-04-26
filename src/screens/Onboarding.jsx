@@ -3,12 +3,15 @@
 // lands on Dashboard with their chosen split already populated.
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { SPORTS, INITIAL_DAYS } from '../data/exercises.js';
+import { SPORTS, INITIAL_DAYS, ageFromBirthday, birthdayFromAge } from '../data/exercises.js';
 import { SPLIT_TEMPLATES, rankTemplatesForSport } from '../data/templates.js';
 import { makeDayForType } from '../lib/splits.js';
 import { StatusBar } from '../lib/StatusBar.jsx';
 import { I } from '../components/Icons.jsx';
 import { SportIcon } from '../components/SportIcons.jsx';
+
+const TODAY_STR = new Date().toISOString().slice(0, 10);
+const DEFAULT_BDAY = birthdayFromAge(22);
 
 export function Onboarding({ onDone }) {
   const [step, setStep] = useState(0);
@@ -19,7 +22,7 @@ export function Onboarding({ onDone }) {
   // without leading-zero artifacts. We parse on submit.
   const [heightStr, setHeightStr] = useState('');
   const [weightStr, setWeightStr] = useState('');
-  const [ageStr, setAgeStr] = useState('');
+  const [birthday, setBirthday] = useState(DEFAULT_BDAY);
   const [sex, setSex] = useState('m');
   const [days, setDays] = useState(4);
   const [cardioMinStr, setCardioMinStr] = useState('');
@@ -28,7 +31,7 @@ export function Onboarding({ onDone }) {
   // Defaults applied at finish if the user leaves a field blank.
   const height    = parseInt(heightStr, 10) || (hUnit === 'cm' ? 178 : 5.10);
   const weight    = parseInt(weightStr, 10) || (wUnit === 'kg' ? 74  : 165);
-  const age       = parseInt(ageStr, 10) || 22;
+  const age       = ageFromBirthday(birthday) || 22;
   const cardioMin = parseInt(cardioMinStr, 10) || 90;
   const total = 4;
   const labelByStep = ['Sport', 'You', 'Training', 'Plan'];
@@ -43,7 +46,7 @@ export function Onboarding({ onDone }) {
   }, [step, pickedTpl, ranked]);
 
   const finish = () => {
-    const profile = { sport, days, height, hUnit, weight, wUnit, age, sex, cardioMin };
+    const profile = { sport, days, height, hUnit, weight, wUnit, birthday, age, sex, cardioMin };
     const tpl = SPLIT_TEMPLATES.find(t => t.id === pickedTpl);
     let initialDays = INITIAL_DAYS;
     if (tpl) {
@@ -105,10 +108,15 @@ export function Onboarding({ onDone }) {
           </div>
 
           <div style={{ marginBottom: 18 }}>
-            <div className="stat-input-row"><span className="label">Age</span></div>
-            <div className="big-number-input"><input className="num" type="number" inputMode="numeric"
-              value={ageStr} placeholder="25"
-              onChange={(e)=>setAgeStr(e.target.value)}/><span className="unit">yrs</span></div>
+            <div className="stat-input-row"><span className="label">Birthday</span></div>
+            <input className="bday-input" type="date"
+              value={birthday || ''}
+              max={TODAY_STR} min="1900-01-01"
+              onChange={(e)=>setBirthday(e.target.value)}/>
+            <div className="bday-derived">
+              <span className="bd-k mono">AGE</span>
+              <span className="bd-v">{age} yrs</span>
+            </div>
           </div>
 
           <div>

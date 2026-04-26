@@ -41,34 +41,39 @@ export const KEY_BY_SLUG = {
   'head':         'neck',
 };
 
-// Approximate frames for click-to-zoom. {x, y} are translate-percent on the
-// host, scale is the zoom factor. Eyeballed for the ~100×200 viewBox the
-// library renders. Tweak per slug if a particular muscle frames poorly.
+// Per-slug zoom frames for click-to-zoom. {x, y} are translate offsets in
+// viewport-percent units applied via CSS transform; scale is the zoom factor.
+// Calibrated against react-body-highlighter's ~100×200 viewBox so the focused
+// muscle ends up roughly centered and ~70% of the visible area.
+//
+// Values tuned per Massi's request — increase scale/y for a tighter framing,
+// decrease for wider context. Limbs use side x-offsets so the muscle isn't
+// cut off after scaling.
 export const MUSCLE_FRAMES = {
   // ---- Anterior (front) ----
-  chest:            { x:  0,  y: -8,   scale: 1.7 },
-  abs:              { x:  0,  y:  8,   scale: 1.7 },
-  obliques:         { x:  0,  y:  6,   scale: 1.7 },
-  'front-deltoids': { x:  0,  y: -18,  scale: 1.7 },
-  biceps:           { x:  0,  y: -10,  scale: 1.7 },
-  forearm:          { x:  0,  y:  4,   scale: 1.7 },
-  quadriceps:       { x:  0,  y:  20,  scale: 1.55 },
-  adductor:         { x:  0,  y:  22,  scale: 1.6 },
-  abductors:        { x:  0,  y:  18,  scale: 1.6 },
-  calves:           { x:  0,  y:  38,  scale: 1.55 },
-  neck:             { x:  0,  y: -38,  scale: 2.0 },
-  head:             { x:  0,  y: -45,  scale: 2.0 },
+  chest:            { x:   0,  y:  -8,  scale: 1.9 },
+  abs:              { x:   0,  y:   5,  scale: 2.0 },
+  obliques:         { x:   0,  y:   5,  scale: 2.0 },
+  'front-deltoids': { x:   0,  y: -15,  scale: 2.0 },
+  biceps:           { x: -30,  y:  -5,  scale: 2.2 },
+  triceps:          { x: -30,  y:  -5,  scale: 2.2 },
+  forearm:          { x: -35,  y:   5,  scale: 2.3 },
+  quadriceps:       { x:   0,  y:  20,  scale: 1.9 },
+  adductor:         { x:   0,  y:  18,  scale: 2.1 },
+  abductors:        { x: -10,  y:  18,  scale: 2.1 },
+  calves:           { x:   0,  y:  35,  scale: 2.1 },
+  neck:             { x:   0,  y: -22,  scale: 2.5 },
+  head:             { x:   0,  y: -32,  scale: 2.4 },
 
   // ---- Posterior (back) ----
-  trapezius:        { x:  0,  y: -22,  scale: 1.7 },
-  'upper-back':     { x:  0,  y: -10,  scale: 1.6 },
-  'lower-back':     { x:  0,  y:  2,   scale: 1.7 },
-  'back-deltoids':  { x:  0,  y: -20,  scale: 1.7 },
-  triceps:          { x:  0,  y: -10,  scale: 1.7 },
-  hamstring:        { x:  0,  y:  20,  scale: 1.55 },
-  gluteal:          { x:  0,  y:  8,   scale: 1.6 },
-  'left-soleus':    { x:  0,  y:  38,  scale: 1.55 },
-  'right-soleus':   { x:  0,  y:  38,  scale: 1.55 },
+  trapezius:        { x:   0,  y: -20,  scale: 2.0 },
+  'upper-back':     { x:   0,  y: -10,  scale: 1.9 },
+  'lower-back':     { x:   0,  y:   8,  scale: 2.0 },
+  'back-deltoids':  { x:   0,  y: -15,  scale: 2.0 },
+  hamstring:        { x:   0,  y:  20,  scale: 1.9 },
+  gluteal:          { x:   0,  y:  12,  scale: 2.0 },
+  'left-soleus':    { x:   0,  y:  35,  scale: 2.1 },
+  'right-soleus':   { x:   0,  y:  35,  scale: 2.1 },
 };
 
 // Heatmap ramp. Index 0 (freq 1) is dead-gray = same as bodyColor so

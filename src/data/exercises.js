@@ -344,10 +344,37 @@ export function totalLiftMinutes(days) {
 
 export function totalLiftKcal(days) { return Math.round(totalLiftMinutes(days) * 6); }
 
-export function estimateBMR({ weight, wUnit, height, hUnit, age = 28, sex = 'm' }) {
+// Derive age (years) from a YYYY-MM-DD birthday string. Handles the leap-day
+// edge case and returns null if the string is empty / invalid.
+export function ageFromBirthday(bdayStr) {
+  if (!bdayStr || typeof bdayStr !== 'string') return null;
+  const parts = bdayStr.split('-');
+  if (parts.length !== 3) return null;
+  const [y, m, d] = parts.map(n => parseInt(n, 10));
+  if (!y || !m || !d) return null;
+  const today = new Date();
+  let age = today.getFullYear() - y;
+  const beforeBday = today.getMonth() + 1 < m || (today.getMonth() + 1 === m && today.getDate() < d);
+  if (beforeBday) age--;
+  return age;
+}
+
+// Compute a synthetic YYYY-MM-DD birthday from an age (used in migrations).
+export function birthdayFromAge(age) {
+  const a = Number(age) || 22;
+  const today = new Date();
+  const y = today.getFullYear() - a;
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+export function estimateBMR({ weight, wUnit, height, hUnit, age = 28, sex = 'm', birthday }) {
+  // Prefer derived age from birthday if available — single source of truth.
+  const eff = (birthday && ageFromBirthday(birthday)) || age || 28;
   const wKg = wUnit === 'lb' ? weight * 0.4536 : Number(weight);
   const hCm = hUnit === 'ft' ? height * 30.48 : Number(height);
-  const base = 10 * wKg + 6.25 * hCm - 5 * (age || 28);
+  const base = 10 * wKg + 6.25 * hCm - 5 * eff;
   // Mifflin–St Jeor: m +5, f −161; non-binary / undisclosed → midpoint (−78).
   if (sex === 'f' || sex === 'female') return Math.round(base - 161);
   if (sex === 'm' || sex === 'male')   return Math.round(base + 5);
@@ -389,13 +416,14 @@ export function hrZonesFor(age) {
   return { max, z2, tempo, hiit };
 }
 
-// Map a cardio session's type to a target HR band, using profile.age via Tanaka.
+// Map a cardio session's type to a target HR band, using profile age via Tanaka.
 export function cardioHRZone(cardio, profile) {
   if (!cardio || !profile) return null;
   const intensityMap = { zone2:'z2', easy:'z2', bike:'z2', row:'z2', tempo:'tempo', long:'tempo', hiit:'hiit' };
   const key = intensityMap[cardio.type];
   if (!key) return null;
-  return hrZonesFor(profile.age)[key];
+  const age = (profile.birthday && ageFromBirthday(profile.birthday)) || profile.age;
+  return hrZonesFor(age)[key];
 }
 
 export function dailyKcalNeed(profile, weeklyTrainingKcal) {

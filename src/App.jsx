@@ -9,9 +9,11 @@ import { Onboarding } from './screens/Onboarding.jsx';
 import { MainApp } from './screens/MainApp.jsx';
 import { loadState, saveState, clearState } from './state/persist.js';
 
+// `birthday` is the source of truth (YYYY-MM-DD); `age` is kept as a fallback
+// for callers that haven't been updated yet. Defaults to a 22-year-old.
 const DEFAULT_PROFILE = {
   days: 4, height: 178, hUnit: 'cm', weight: 74, wUnit: 'kg',
-  age: 22, sex: 'm', sport: 'soccer', cardioMin: 90,
+  birthday: null, age: 22, sex: 'm', sport: 'soccer', cardioMin: 90,
 };
 
 export default function App() {

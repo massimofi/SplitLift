@@ -2,7 +2,7 @@
 // Drives everything downstream.
 
 import React, { useState } from 'react';
-import { SPORTS, tdeeFor, estimateBMR, macrosFor, hrZonesFor, totalCardioMinutes } from '../data/exercises.js';
+import { SPORTS, tdeeFor, estimateBMR, macrosFor, hrZonesFor, totalCardioMinutes, ageFromBirthday } from '../data/exercises.js';
 import { IconX, IconPlus } from '../components/Icons.jsx';
 
 export function GeneralTab({ profile, setProfile, days, cardioDays, showToast }) {
@@ -30,10 +30,11 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
   };
 
   const sportObj = SPORTS.find(s => s.id === profile.sport) || { label: '—', sub: '' };
+  const age = (profile.birthday && ageFromBirthday(profile.birthday)) || profile.age || 22;
   const tdee = tdeeFor(profile);
   const bmr = estimateBMR(profile);
   const macros = macrosFor(profile, tdee);
-  const hr = hrZonesFor(profile.age);
+  const hr = hrZonesFor(age);
 
   const liftDays = (days || []).filter(d => d && !d.rest).length;
   const cardioMin = totalCardioMinutes(cardioDays || []);
@@ -56,12 +57,6 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
           </div>
           <div className="gt-sub">{sportObj.sub || 'Tap to change'}</div>
         </button>
-
-        <div className="gen-tile">
-          <div className="gt-label mono">AGE</div>
-          <div className="gt-value">{profile.age || 22}<span className="gt-unit">yrs</span></div>
-          <Stepper onMinus={()=>adjust('age', -1, {min:14, max:90})} onPlus={()=>adjust('age', +1, {min:14, max:90})}/>
-        </div>
 
         <div className="gen-tile">
           <div className="gt-row">
@@ -94,6 +89,11 @@ export function GeneralTab({ profile, setProfile, days, cardioDays, showToast })
 
       <div className="gen-section-h">Your numbers</div>
       <div className="gen-grid computed">
+        <div className="gen-tile read">
+          <div className="gt-label mono">AGE</div>
+          <div className="gt-value">{age}<span className="gt-unit">yrs</span></div>
+          <div className="gt-sub">From birthday on Profile</div>
+        </div>
         <div className="gen-tile read">
           <div className="gt-label mono">CALORIES / DAY</div>
           <div className="gt-value">{tdee || '—'}<span className="gt-unit">kcal</span></div>
