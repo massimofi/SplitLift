@@ -160,32 +160,36 @@ export function CardioTab({ profile, cardioDays, setTab }) {
       <Subheader subtitle="Tap a session to jump to its day in Schedule.">Your week</Subheader>
       {week.length === 0 ? (
         <Card variant="subtle" size="md" className="cardio-empty">
-          No cardio scheduled this week. Drag a chip onto a day in Schedule.
+          No cardio scheduled this week. Long-press a chip in Schedule to drop it on a day.
         </Card>
       ) : (
         <div className="cardio-week-stack">
-          {week.map(({ dayIdx, dayName, items }) => (
-            <Card
-              key={dayIdx}
-              variant="surface"
-              size="md"
-              interactive
-              onClick={() => setTab && setTab('schedule')}
-              className="cardio-day-card"
-            >
-              <div className="cardio-day-head">
-                <span className="cardio-day-name mono">{dayName.toUpperCase()}</span>
-                <span className="cardio-day-total mono">{items.reduce((s, c) => s + (c.dur || 0), 0)} min</span>
-              </div>
-              <div className="cardio-day-items">
-                {items.map((c, k) => (
-                  <span key={k} className="cardio-day-item">
-                    {c.name} · {c.dur}m
-                  </span>
-                ))}
-              </div>
-            </Card>
-          ))}
+          {/* v11.5 Issue 2: each session is its own small surface card so
+              the layout matches the Recommended cards above. */}
+          {week.flatMap(({ dayName, items }) =>
+            items.map((c, k) => (
+              <Card
+                key={`${dayName}-${k}`}
+                variant="surface"
+                size="sm"
+                interactive
+                onClick={() => setTab && setTab('schedule')}
+                className="cardio-week-row"
+              >
+                <div className="cardio-week-row-inner">
+                  <div className="cardio-week-row-l">
+                    <Card.Eyebrow>{dayName.toUpperCase()}</Card.Eyebrow>
+                    <Card.Title>{c.name}</Card.Title>
+                    <Card.Sub className="cardio-rec-meta">
+                      {CARDIO_TYPES[c.type]?.label || c.type}
+                      {c.dist > 0 ? ` · ${c.dist}${c.unit}` : ''}
+                    </Card.Sub>
+                  </div>
+                  <Chip gradient="cardio" size="sm">{c.dur} min</Chip>
+                </div>
+              </Card>
+            ))
+          )}
         </div>
       )}
 

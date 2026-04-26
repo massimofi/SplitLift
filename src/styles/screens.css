@@ -703,6 +703,16 @@
 }
 
 .cardio-day-card { gap: var(--space-2); }
+
+/* v11.5 Issue 2 — single-session row in "Your week" */
+.cardio-week-row { gap: var(--space-2); }
+.cardio-week-row-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3);
+}
+.cardio-week-row-l {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;
+}
 .cardio-day-head {
   display: flex; align-items: baseline; justify-content: space-between;
   gap: var(--space-3);

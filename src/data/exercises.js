@@ -133,7 +133,7 @@ export const EXERCISES = [
   { id:'donkey',     name:'Donkey Calf Raise',    body:'calves',  type:'legs', gear:'BW',  sets:'3 × 15',  hits:{calves:1.0} },
 
   // ===== CARDIO =====
-  { id:'z2run',    name:'Zone-2 Run',           body:'cardio', type:'cardio',gear:'RUN', sets:'30 min', hits:{} },
+  { id:'z2run',    name:'Zone 2 Run',           body:'cardio', type:'cardio',gear:'RUN', sets:'30 min', hits:{} },
   { id:'hiit',     name:'HIIT Intervals',       body:'cardio', type:'cardio',gear:'BIK', sets:'8 × 1m', hits:{} },
   { id:'row-erg',  name:'Row Erg',              body:'cardio', type:'cardio',gear:'ROW', sets:'20 min', hits:{back:0.3} },
 ];
@@ -450,11 +450,11 @@ export const CARDIO_TYPES = {
 };
 
 export const CARDIO_LIBRARY = [
-  { id:'c-z2-30',    type:'zone2',  name:'Zone-2 Run',        dur:30, dist:4.5, unit:'mi' },
-  { id:'c-z2-45',    type:'zone2',  name:'Zone-2 Run',        dur:45, dist:6.5, unit:'mi' },
+  { id:'c-z2-30',    type:'zone2',  name:'Zone 2 Run',        dur:30, dist:4.5, unit:'mi' },
+  { id:'c-z2-45',    type:'zone2',  name:'Zone 2 Run',        dur:45, dist:6.5, unit:'mi' },
   { id:'c-easy-20',  type:'easy',   name:'Easy Recovery',     dur:20, dist:2.5, unit:'mi' },
   { id:'c-tempo',    type:'tempo',  name:'Tempo Run',         dur:25, dist:4.0, unit:'mi' },
-  { id:'c-hiit-1',   type:'hiit',   name:'HIIT 8×1m',         dur:20, dist:0,   unit:'min' },
+  { id:'c-hiit-1',   type:'hiit',   name:'HIIT Intervals',    dur:20, dist:0,   unit:'min' },
   { id:'c-hiit-2',   type:'hiit',   name:'HIIT 30/30',        dur:18, dist:0,   unit:'min' },
   { id:'c-long',     type:'long',   name:'Long Run',          dur:60, dist:8.0, unit:'mi' },
   { id:'c-bike',     type:'bike',   name:'Bike Ride',         dur:40, dist:12,  unit:'mi' },
