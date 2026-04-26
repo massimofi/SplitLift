@@ -66,6 +66,7 @@
   animation: sl-card-drift 22s ease-in-out infinite alternate;
 }
 .sl-btn[data-grad="energy"]    { background-image: var(--grad-energy); }
+.sl-btn[data-grad="strength"]  { background-image: var(--grad-strength); }
 .sl-btn[data-grad="cardio"]    { background-image: var(--grad-cardio); }
 .sl-btn[data-grad="recovery"]  { background-image: var(--grad-recovery); }
 .sl-btn[data-grad="warning"]   { background-image: var(--grad-warning); }
@@ -114,15 +115,23 @@
   text-shadow: var(--shadow-on-gradient);
   background-size: 200% 200%;
 }
-.sl-chip[data-grad="priority"]  { background-image: var(--grad-priority); }
-.sl-chip[data-grad="energy"]    { background-image: var(--grad-energy); }
-.sl-chip[data-grad="cardio"]    { background-image: var(--grad-cardio); }
-.sl-chip[data-grad="recovery"]  { background-image: var(--grad-recovery); }
-.sl-chip[data-grad="warning"]   { background-image: var(--grad-warning); }
-.sl-chip[data-grad="danger"]    { background-image: var(--grad-danger); }
-.sl-chip[data-grad="info"]      { background-image: var(--grad-info); }
-.sl-chip[data-grad="personal"]  { background-image: var(--grad-personal); }
-.sl-chip[data-grad="success"]   { background-image: var(--grad-success); }
+.sl-chip[data-grad="priority"]   { background-image: var(--grad-priority); }
+.sl-chip[data-grad="energy"]     { background-image: var(--grad-energy); }
+.sl-chip[data-grad="strength"]   { background-image: var(--grad-strength); }
+.sl-chip[data-grad="cardio"]     { background-image: var(--grad-cardio); }
+.sl-chip[data-grad="cardio-day"] { background-image: var(--grad-cardio-day); }
+.sl-chip[data-grad="recovery"]   { background-image: var(--grad-recovery); }
+.sl-chip[data-grad="warning"]    { background-image: var(--grad-warning); }
+.sl-chip[data-grad="danger"]     { background-image: var(--grad-danger); }
+.sl-chip[data-grad="info"]       { background-image: var(--grad-info); }
+.sl-chip[data-grad="personal"]   { background-image: var(--grad-personal); }
+.sl-chip[data-grad="muted"]      { background-image: var(--grad-muted); }
+.sl-chip[data-grad="success"]    { background-image: var(--grad-success); }
+/* Score-based — used by Friend SMS pills, etc. */
+.sl-chip[data-grad="score-poor"]  { background-image: var(--grad-score-poor); }
+.sl-chip[data-grad="score-mid"]   { background-image: var(--grad-score-mid); }
+.sl-chip[data-grad="score-good"]  { background-image: var(--grad-score-good); }
+.sl-chip[data-grad="score-great"] { background-image: var(--grad-score-great); }
 .sl-chip[data-grad="push"]      { background-image: var(--grad-push); }
 .sl-chip[data-grad="pull"]      { background-image: var(--grad-pull); }
 .sl-chip[data-grad="legs"]      { background-image: var(--grad-legs); }
@@ -133,6 +142,7 @@
 .sl-chip[data-grad="full"]      { background-image: var(--grad-full); }
 .sl-chip[data-grad="sport"]     { background-image: var(--grad-sport); }
 .sl-chip[data-grad="rest"]      { background-image: var(--grad-rest); }
+.sl-chip[data-grad="custom"]    { background-image: var(--grad-custom); }
 .sl-chip.is-active { transform: scale(1.04); }
 
 /* ---------- Toggle (segmented switch) ---------- */

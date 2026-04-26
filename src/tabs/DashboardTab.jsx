@@ -149,7 +149,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </Card>
     ),
     lift: () => (
-      <Card variant="gradient" gradient="energy" size="md">
+      <Card variant="gradient" gradient="strength" size="md">
         <div className="dw-head-row">
           <Card.Title>Lifting</Card.Title>
           <span className="dw-pill-grade">{gradeOf(lift.score)}</span>

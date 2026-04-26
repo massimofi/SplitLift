@@ -98,15 +98,17 @@
      SEMANTIC GRADIENTS — referenced via Card gradient="..." prop.
      NEVER hardcode gradient strings outside this file.
      ============================================================ */
-  --grad-priority:  linear-gradient(135deg, #5B5BFF 0%, #9B5BFF 60%, #FF6BD6 100%);
-  --grad-energy:    linear-gradient(135deg, #FF8C42 0%, #FFD93D 100%);
-  --grad-cardio:    linear-gradient(135deg, #FF4444 0%, #FF8C42 60%, #FFD93D 100%);
-  --grad-recovery:  linear-gradient(135deg, #00c896 0%, #4ED9C0 60%, #19B6FF 100%);
-  --grad-warning:   linear-gradient(135deg, #FF8C42 0%, #FF4444 100%);
-  --grad-danger:    linear-gradient(135deg, #FF4444 0%, #FF6BD6 100%);
-  --grad-info:      linear-gradient(135deg, #19B6FF 0%, #5B5BFF 100%);
-  --grad-personal:  linear-gradient(135deg, #9B5BFF 0%, #FF6BD6 100%);
-  --grad-muted:     linear-gradient(135deg, #6A6D85 0%, #2A2D45 100%);
+  /* Per v8 color semantic table */
+  --grad-priority:  linear-gradient(135deg, #5B5BFF 0%, #9B5BFF 60%, #FF6BD6 100%); /* primary actions, sport priority, focus */
+  --grad-energy:    linear-gradient(135deg, #FF8C42 0%, #FF4444 100%);              /* calories / metabolism */
+  --grad-strength:  linear-gradient(135deg, #FFD93D 0%, #FF8C42 60%, #FF6BD6 100%); /* lifting / volume / push days */
+  --grad-cardio:    linear-gradient(135deg, #19B6FF 0%, #5BC4FF 100%);              /* cardio activity (cyan→sky) */
+  --grad-recovery:  linear-gradient(135deg, #00c896 0%, #4ED9C0 60%, #19B6FF 100%); /* recovery / nutrition / good state */
+  --grad-warning:   linear-gradient(135deg, #FFD93D 0%, #FF8C42 100%);              /* under-trained / needs attention */
+  --grad-danger:    linear-gradient(135deg, #FF6B6B 0%, #FF6BD6 100%);              /* over-trained / problem state */
+  --grad-info:      linear-gradient(135deg, #5B5BFF 0%, #19B6FF 100%);              /* neutral data, quick stats */
+  --grad-personal:  linear-gradient(135deg, #FF6BD6 0%, #FF8C42 100%);              /* personal info (pink→orange) */
+  --grad-muted:     linear-gradient(135deg, #555879 0%, #2A2D45 100%);              /* disabled / rest / inactive */
   --grad-success:   linear-gradient(135deg, #00c896 0%, #4ED9C0 100%);
 
   /* Score-based gradients (for lifting/cardio scores) */

@@ -75,6 +75,7 @@
 /* ---- gradient picker ---- */
 .sl-card[data-grad="priority"]   { background-image: var(--grad-priority); }
 .sl-card[data-grad="energy"]     { background-image: var(--grad-energy); }
+.sl-card[data-grad="strength"]   { background-image: var(--grad-strength); }
 .sl-card[data-grad="cardio"]     { background-image: var(--grad-cardio); }
 .sl-card[data-grad="recovery"]   { background-image: var(--grad-recovery); }
 .sl-card[data-grad="warning"]    { background-image: var(--grad-warning); }

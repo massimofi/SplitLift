@@ -17,7 +17,7 @@ const SEED_STATE = {
     birthday: '2003-04-26',
     age: 22,
     sex: 'm',
-    sport: 'basketball',
+    sport: 'soccer',
     cardioMin: 90,
     weightLog: [{ date: '2026-04-26', kg: 78 }],
   },
