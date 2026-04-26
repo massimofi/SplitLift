@@ -5,3 +5,8 @@ node_modules/
 dist/
 .vite/
 anatomy.glb
+# Playwright artifacts — local-only
+tests/screenshots/
+playwright-report/
+test-results/
+
