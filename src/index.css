@@ -2942,3 +2942,38 @@
     font-family: inherit;
   }
   .invite-copy-btn:active { transform: scale(0.96); }
+
+  /* ============== v6 ISSUE 1 — Dashboard text contrast on gradients ============== */
+  /* All gradient widgets use white text in both light and dark mode, with a
+     subtle dark text-shadow so they read on any color in the gradient set. */
+  .dw.gw .sms-num,
+  .dw.gw .qt-v,
+  .dw.gw .ds-v,
+  .dw.gw .ring-num {
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 0 1px rgba(0,0,0,0.55);
+  }
+  .dw.gw .dw-t,
+  .dw.gw .qt-k,
+  .dw.gw .qt-u,
+  .dw.gw .ds-k,
+  .dw.gw .dw-pill,
+  .dw.gw .dh-kicker,
+  .dw.gw .sms-units,
+  .dw.gw .sms-bar-h,
+  .dw.gw .sport-meta,
+  .dw.gw .sp-pill .lbl,
+  .dw.gw .sp-pill .weight,
+  .dw.gw .split-pill .sp-k,
+  .dw.gw .split-pill .sp-v,
+  .dw.gw .ur-name,
+  .dw.gw .ur-meta,
+  .dw.gw .tc-lbl,
+  .dw.gw .tc-legend {
+    color: rgba(255,255,255,0.95) !important;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.30);
+  }
+  /* Bump the dark overlay so text contrast is guaranteed even on yellow/teal */
+  .dw.gw::before {
+    background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.42) 100%) !important;
+  }
