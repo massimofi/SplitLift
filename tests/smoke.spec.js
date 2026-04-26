@@ -63,6 +63,15 @@ test.describe('SplitLift smoke', () => {
       await page.waitForTimeout(500);
 
       await page.screenshot({ path: `tests/screenshots/${tab.toLowerCase()}.png`, fullPage: true });
+      // General tab also gets a scrolled snap so we can see the gender card.
+      if (tab === 'General') {
+        await page.evaluate(() => {
+          const pane = document.querySelector('.screen-body');
+          if (pane) pane.scrollTop = 600;
+        });
+        await page.waitForTimeout(150);
+        await page.screenshot({ path: 'tests/screenshots/general-mid.png', fullPage: true });
+      }
       // Body tab also gets a scrolled snap so we can see coverage cells.
       if (tab === 'Body') {
         await page.evaluate(() => {
@@ -164,6 +173,36 @@ test.describe('SplitLift smoke', () => {
       await page.waitForTimeout(400);
       await page.screenshot({ path: `tests/screenshots/light-${tab.toLowerCase()}.png`, fullPage: true });
     }
+  });
+
+  test('Gender input has visible contrast in dark mode', async ({ page }) => {
+    // App is seeded in dark mode; navigate to General + scroll to gender card.
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.bn-item').filter({ hasText: 'General' }).first().click();
+    await page.waitForTimeout(400);
+    await page.evaluate(() => {
+      const pane = document.querySelector('.screen-body');
+      if (pane) pane.scrollTop = 600;
+    });
+    await page.waitForTimeout(150);
+    // The active option (.on) must have visible contrast: text vs bg
+    // luminance gap >= 0.45 (rough WCAG-ish smell test).
+    const activeBtn = page.locator('.gen-seg-four button.on').first();
+    await expect(activeBtn).toBeVisible();
+    const { fg, bg } = await activeBtn.evaluate(el => {
+      const cs = getComputedStyle(el);
+      return { fg: cs.color, bg: cs.backgroundColor };
+    });
+    const luma = (rgb) => {
+      const m = rgb.match(/\d+(\.\d+)?/g);
+      if (!m) return 0;
+      const [r, g, b] = m.map(Number);
+      // sRGB to relative luminance approximation
+      return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    };
+    const diff = Math.abs(luma(fg) - luma(bg));
+    expect(diff, `active gender button text/bg contrast too low: fg=${fg} bg=${bg}`).toBeGreaterThan(0.45);
   });
 
   test('Body zoom drawer has solid background', async ({ page }) => {

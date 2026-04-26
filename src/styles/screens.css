@@ -406,8 +406,8 @@
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
 }
 .gen-seg-four button {
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.20);
   color: var(--text-on-gradient);
   font-family: var(--font-sans);
   font-weight: 700;
@@ -415,11 +415,18 @@
   padding: 8px 6px;
   border-radius: var(--r-sm);
   cursor: pointer;
+  transition: background var(--dur-base) ease, color var(--dur-base) ease;
 }
+/* WHY (v10 Issue 1a): the previous on-state used --text-on-gradient for bg
+   AND --ink for text. In dark mode --ink is also white (#F2F2FB), so the
+   active pill rendered white-on-white and was completely unreadable. The
+   active pill now uses a dark, mode-agnostic background that always pairs
+   with white text — readable in both light and dark mode. */
 .gen-seg-four button.on {
-  background: var(--text-on-gradient);
-  color: var(--ink);
-  border-color: var(--text-on-gradient);
+  background: rgba(0, 0, 0, 0.55);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.10) inset, 0 4px 12px rgba(0,0,0,0.20);
 }
 .gen-weight-card-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
 .gen-weight-log-btn {
