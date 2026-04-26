@@ -29,6 +29,10 @@ export function Card({
   size = 'md',
   interactive = false,
   glow = false,
+  // v10 Issue 5: optional Lucide icon component shown top-right at 24px /
+  // opacity 0.6. Pass-through React component reference (e.g. icon={Heart}).
+  icon: IconCmp = null,
+  iconSize = 24,
   as,
   className = '',
   style,
@@ -38,7 +42,7 @@ export function Card({
 }) {
   const Tag = as || (interactive || onClick ? 'button' : 'div');
   const isInteractive = interactive || !!onClick;
-  const cls = ['sl-card', className].filter(Boolean).join(' ');
+  const cls = ['sl-card', IconCmp && 'has-corner-icon', className].filter(Boolean).join(' ');
   // For <button>, reset only the bits that would clobber Card styling.
   // CRITICAL: never set `background: 'none'` here — it kills the gradient
   // background-image set by .sl-card[data-grad=...] in card.css.
@@ -57,6 +61,11 @@ export function Card({
       style={{ ...buttonReset, ...style }}
       {...rest}
     >
+      {IconCmp && (
+        <span className="sl-card-corner-icon" aria-hidden="true">
+          <IconCmp size={iconSize} strokeWidth={2.0}/>
+        </span>
+      )}
       {children}
     </Tag>
   );

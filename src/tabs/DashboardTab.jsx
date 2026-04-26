@@ -19,6 +19,10 @@ import { useAnimatedNumber } from '../lib/useAnimatedNumber.js';
 import { IconX } from '../components/Icons.jsx';
 import { Card, gradFromScore } from '../components/Card.jsx';
 import { Subheader } from '../components/Subheader.jsx';
+import {
+  Heart, Target, BarChart3, Dumbbell, Activity, Trophy,
+  AlertTriangle, Clock,
+} from 'lucide-react';
 
 // Sport Match Score — composite of priority-hit / cardio-match / balance.
 function sportMatchScore(profile, days, cardioDays, sport) {
@@ -90,7 +94,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
 
   const widgets = {
     sportscore: () => (
-      <Card variant="gradient" gradient={gradFromScore(sms.score)} size="md" interactive onClick={()=>setSmsOpen(true)}>
+      <Card variant="gradient" gradient={gradFromScore(sms.score)} size="md" interactive icon={Target} onClick={()=>setSmsOpen(true)}>
         <div className="dw-head-row">
           <Card.Title>Sport match · {sp.label}</Card.Title>
           <span className="dw-pill-grade">TAP FOR DETAIL</span>
@@ -107,7 +111,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </Card>
     ),
     quick: () => (
-      <Card variant="gradient" gradient="info" size="md">
+      <Card variant="gradient" gradient="info" size="md" icon={BarChart3}>
         <div className="dw-head-row">
           <Card.Title>This week</Card.Title>
         </div>
@@ -119,7 +123,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </Card>
     ),
     lift: () => (
-      <Card variant="gradient" gradient="strength" size="md">
+      <Card variant="gradient" gradient="strength" size="md" icon={Dumbbell}>
         <div className="dw-head-row">
           <Card.Title>Lifting</Card.Title>
           <span className="dw-pill-grade">{gradeOf(lift.score)}</span>
@@ -140,7 +144,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </Card>
     ),
     cardio: () => (
-      <Card variant="gradient" gradient="cardio" size="md">
+      <Card variant="gradient" gradient="cardio" size="md" icon={Activity}>
         <div className="dw-head-row">
           <Card.Title>Cardio</Card.Title>
           <span className="dw-pill-grade">{gradeOf(cardio.score)}</span>
@@ -161,7 +165,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </Card>
     ),
     sport: () => (
-      <Card variant="gradient" gradient="priority" size="md">
+      <Card variant="gradient" gradient="priority" size="md" icon={Trophy}>
         <div className="dw-head-row">
           <Card.Title>Sport · {sp.label}</Card.Title>
           <span className="dw-pill-grade">{sp.daysHint}d/wk</span>
@@ -183,7 +187,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </Card>
     ),
     underworked: () => (
-      <Card variant="gradient" gradient="warning" size="md">
+      <Card variant="gradient" gradient="warning" size="md" icon={AlertTriangle}>
         <div className="dw-head-row">
           <Card.Title>Under-worked</Card.Title>
           <span className="dw-pill-grade">{under.length}</span>
@@ -206,7 +210,7 @@ export function DashboardTab({ days, cardioDays, profile, setTab }) {
       </Card>
     ),
     time: () => (
-      <Card variant="gradient" gradient="recovery" size="md">
+      <Card variant="gradient" gradient="recovery" size="md" icon={Clock}>
         <div className="dw-head-row">
           <Card.Title>Weekly time</Card.Title>
           <span className="dw-pill-grade">{Math.round(totalMin)}m</span>

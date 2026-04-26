@@ -120,6 +120,26 @@
 .sl-card[data-interactive="true"]:hover { transform: translateY(-1px); box-shadow: var(--shadow-lg); }
 .sl-card[data-interactive="true"]:active { transform: translateY(0) scale(0.985); transition-duration: 80ms; }
 
+/* ---- corner icon (v10 Issue 5) ---- */
+.sl-card-corner-icon {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-on-gradient);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 2;
+}
+.sl-card[data-variant="surface"] .sl-card-corner-icon,
+.sl-card[data-variant="subtle"]  .sl-card-corner-icon { color: var(--ink-2); opacity: 0.50; }
+/* When a card has a corner icon, reserve a bit of right padding on the
+   header so the title doesn't overlap the icon at narrow widths. */
+.sl-card.has-corner-icon .sl-card-header,
+.sl-card.has-corner-icon .dw-head-row { padding-right: 36px; }
+
 /* ---- glow (e.g. "today" highlight in Schedule) ---- */
 .sl-card[data-glow="true"] {
   box-shadow:
