@@ -29,7 +29,12 @@ export function Onboarding({ onDone }) {
   const [pickedTpl, setPickedTpl] = useState(null);
 
   // Defaults applied at finish if the user leaves a field blank.
-  const height    = parseInt(heightStr, 10) || (hUnit === 'cm' ? 178 : 5.10);
+  // v11.5 Issue 1: imperial height = decimal feet (e.g. 5.9). Float-parse.
+  const height = (() => {
+    if (hUnit === 'cm') return parseInt(heightStr, 10) || 178;
+    const f = parseFloat(heightStr);
+    return Number.isFinite(f) && f > 0 ? f : 5.9;  // ~178 cm
+  })();
   const weight    = parseInt(weightStr, 10) || (wUnit === 'kg' ? 74  : 165);
   const age       = ageFromBirthday(birthday) || 22;
   const cardioMin = parseInt(cardioMinStr, 10) || 90;
@@ -90,9 +95,18 @@ export function Onboarding({ onDone }) {
                 <button className={hUnit==='ft'?'active':''} onClick={()=>setHUnit('ft')}>FT</button>
               </div>
             </div>
-            <div className="big-number-input"><input className="num" type="number" inputMode="numeric"
-              value={heightStr} placeholder={hUnit === 'cm' ? '178' : '70'}
-              onChange={(e)=>setHeightStr(e.target.value)}/><span className="unit">{hUnit}</span></div>
+            <div className="big-number-input">
+              <input
+                className="num"
+                type="number"
+                inputMode="decimal"
+                step={hUnit === 'cm' ? '1' : '0.1'}
+                value={heightStr}
+                placeholder={hUnit === 'cm' ? '178' : '5.9'}
+                onChange={(e)=>setHeightStr(e.target.value)}
+              />
+              <span className="unit">{hUnit}</span>
+            </div>
           </div>
 
           <div style={{ marginBottom: 18 }}>
