@@ -2330,16 +2330,13 @@
     margin-left: 4px;
   }
 
-  /* ============== ExerciseGif (free-exercise-db) ============== */
+  /* ============== ExerciseGif — colored tile with lucide icon ============== */
   .ex-gif {
     flex-shrink: 0;
-    object-fit: cover;
-    background: var(--bg);
-    border: 1px solid var(--hair);
     display: grid; place-items: center;
   }
   .ex-gif.round { border-radius: 10px; }
-  .ex-gif.placeholder { color: var(--ink-3); }
+  .ex-gif.tile { border: none; overflow: hidden; }
 
   /* Make sure sheet/list rows actually flex the gif inline */
   .lib-row, .sx-row, .b2-d-row, .st-ex { gap: 10px; }
