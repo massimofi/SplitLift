@@ -214,7 +214,8 @@ test.describe('Data flow audit', () => {
     await page.locator('.ps-card-name').filter({ hasText: 'My Custom PPL' }).first().click();
     await page.waitForTimeout(300);
     await expect(page.getByRole('button', { name: /^Use this$/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /^Duplicate$/i })).toBeVisible();
+    // v11.6: Duplicate is now an icon button with aria-label
+    await expect(page.getByRole('button', { name: /Duplicate/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /^Delete$/i })).toBeVisible();
 
     // Close detail
@@ -225,7 +226,8 @@ test.describe('Data flow audit', () => {
     await page.locator('.ps-card-name').nth(1).click();   // first built-in
     await page.waitForTimeout(300);
     await expect(page.getByRole('button', { name: /^Use this$/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /^Duplicate$/i })).toBeVisible();
+    // v11.6: Duplicate is now an icon button with aria-label
+    await expect(page.getByRole('button', { name: /Duplicate/i })).toBeVisible();
     expect(await page.getByRole('button', { name: /^Delete$/i }).count()).toBe(0);
   });
 
